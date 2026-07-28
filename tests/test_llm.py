@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import json
 import unittest
 from unittest import mock
 
@@ -8,6 +9,7 @@ from kg.llm import (
     DEFAULT_MINIMAX_BASE_URL,
     DEFAULT_MINIMAX_MODEL,
     LLMConfig,
+    MiniMaxM3LLM,
     parse_json_object,
 )
 
@@ -53,6 +55,26 @@ class LLMTest(unittest.TestCase):
         self.assertEqual(
             config.endpoint, "https://gateway.example/v1/chat/completions"
         )
+
+    @mock.patch("kg.llm.time.sleep")
+    @mock.patch("kg.llm.urllib.request.urlopen")
+    def test_client_retries_read_timeout(self, urlopen, sleep):
+        item = mock.MagicMock()
+        item.read.return_value = json.dumps(
+            {"choices": [{"message": {"content": '{"ok": true}'}}]}
+        ).encode("utf-8")
+        item.__enter__.return_value = item
+        urlopen.side_effect = [TimeoutError("read timed out"), item]
+        client = MiniMaxM3LLM(
+            LLMConfig(
+                base_url="https://gateway.example/v1",
+                api_key="secret",
+                model="MiniMax-M3",
+            )
+        )
+        self.assertEqual(client.complete_json("system", "user"), {"ok": True})
+        self.assertEqual(urlopen.call_count, 2)
+        sleep.assert_called_once()
 
 
 if __name__ == "__main__":

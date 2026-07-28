@@ -13,7 +13,10 @@ def observation(name: str, entity_type: str = "concept") -> EntityObservation:
         name=name,
         definition=f"{name} 的实质性测试定义",
         entity_type=entity_type,
-        evidence=f"{name} 的实质性测试定义",
+        model_quote=f"{name} 的实质性测试定义",
+        source_text=f"{name} 的实质性测试定义",
+        passage_ids=("P000001",),
+        location="P000001",
     )
 
 
@@ -41,7 +44,9 @@ class StoreTest(unittest.TestCase):
         store.add_evidence(
             self.conn,
             source_id=self.source_id,
-            excerpt=f"{name} 的实质性测试定义",
+            source_text=f"{name} 的实质性测试定义",
+            model_quote=f"{name} 的实质性测试定义",
+            passage_ids=("P000001",),
             location="test",
             polarity="support",
             entity_id=entity_id,
@@ -80,7 +85,9 @@ class StoreTest(unittest.TestCase):
         store.add_evidence(
             self.conn,
             source_id=self.source_id,
-            excerpt="证据一",
+            source_text="真实原文一",
+            model_quote="证据一",
+            passage_ids=("P000001",),
             location="1",
             polarity="support",
             claim_id=claim_id,
@@ -95,7 +102,9 @@ class StoreTest(unittest.TestCase):
         store.add_evidence(
             self.conn,
             source_id=other_id,
-            excerpt="证据二",
+            source_text="真实原文二",
+            model_quote="证据二",
+            passage_ids=("P000002",),
             location="2",
             polarity="support",
             claim_id=claim_id,
@@ -126,7 +135,9 @@ class StoreTest(unittest.TestCase):
             store.add_evidence(
                 self.conn,
                 source_id=self.source_id,
-                excerpt=excerpt,
+                source_text=excerpt,
+                model_quote=excerpt,
+                passage_ids=("P000001",),
                 location="test",
                 polarity="support",
                 claim_id=claim_id,

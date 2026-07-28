@@ -24,7 +24,7 @@ class LLMConfig:
     base_url: str
     api_key: str
     model: str
-    timeout: float = 300.0
+    timeout: float = 600.0
     retries: int = 3
 
     @property
@@ -94,8 +94,7 @@ class MiniMaxM3LLM:
                 ) as response:
                     data = json.loads(response.read().decode("utf-8"))
                 _validate_response(data)
-                content = _message_text(data)
-                return parse_json_object(content)
+                return parse_json_object(_message_text(data))
             except urllib.error.HTTPError as exc:
                 retryable = exc.code == 429 or exc.code >= 500
                 if not retryable or attempt >= self.config.retries:
@@ -103,9 +102,10 @@ class MiniMaxM3LLM:
                     raise RuntimeError(
                         f"LLM HTTP {exc.code}: {detail}"
                     ) from exc
-            except urllib.error.URLError as exc:
+            except (urllib.error.URLError, TimeoutError) as exc:
                 if attempt >= self.config.retries:
-                    raise RuntimeError(f"LLM 连接失败: {exc.reason}") from exc
+                    reason = getattr(exc, "reason", str(exc))
+                    raise RuntimeError(f"LLM 连接失败: {reason}") from exc
             time.sleep(min(2**attempt, 8))
         raise AssertionError("unreachable")
 

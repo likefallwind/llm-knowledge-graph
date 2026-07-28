@@ -11,7 +11,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any
 
-from .models import LoadedSource, SourceSpec, TextChunk
+from .models import LoadedSource, SourcePassage, SourceSpec, TextChunk
 
 
 def load_catalog(path: str | Path) -> list[SourceSpec]:
@@ -203,48 +203,119 @@ def _html_to_text(value: str) -> str:
 
 
 def chunk_text(
-    text: str, *, max_chars: int = 8000, overlap_chars: int = 500
+    text: str,
+    *,
+    max_chars: int = 8000,
+    overlap_chars: int = 500,
+    max_passage_chars: int = 1200,
 ) -> list[TextChunk]:
     if max_chars < 200:
         raise ValueError("max_chars 至少为 200")
     if overlap_chars < 0 or overlap_chars >= max_chars:
         raise ValueError("overlap_chars 必须满足 0 <= overlap < max_chars")
+    passages = segment_text(text, max_chars=max_passage_chars)
     chunks: list[TextChunk] = []
-    start = 0
-    index = 0
-    length = len(text)
-    while start < length:
-        hard_end = min(length, start + max_chars)
-        end = hard_end
-        if hard_end < length:
-            candidates = [
-                text.rfind("\n\n", start + max_chars // 2, hard_end),
-                text.rfind("\n", start + max_chars // 2, hard_end),
-                text.rfind("。", start + max_chars // 2, hard_end),
-                text.rfind(". ", start + max_chars // 2, hard_end),
-            ]
-            boundary = max(candidates)
-            if boundary > start:
-                end = boundary + (1 if text[boundary] != "\n" else 0)
-        chunk = text[start:end].strip()
-        if chunk:
-            digest = hashlib.sha256(chunk.encode("utf-8")).hexdigest()
-            page = text.count("\f", 0, start) + 1
-            page_end = text.count("\f", 0, end) + 1
-            page_label = (
-                f"page {page}" if page == page_end else f"pages {page}-{page_end}"
+    start_index = 0
+    while start_index < len(passages):
+        selected: list[SourcePassage] = []
+        rendered_size = 0
+        end_index = start_index
+        while end_index < len(passages):
+            passage = passages[end_index]
+            addition = len(passage.passage_id) + len(passage.text) + 4
+            if selected and rendered_size + addition > max_chars:
+                break
+            selected.append(passage)
+            rendered_size += addition
+            end_index += 1
+        rendered = "\n\n".join(
+            f"[{item.passage_id}] {item.text}" for item in selected
+        )
+        digest = hashlib.sha256(rendered.encode("utf-8")).hexdigest()
+        chunks.append(
+            TextChunk(
+                index=len(chunks),
+                text=rendered,
+                location=f"{selected[0].location} – {selected[-1].location}",
+                content_hash=digest,
+                passages=tuple(selected),
             )
-            chunks.append(
-                TextChunk(
-                    index=index,
-                    text=chunk,
-                    location=f"{page_label}, chars {start}-{end}",
-                    content_hash=digest,
-                )
-            )
-            index += 1
-        if end >= length:
+        )
+        if end_index >= len(passages):
             break
-        next_start = max(start + 1, end - overlap_chars)
-        start = next_start
+        overlap_size = 0
+        next_index = end_index
+        while next_index > start_index + 1:
+            candidate = passages[next_index - 1]
+            addition = len(candidate.passage_id) + len(candidate.text) + 4
+            if overlap_size + addition > overlap_chars:
+                break
+            overlap_size += addition
+            next_index -= 1
+        start_index = next_index if next_index < end_index else end_index
     return chunks
+
+
+def segment_text(text: str, *, max_chars: int = 1200) -> list[SourcePassage]:
+    """Split immutable Source text into stable, prompt-addressable passages."""
+    if max_chars < 200:
+        raise ValueError("max_passage_chars 至少为 200")
+    spans: list[tuple[int, int]] = []
+    start = 0
+    for separator in re.finditer(r"(?:\n[ \t]*\n+|\f+)", text):
+        spans.extend(_split_long_span(text, start, separator.start(), max_chars))
+        start = separator.end()
+    spans.extend(_split_long_span(text, start, len(text), max_chars))
+
+    passages: list[SourcePassage] = []
+    for raw_start, raw_end in spans:
+        raw = text[raw_start:raw_end]
+        left_trim = len(raw) - len(raw.lstrip())
+        right_trim = len(raw.rstrip())
+        passage_start = raw_start + left_trim
+        passage_end = raw_start + right_trim
+        if passage_start >= passage_end:
+            continue
+        passage_text = text[passage_start:passage_end]
+        page_start = text.count("\f", 0, passage_start) + 1
+        page_end = text.count("\f", 0, passage_end) + 1
+        page_label = (
+            f"page {page_start}"
+            if page_start == page_end
+            else f"pages {page_start}-{page_end}"
+        )
+        passages.append(
+            SourcePassage(
+                passage_id=f"P{len(passages) + 1:06d}",
+                text=passage_text,
+                location=f"{page_label}, chars {passage_start}-{passage_end}",
+                content_hash=hashlib.sha256(
+                    passage_text.encode("utf-8")
+                ).hexdigest(),
+                start=passage_start,
+                end=passage_end,
+            )
+        )
+    return passages
+
+
+def _split_long_span(
+    text: str, start: int, end: int, max_chars: int
+) -> list[tuple[int, int]]:
+    spans: list[tuple[int, int]] = []
+    cursor = start
+    while end - cursor > max_chars:
+        hard_end = cursor + max_chars
+        candidates = [
+            text.rfind("\n", cursor + max_chars // 2, hard_end),
+            text.rfind("。", cursor + max_chars // 2, hard_end),
+            text.rfind("！", cursor + max_chars // 2, hard_end),
+            text.rfind("？", cursor + max_chars // 2, hard_end),
+            text.rfind(". ", cursor + max_chars // 2, hard_end),
+        ]
+        boundary = max(candidates)
+        split_at = boundary + 1 if boundary > cursor else hard_end
+        spans.append((cursor, split_at))
+        cursor = split_at
+    spans.append((cursor, end))
+    return spans

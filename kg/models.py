@@ -32,11 +32,22 @@ class LoadedSource:
 
 
 @dataclass(frozen=True)
+class SourcePassage:
+    passage_id: str
+    text: str
+    location: str
+    content_hash: str
+    start: int
+    end: int
+
+
+@dataclass(frozen=True)
 class TextChunk:
     index: int
     text: str
     location: str
     content_hash: str
+    passages: tuple[SourcePassage, ...]
 
 
 @dataclass(frozen=True)
@@ -44,8 +55,10 @@ class EntityObservation:
     name: str
     definition: str
     entity_type: str
-    evidence: str
-    location: str = ""
+    model_quote: str
+    source_text: str
+    passage_ids: tuple[str, ...]
+    location: str
     aliases: tuple[str, ...] = ()
 
 
@@ -54,8 +67,10 @@ class ClaimObservation:
     subject: str
     relation: str
     object: str
-    evidence: str
-    location: str = ""
+    model_quote: str
+    source_text: str
+    passage_ids: tuple[str, ...]
+    location: str
     polarity: str = "support"
 
 

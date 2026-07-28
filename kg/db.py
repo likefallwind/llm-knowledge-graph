@@ -34,4 +34,50 @@ def _install_schema(conn: sqlite3.Connection) -> None:
                 "旧 data/kg.db 不会被自动修改。"
             )
     conn.executescript(SCHEMA.read_text(encoding="utf-8"))
+    _migrate_evidence(conn)
+    conn.execute(
+        """
+        INSERT INTO schema_meta(key,value) VALUES ('schema_version','3')
+        ON CONFLICT(key) DO UPDATE SET value=excluded.value
+        """
+    )
     conn.commit()
+
+
+def _migrate_evidence(conn: sqlite3.Connection) -> None:
+    columns = {
+        row["name"] for row in conn.execute("PRAGMA table_info(evidence)")
+    }
+    additions = {
+        "model_quote": "TEXT NOT NULL DEFAULT ''",
+        "passage_ids": "TEXT NOT NULL DEFAULT '[]'",
+        "passage_version": "TEXT NOT NULL DEFAULT 'source-passages-1'",
+        "extraction_model": "TEXT NOT NULL DEFAULT ''",
+        "extraction_prompt_version": "TEXT NOT NULL DEFAULT ''",
+        "validator_model": "TEXT NOT NULL DEFAULT ''",
+        "validator_prompt_version": "TEXT NOT NULL DEFAULT ''",
+        "validator_verdict": "TEXT NOT NULL DEFAULT ''",
+        "validator_reason": "TEXT NOT NULL DEFAULT ''",
+    }
+    for name, definition in additions.items():
+        if name not in columns:
+            conn.execute(
+                f"ALTER TABLE evidence ADD COLUMN {name} {definition}"
+            )
+    if "quote_match" in columns:
+        conn.execute("ALTER TABLE evidence DROP COLUMN quote_match")
+    # Existing evidence.excerpt passed the old exact locator, so preserve it as
+    # both historical model quote and source text until it is recalibrated.
+    conn.execute(
+        """
+        UPDATE evidence
+        SET model_quote=excerpt,passage_version='legacy-exact-quote-1'
+        WHERE model_quote='' AND passage_ids='[]'
+        """
+    )
+    conn.execute(
+        """
+        UPDATE evidence SET passage_version='legacy-exact-quote-1'
+        WHERE passage_ids='[]'
+        """
+    )

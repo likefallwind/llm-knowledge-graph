@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS schema_meta (
     value TEXT NOT NULL
 );
 
-INSERT OR IGNORE INTO schema_meta(key, value) VALUES ('schema_version', '1');
+INSERT OR IGNORE INTO schema_meta(key, value) VALUES ('schema_version', '3');
 
 -- A row is one immutable version of one logical source.
 CREATE TABLE IF NOT EXISTS sources (
@@ -74,6 +74,15 @@ CREATE TABLE IF NOT EXISTS evidence (
     claim_id     INTEGER REFERENCES claims(id) ON DELETE CASCADE,
     source_id    INTEGER NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
     excerpt      TEXT NOT NULL,
+    model_quote  TEXT NOT NULL DEFAULT '',
+    passage_ids  TEXT NOT NULL DEFAULT '[]',
+    passage_version TEXT NOT NULL DEFAULT 'source-passages-1',
+    extraction_model TEXT NOT NULL DEFAULT '',
+    extraction_prompt_version TEXT NOT NULL DEFAULT '',
+    validator_model TEXT NOT NULL DEFAULT '',
+    validator_prompt_version TEXT NOT NULL DEFAULT '',
+    validator_verdict TEXT NOT NULL DEFAULT '',
+    validator_reason TEXT NOT NULL DEFAULT '',
     excerpt_hash TEXT NOT NULL,
     location     TEXT NOT NULL DEFAULT '',
     polarity     TEXT NOT NULL CHECK(polarity IN ('support', 'oppose')),

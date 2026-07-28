@@ -64,7 +64,6 @@ def resolve_observation(
         entity_id = exact[0]
         for alias in observation.aliases:
             store.add_alias(conn, entity_id, alias)
-        conn.commit()
         return Resolution(entity_id=entity_id, outcome="same", reason="exact name/alias")
 
     candidates = candidate_entities(conn, observation.name)
@@ -90,7 +89,9 @@ def resolve_observation(
                     "name": observation.name,
                     "definition": observation.definition,
                     "entity_type": observation.entity_type,
-                    "evidence": observation.evidence,
+                    "model_quote": observation.model_quote,
+                    "source_text": observation.source_text,
+                    "passage_ids": observation.passage_ids,
                 },
                 ensure_ascii=False,
             ),
@@ -108,7 +109,6 @@ def resolve_observation(
         if selected in candidate_ids:
             for alias in (observation.name, *observation.aliases):
                 store.add_alias(conn, selected, alias)
-            conn.commit()
             return Resolution(
                 entity_id=selected,
                 outcome="same",

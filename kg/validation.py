@@ -6,8 +6,11 @@ from .llm import JSONLLM
 from .models import ClaimObservation
 
 
+VALIDATION_PROMPT_VERSION = "relation-judge-passages-1"
+
 VALIDATION_SYSTEM = """你是关系证据裁判，不是知识来源。
-只判断给出的逐字证据是否真的表达指定关系；禁止使用外部知识补足省略信息。
+只根据程序从 Source 取得的 source_text 判断关系；禁止使用外部知识补足省略信息。
+model_quote 只是上一步模型指出的关注重点，可能有轻微改写，不能取代 source_text。
 不清楚就返回 insufficient。只输出 JSON 对象。"""
 
 RELATION_MEANINGS = {
@@ -20,7 +23,7 @@ RELATION_MEANINGS = {
 def judge_claim(llm: JSONLLM, claim: ClaimObservation) -> tuple[str, str]:
     payload = llm.complete_json(
         VALIDATION_SYSTEM,
-        """判断 evidence 相对于 Claim 的含义。
+        """判断 source_text 相对于 Claim 的含义。
 supports：证据明确表达 Claim。
 contradicts：证据明确反对 Claim。
 insufficient：只是共现、相关、顺序、语义不完整或无法判断。
@@ -28,7 +31,8 @@ insufficient：只是共现、相关、顺序、语义不完整或无法判断�
 
 Claim：%s
 关系含义：%s
-evidence：%s"""
+model_quote：%s
+source_text（唯一权威证据）：%s"""
         % (
             json.dumps(
                 {
@@ -39,7 +43,8 @@ evidence：%s"""
                 ensure_ascii=False,
             ),
             RELATION_MEANINGS[claim.relation],
-            json.dumps(claim.evidence, ensure_ascii=False),
+            json.dumps(claim.model_quote, ensure_ascii=False),
+            json.dumps(claim.source_text, ensure_ascii=False),
         ),
     )
     verdict = str(payload.get("verdict", "")).strip().lower()

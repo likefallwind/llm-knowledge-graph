@@ -52,11 +52,39 @@ def graph_dict(conn: sqlite3.Connection) -> dict[str, Any]:
             "id": int(row["id"]),
             "target": str(row["target_key"]),
             "source_id": int(row["source_id"]),
-            "excerpt": str(row["excerpt"]),
+            "source": {
+                "name": str(row["source_name"]),
+                "uri": str(row["source_uri"]),
+                "version": str(row["source_version"]),
+                "content_hash": str(row["source_content_hash"]),
+            },
+            "passage_ids": json.loads(str(row["passage_ids"])),
+            "passage_version": str(row["passage_version"]),
+            "source_text": str(row["excerpt"]),
+            "model_quote": str(row["model_quote"]),
             "location": str(row["location"]),
             "polarity": str(row["polarity"]),
+            "extraction": {
+                "model": str(row["extraction_model"]),
+                "prompt_version": str(row["extraction_prompt_version"]),
+            },
+            "validation": {
+                "model": str(row["validator_model"]),
+                "prompt_version": str(row["validator_prompt_version"]),
+                "verdict": str(row["validator_verdict"]),
+                "reason": str(row["validator_reason"]),
+            },
         }
-        for row in conn.execute("SELECT * FROM evidence ORDER BY id")
+        for row in conn.execute(
+            """
+            SELECT e.*,s.name AS source_name,s.uri AS source_uri,
+                   s.version AS source_version,
+                   s.content_hash AS source_content_hash
+            FROM evidence e
+            JOIN sources s ON s.id=e.source_id
+            ORDER BY e.id
+            """
+        )
     ]
     sources = [
         {

@@ -11,12 +11,16 @@ from .models import (
     ClaimObservation,
     EntityObservation,
     ExtractionBatch,
+    SourcePassage,
 )
 
 
+EXTRACTION_PROMPT_VERSION = "grounded-extract-passages-1"
+PASSAGE_VERSION = "source-passages-1"
+
 SYSTEM_PROMPT = """你是语料约束的知识抽取器。
 你只能理解用户给出的原文，禁止用模型参数记忆补充原文没有表达的知识。
-没有可逐字定位证据的对象或关系必须省略。只输出 JSON 对象。"""
+没有有效原文段落依据的对象或关系必须省略。只输出 JSON 对象。"""
 
 EXTRACTION_PROMPT = """从下面的单个语料片段抽取 Entity、Claim 和 Evidence。
 
@@ -37,12 +41,13 @@ Entity 必须是在本片段中有稳定名称、可复指，并有实质性定�
 - prerequisite_of：理解 subject 是学习 object 的实质性前提
 
 规则：
-1. evidence 必须逐字摘自片段；definition 可以忠实概括 evidence。
-2. aliases 只列出本片段实际出现的别名。
-3. Claim 的两个端点都必须使用本片段实际出现的完整名称，不得截短限定词。
-4. 共现、超链接和章节顺序都不能证明关系。
-5. stance 是 support 或 oppose；不确定的关系不要输出。
-6. 最多输出 {max_entities} 个实体和 {max_claims} 个 Claim。
+1. evidence.passage_ids 必须选择片段中真实存在的段落 ID，最多 3 个。
+2. evidence.quote 是你认为最关键的引文。应尽量忠实引用，但允许轻微省略或改写。
+3. aliases 只列出本片段表达过的别名。
+4. Claim 的两个端点都必须使用本片段表达的完整名称，不得截短限定词。
+5. 共现、超链接和章节顺序都不能证明关系。
+6. stance 是 support 或 oppose；不确定的关系不要输出。
+7. 最多输出 {max_entities} 个实体和 {max_claims} 个 Claim。
 
 输出：
 {{
@@ -52,8 +57,10 @@ Entity 必须是在本片段中有稳定名称、可复指，并有实质性定�
       "definition": "仅依据原文的定义或知识含义",
       "entity_type": "六种类型之一",
       "aliases": ["原文中实际出现的别名"],
-      "evidence": "逐字摘录",
-      "location": "可选的段落说明"
+      "evidence": {{
+        "passage_ids": ["P000001"],
+        "quote": "最关键的原文引文，可轻微省略"
+      }}
     }}
   ],
   "claims": [
@@ -62,8 +69,10 @@ Entity 必须是在本片段中有稳定名称、可复指，并有实质性定�
       "relation": "三种关系之一",
       "object": "完整名称",
       "stance": "support",
-      "evidence": "逐字摘录",
-      "location": "可选的段落说明"
+      "evidence": {{
+        "passage_ids": ["P000002"],
+        "quote": "最关键的关系引文，可轻微省略"
+      }}
     }}
   ]
 }}
@@ -78,6 +87,7 @@ def extract(
     llm: JSONLLM,
     text: str,
     *,
+    passages: tuple[SourcePassage, ...],
     location: str = "",
     max_entities: int = 20,
     max_claims: int = 30,
@@ -92,28 +102,12 @@ def extract(
         ),
     )
     return parse_payload(
-        payload, text, max_entities=max_entities, max_claims=max_claims
+        payload, passages, max_entities=max_entities, max_claims=max_claims
     )
 
 
 def _compact(value: str) -> str:
     return re.sub(r"\s+", "", value).casefold()
-
-
-def evidence_in_text(excerpt: str, source_text: str) -> bool:
-    if not excerpt.strip() or not source_text:
-        return False
-    haystack = _compact(source_text)
-    parts = [
-        _compact(part)
-        for part in re.split(r"(?:\.{3}|…+)", excerpt)
-        if _compact(part)
-    ]
-    return bool(parts) and all(part in haystack for part in parts)
-
-
-def _name_in_text(name: str, source_text: str) -> bool:
-    return bool(name.strip()) and _compact(name) in _compact(source_text)
 
 
 def _string(raw: dict[str, Any], key: str) -> str:
@@ -123,7 +117,7 @@ def _string(raw: dict[str, Any], key: str) -> str:
 
 def parse_payload(
     payload: dict[str, Any],
-    source_text: str,
+    passages: tuple[SourcePassage, ...] | list[SourcePassage],
     *,
     max_entities: int = 20,
     max_claims: int = 30,
@@ -132,6 +126,7 @@ def parse_payload(
     claims: list[ClaimObservation] = []
     rejected: list[str] = []
     seen_entities: set[str] = set()
+    passage_by_id = {item.passage_id: item for item in passages}
 
     raw_entities = payload.get("entities", [])
     if not isinstance(raw_entities, list):
@@ -144,18 +139,15 @@ def parse_payload(
         name = _string(raw, "name")
         definition = _string(raw, "definition")
         entity_type = _string(raw, "entity_type")
-        evidence = _string(raw, "evidence")
         if not name or len(definition) < 4:
             rejected.append(f"entity[{index}] 缺少名称或实质性 definition")
             continue
         if entity_type not in ENTITY_TYPES:
             rejected.append(f"entity[{index}] 非法 entity_type: {entity_type!r}")
             continue
-        if not _name_in_text(name, source_text):
-            rejected.append(f"entity[{index}] 名称未在语料中出现: {name!r}")
-            continue
-        if not evidence_in_text(evidence, source_text):
-            rejected.append(f"entity[{index}] evidence 无法在语料中定位")
+        grounded = _resolve_evidence(raw.get("evidence"), passage_by_id)
+        if isinstance(grounded, str):
+            rejected.append(f"entity[{index}] {grounded}")
             continue
         key = _compact(name)
         if key in seen_entities:
@@ -166,19 +158,18 @@ def parse_payload(
         aliases: list[str] = []
         if isinstance(aliases_raw, list):
             for alias in aliases_raw:
-                if (
-                    isinstance(alias, str)
-                    and alias.strip()
-                    and _name_in_text(alias, source_text)
-                ):
+                if isinstance(alias, str) and alias.strip():
                     aliases.append(alias.strip())
+        quote, source_text, passage_ids, source_location = grounded
         entities.append(
             EntityObservation(
                 name=name,
                 definition=definition,
                 entity_type=entity_type,
-                evidence=evidence,
-                location=_string(raw, "location"),
+                model_quote=quote,
+                source_text=source_text,
+                passage_ids=passage_ids,
+                location=source_location,
                 aliases=tuple(dict.fromkeys(aliases)),
             )
         )
@@ -194,7 +185,6 @@ def parse_payload(
         subject = _string(raw, "subject")
         relation = _string(raw, "relation")
         object_ = _string(raw, "object")
-        evidence = _string(raw, "evidence")
         polarity = _string(raw, "stance") or "support"
         if relation not in RELATIONS:
             rejected.append(f"claim[{index}] 非法 relation: {relation!r}")
@@ -205,21 +195,20 @@ def parse_payload(
         if not subject or not object_ or _compact(subject) == _compact(object_):
             rejected.append(f"claim[{index}] 端点为空或自环")
             continue
-        if not _name_in_text(subject, source_text) or not _name_in_text(
-            object_, source_text
-        ):
-            rejected.append(f"claim[{index}] 端点未完整出现在语料中")
+        grounded = _resolve_evidence(raw.get("evidence"), passage_by_id)
+        if isinstance(grounded, str):
+            rejected.append(f"claim[{index}] {grounded}")
             continue
-        if not evidence_in_text(evidence, source_text):
-            rejected.append(f"claim[{index}] evidence 无法在语料中定位")
-            continue
+        quote, source_text, passage_ids, source_location = grounded
         claims.append(
             ClaimObservation(
                 subject=subject,
                 relation=relation,
                 object=object_,
-                evidence=evidence,
-                location=_string(raw, "location"),
+                model_quote=quote,
+                source_text=source_text,
+                passage_ids=passage_ids,
+                location=source_location,
                 polarity=polarity,
             )
         )
@@ -232,3 +221,37 @@ def parse_payload(
         claims=tuple(claims),
         rejected=tuple(rejected),
     )
+
+
+def _resolve_evidence(
+    raw: Any, passage_by_id: dict[str, SourcePassage]
+) -> tuple[str, str, tuple[str, ...], str] | str:
+    if not isinstance(raw, dict):
+        return "evidence 必须包含 passage_ids 和 quote"
+    quote = _string(raw, "quote")
+    raw_ids = raw.get("passage_ids")
+    if not quote:
+        return "evidence.quote 为空"
+    if not isinstance(raw_ids, list):
+        return "evidence.passage_ids 不是数组"
+    normalized_ids = [
+        str(item).strip() for item in raw_ids if str(item).strip()
+    ]
+    if len(normalized_ids) != len(set(normalized_ids)):
+        return "evidence.passage_ids 不能重复"
+    passage_ids = tuple(normalized_ids)
+    if not passage_ids or len(passage_ids) > 3:
+        return "evidence.passage_ids 必须包含当前片段中的 1–3 个段落"
+    missing = [item for item in passage_ids if item not in passage_by_id]
+    if missing:
+        return f"evidence 引用了当前片段不存在的段落: {missing}"
+    selected = sorted(
+        (passage_by_id[item] for item in passage_ids),
+        key=lambda item: item.start,
+    )
+    passage_ids = tuple(item.passage_id for item in selected)
+    source_text = "\n\n".join(item.text for item in selected)
+    location = "; ".join(
+        f"{item.passage_id} {item.location}" for item in selected
+    )
+    return quote, source_text, passage_ids, location

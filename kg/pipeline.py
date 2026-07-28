@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import sqlite3
 from pathlib import Path
 from typing import Any
 
 from . import extraction, resolution, sources, store, validation
 from .llm import JSONLLM
-from .models import ChunkResult
+from .models import ChunkResult, SourcePassage
 
 
 def process_catalog(
@@ -53,8 +55,14 @@ def process_catalog(
             for chunk in chunks:
                 if remaining_chunks is not None and remaining_chunks <= 0:
                     break
+                processing_hash = _processing_hash(
+                    chunk.content_hash,
+                    model=_model_name(llm),
+                    max_entities=max_entities,
+                    max_claims=max_claims,
+                )
                 if store.progress_done(
-                    conn, source_id, chunk.index, chunk.content_hash
+                    conn, source_id, chunk.index, processing_hash
                 ):
                     source_result["skipped_chunks"] += 1
                     continue
@@ -66,6 +74,7 @@ def process_catalog(
                         llm,
                         source_id=source_id,
                         text=chunk.text,
+                        passages=chunk.passages,
                         location=chunk.location,
                         max_entities=max_entities,
                         max_claims=max_claims,
@@ -74,7 +83,7 @@ def process_catalog(
                         conn,
                         source_id,
                         chunk.index,
-                        chunk.content_hash,
+                        processing_hash,
                         status="done",
                         result=result.as_dict(),
                     )
@@ -88,7 +97,7 @@ def process_catalog(
                         conn,
                         source_id,
                         chunk.index,
-                        chunk.content_hash,
+                        processing_hash,
                         status="failed",
                         error=str(exc),
                     )
@@ -114,6 +123,7 @@ def process_chunk(
     *,
     source_id: int,
     text: str,
+    passages: tuple[SourcePassage, ...],
     location: str,
     max_entities: int = 20,
     max_claims: int = 30,
@@ -121,12 +131,14 @@ def process_chunk(
     batch = extraction.extract(
         llm,
         text,
+        passages=passages,
         location=location,
         max_entities=max_entities,
         max_claims=max_claims,
     )
     result = ChunkResult(rejected=list(batch.rejected))
     local: dict[str, int] = {}
+    extraction_model = _model_name(llm)
 
     for observation in batch.entities:
         resolved = resolution.resolve_observation(conn, llm, observation)
@@ -134,18 +146,21 @@ def process_chunk(
         keys = (observation.name, *observation.aliases)
         for name in keys:
             local[store.normalize_name(name)] = entity_id
-        evidence_location = observation.location or location
         if store.add_evidence(
             conn,
             source_id=source_id,
-            excerpt=observation.evidence,
-            location=evidence_location,
+            source_text=observation.source_text,
+            model_quote=observation.model_quote,
+            passage_ids=observation.passage_ids,
+            passage_version=extraction.PASSAGE_VERSION,
+            location=observation.location,
             polarity="support",
+            extraction_model=extraction_model,
+            extraction_prompt_version=extraction.EXTRACTION_PROMPT_VERSION,
             entity_id=entity_id,
         ):
             result.evidence += 1
         result.entities += 1
-    conn.commit()
 
     for claim in batch.claims:
         subject_id = _endpoint(conn, local, claim.subject)
@@ -189,9 +204,18 @@ def process_chunk(
         if store.add_evidence(
             conn,
             source_id=source_id,
-            excerpt=claim.evidence,
-            location=claim.location or location,
+            source_text=claim.source_text,
+            model_quote=claim.model_quote,
+            passage_ids=claim.passage_ids,
+            passage_version=extraction.PASSAGE_VERSION,
+            location=claim.location,
             polarity=claim.polarity,
+            extraction_model=extraction_model,
+            extraction_prompt_version=extraction.EXTRACTION_PROMPT_VERSION,
+            validator_model=extraction_model,
+            validator_prompt_version=validation.VALIDATION_PROMPT_VERSION,
+            validator_verdict=verdict,
+            validator_reason=reason,
             claim_id=claim_id,
         ):
             result.evidence += 1
@@ -207,3 +231,30 @@ def _endpoint(
         return local[key]
     matches = store.exact_entity_ids(conn, name)
     return matches[0] if len(matches) == 1 else None
+
+
+def _model_name(llm: JSONLLM) -> str:
+    config = getattr(llm, "config", None)
+    model = getattr(config, "model", "")
+    return str(model or llm.__class__.__name__)
+
+
+def _processing_hash(
+    chunk_hash: str,
+    *,
+    model: str,
+    max_entities: int,
+    max_claims: int,
+) -> str:
+    config = {
+        "chunk_hash": chunk_hash,
+        "passage_version": extraction.PASSAGE_VERSION,
+        "extraction_prompt_version": extraction.EXTRACTION_PROMPT_VERSION,
+        "validator_prompt_version": validation.VALIDATION_PROMPT_VERSION,
+        "model": model,
+        "max_entities": max_entities,
+        "max_claims": max_claims,
+    }
+    return hashlib.sha256(
+        json.dumps(config, sort_keys=True).encode("utf-8")
+    ).hexdigest()

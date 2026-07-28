@@ -6,6 +6,7 @@ import re
 import sqlite3
 import unicodedata
 from collections import defaultdict
+from typing import Iterable
 
 from .models import EntityObservation, LoadedSource, RELATIONS
 
@@ -120,7 +121,6 @@ def create_entity(
         entity_id = int(cursor.lastrowid)
     for alias in (observation.name, *observation.aliases):
         add_alias(conn, entity_id, alias)
-    conn.commit()
     return entity_id
 
 
@@ -142,28 +142,58 @@ def add_evidence(
     conn: sqlite3.Connection,
     *,
     source_id: int,
-    excerpt: str,
+    source_text: str,
+    model_quote: str,
+    passage_ids: Iterable[str] = (),
+    passage_version: str = "source-passages-1",
     location: str,
     polarity: str,
+    extraction_model: str = "",
+    extraction_prompt_version: str = "",
+    validator_model: str = "",
+    validator_prompt_version: str = "",
+    validator_verdict: str = "",
+    validator_reason: str = "",
     entity_id: int | None = None,
     claim_id: int | None = None,
 ) -> bool:
     if (entity_id is None) == (claim_id is None):
         raise ValueError("Evidence 必须且只能指向一个 Entity 或 Claim")
-    excerpt_hash = hashlib.sha256(excerpt.encode("utf-8")).hexdigest()
+    passage_list = list(passage_ids)
+    excerpt_hash = hashlib.sha256(
+        "\0".join(
+            (
+                source_text,
+                model_quote,
+                json.dumps(passage_list, ensure_ascii=False),
+            )
+        ).encode("utf-8")
+    ).hexdigest()
     target_key = f"entity:{entity_id}" if entity_id is not None else f"claim:{claim_id}"
     cursor = conn.execute(
         """
         INSERT OR IGNORE INTO evidence
-        (target_key,entity_id,claim_id,source_id,excerpt,excerpt_hash,location,polarity)
-        VALUES (?,?,?,?,?,?,?,?)
+        (target_key,entity_id,claim_id,source_id,excerpt,model_quote,
+         passage_ids,passage_version,extraction_model,
+         extraction_prompt_version,validator_model,validator_prompt_version,
+         validator_verdict,validator_reason,excerpt_hash,location,polarity)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """,
         (
             target_key,
             entity_id,
             claim_id,
             source_id,
-            excerpt,
+            source_text,
+            model_quote,
+            json.dumps(passage_list, ensure_ascii=False),
+            passage_version,
+            extraction_model,
+            extraction_prompt_version,
+            validator_model,
+            validator_prompt_version,
+            validator_verdict,
+            validator_reason,
             excerpt_hash,
             location,
             polarity,
@@ -292,9 +322,20 @@ def merge_entities(
             add_evidence(
                 conn,
                 source_id=int(row["source_id"]),
-                excerpt=str(row["excerpt"]),
+                source_text=str(row["excerpt"]),
+                model_quote=str(row["model_quote"]),
+                passage_ids=json.loads(str(row["passage_ids"])),
+                passage_version=str(row["passage_version"]),
                 location=str(row["location"]),
                 polarity=str(row["polarity"]),
+                extraction_model=str(row["extraction_model"]),
+                extraction_prompt_version=str(
+                    row["extraction_prompt_version"]
+                ),
+                validator_model=str(row["validator_model"]),
+                validator_prompt_version=str(row["validator_prompt_version"]),
+                validator_verdict=str(row["validator_verdict"]),
+                validator_reason=str(row["validator_reason"]),
                 entity_id=target_id,
             )
         conn.execute("DELETE FROM evidence WHERE entity_id=?", (source_id,))
@@ -323,9 +364,22 @@ def merge_entities(
                 add_evidence(
                     conn,
                     source_id=int(item["source_id"]),
-                    excerpt=str(item["excerpt"]),
+                    source_text=str(item["excerpt"]),
+                    model_quote=str(item["model_quote"]),
+                    passage_ids=json.loads(str(item["passage_ids"])),
+                    passage_version=str(item["passage_version"]),
                     location=str(item["location"]),
                     polarity=str(item["polarity"]),
+                    extraction_model=str(item["extraction_model"]),
+                    extraction_prompt_version=str(
+                        item["extraction_prompt_version"]
+                    ),
+                    validator_model=str(item["validator_model"]),
+                    validator_prompt_version=str(
+                        item["validator_prompt_version"]
+                    ),
+                    validator_verdict=str(item["validator_verdict"]),
+                    validator_reason=str(item["validator_reason"]),
                     claim_id=new_claim_id,
                 )
 

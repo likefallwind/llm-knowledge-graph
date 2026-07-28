@@ -13,7 +13,7 @@ from tests.helpers import FakeLLM
 def entity_payload(
     name: str,
     definition: str,
-    evidence: str,
+    quote: str,
     *,
     entity_type: str = "solution",
 ) -> dict:
@@ -22,7 +22,10 @@ def entity_payload(
         "definition": definition,
         "entity_type": entity_type,
         "aliases": [],
-        "evidence": evidence,
+        "evidence": {
+            "passage_ids": ["P000001"],
+            "quote": quote,
+        },
     }
 
 
@@ -86,7 +89,10 @@ class PipelineTest(unittest.TestCase):
                     "relation": "is_a",
                     "object": "梯度下降法",
                     "stance": "support",
-                    "evidence": "批量梯度下降法是梯度下降法的一种",
+                    "evidence": {
+                        "passage_ids": ["P000001"],
+                        "quote": "批量梯度下降法是梯度下降法的一种",
+                    },
                 }
             ],
         }
@@ -109,7 +115,10 @@ class PipelineTest(unittest.TestCase):
                     "relation": "is_a",
                     "object": "梯度下降法",
                     "stance": "support",
-                    "evidence": "批量梯度下降法是梯度下降法的一种",
+                    "evidence": {
+                        "passage_ids": ["P000001"],
+                        "quote": "批量梯度下降法是梯度下降法的一种",
+                    },
                 }
             ],
         }
@@ -138,6 +147,22 @@ class PipelineTest(unittest.TestCase):
             "SELECT COUNT(*) FROM evidence WHERE claim_id IS NOT NULL"
         ).fetchone()[0]
         self.assertEqual(evidence, 2)
+        rows = self.conn.execute(
+            """
+            SELECT model_quote,excerpt,passage_ids,extraction_model,
+                   extraction_prompt_version,validator_prompt_version,
+                   validator_verdict,validator_reason
+            FROM evidence WHERE claim_id IS NOT NULL ORDER BY id
+            """
+        ).fetchall()
+        self.assertTrue(all(row["model_quote"] for row in rows))
+        self.assertTrue(all(row["excerpt"] for row in rows))
+        self.assertTrue(all(row["passage_ids"] == '["P000001"]' for row in rows))
+        self.assertTrue(all(row["extraction_model"] == "FakeLLM" for row in rows))
+        self.assertTrue(all(row["extraction_prompt_version"] for row in rows))
+        self.assertTrue(all(row["validator_prompt_version"] for row in rows))
+        self.assertTrue(all(row["validator_verdict"] == "supports" for row in rows))
+        self.assertTrue(all(row["validator_reason"] for row in rows))
         self.assertTrue(store.integrity_report(self.conn)["ok"])
         llm.assert_finished()
 
@@ -149,7 +174,7 @@ class PipelineTest(unittest.TestCase):
         )
         self.assertEqual(len(no_calls.calls), 0)
 
-    def test_ungrounded_output_cannot_create_knowledge(self):
+    def test_invalid_passage_cannot_create_knowledge(self):
         catalog = self._catalog(["这里只介绍优化。"])
         llm = FakeLLM(
             {
@@ -163,10 +188,78 @@ class PipelineTest(unittest.TestCase):
                 "claims": [],
             }
         )
+        llm.responses[0]["entities"][0]["evidence"]["passage_ids"] = [
+            "P999999"
+        ]
         result = pipeline.process_catalog(self.conn, llm, catalog)
         self.assertFalse(result["failures"])
         self.assertEqual(store.counts(self.conn)["entities"], 0)
         self.assertTrue(result["completed"][0]["rejected"])
+
+    def test_entity_writes_roll_back_when_chunk_fails(self):
+        catalog = self._catalog(["实体甲和实体乙都在当前语料中。"])
+        llm = FakeLLM(
+            {
+                "entities": [
+                    entity_payload("实体甲", "第一个测试实体", "实体甲"),
+                    entity_payload("实体乙", "第二个测试实体", "实体乙"),
+                ],
+                "claims": [],
+            },
+            {
+                "decision": "new",
+                "canonical_name": "实体甲",
+                "reason": "新实体",
+            },
+            # 第二个实体解析时 FakeLLM 无响应，模拟远端失败。
+        )
+        result = pipeline.process_catalog(self.conn, llm, catalog)
+        self.assertTrue(result["failures"])
+        self.assertEqual(store.counts(self.conn)["entities"], 0)
+        self.assertEqual(store.counts(self.conn)["evidence"], 0)
+
+    def test_claim_judge_failure_rolls_back_the_whole_chunk(self):
+        catalog = self._catalog(["实体甲是实体乙的一种。"])
+        llm = FakeLLM(
+            {
+                "entities": [
+                    entity_payload("实体甲", "第一个测试实体", "实体甲"),
+                    entity_payload(
+                        "实体乙",
+                        "第二个测试实体",
+                        "实体乙",
+                        entity_type="concept",
+                    ),
+                ],
+                "claims": [
+                    {
+                        "subject": "实体甲",
+                        "relation": "is_a",
+                        "object": "实体乙",
+                        "stance": "support",
+                        "evidence": {
+                            "passage_ids": ["P000001"],
+                            "quote": "实体甲是实体乙的一种",
+                        },
+                    }
+                ],
+            },
+            {
+                "decision": "new",
+                "canonical_name": "实体甲",
+                "reason": "新实体",
+            },
+            {
+                "decision": "new",
+                "canonical_name": "实体乙",
+                "reason": "新实体",
+            },
+        )
+        result = pipeline.process_catalog(self.conn, llm, catalog)
+        self.assertTrue(result["failures"])
+        self.assertEqual(store.counts(self.conn)["entities"], 0)
+        self.assertEqual(store.counts(self.conn)["claims"], 0)
+        self.assertEqual(store.counts(self.conn)["evidence"], 0)
 
     def test_uncertain_keeps_independent_entity_then_reconcile_merges(self):
         source_id = self.conn.execute(
@@ -180,13 +273,18 @@ class PipelineTest(unittest.TestCase):
             name="梯度下降法",
             definition="一种迭代优化算法",
             entity_type="solution",
-            evidence="梯度下降法",
+            model_quote="梯度下降法",
+            source_text="梯度下降法",
+            passage_ids=("P000001",),
+            location="P000001",
         )
         first_id = store.create_entity(self.conn, first)
         store.add_evidence(
             self.conn,
             source_id=source_id,
-            excerpt="梯度下降法",
+            source_text="梯度下降法",
+            model_quote="梯度下降法",
+            passage_ids=("P000001",),
             location="1",
             polarity="support",
             entity_id=first_id,
@@ -195,7 +293,10 @@ class PipelineTest(unittest.TestCase):
             name="梯度下降算法",
             definition="沿负梯度更新参数的算法",
             entity_type="solution",
-            evidence="梯度下降算法",
+            model_quote="梯度下降算法",
+            source_text="梯度下降算法",
+            passage_ids=("P000002",),
+            location="P000002",
         )
         uncertain_llm = FakeLLM(
             {
@@ -212,7 +313,9 @@ class PipelineTest(unittest.TestCase):
         store.add_evidence(
             self.conn,
             source_id=source_id,
-            excerpt="梯度下降算法",
+            source_text="梯度下降算法",
+            model_quote="梯度下降算法",
+            passage_ids=("P000002",),
             location="2",
             polarity="support",
             entity_id=resolved.entity_id,
@@ -237,7 +340,10 @@ class PipelineTest(unittest.TestCase):
             name="GD",
             definition="沿负梯度方向更新参数的优化算法",
             entity_type="solution",
-            evidence="GD",
+            model_quote="GD",
+            source_text="GD",
+            passage_ids=("P000001",),
+            location="P000001",
         )
         llm = FakeLLM(
             {
@@ -273,7 +379,10 @@ class PipelineTest(unittest.TestCase):
                         "relation": "part_of",
                         "object": "机器学习",
                         "stance": "support",
-                        "evidence": "梯度下降法和机器学习都在本章出现",
+                        "evidence": {
+                            "passage_ids": ["P000001"],
+                            "quote": "梯度下降法和机器学习都在本章出现",
+                        },
                     }
                 ],
             },

@@ -15,6 +15,9 @@ Read → Extract → Resolve → Merge → Repeat
 - Claim 只有 `is_a / part_of / prerequisite_of` 三种关系。
 - Entity 和 Claim 没有 `proposed / published / shadow` 状态机。
 - 每个 Entity 都必须有可定位的来源 Evidence；没有被证据裁判确认的 Claim 不入图。
+- LLM 同时输出关键 quote 和 Passage ID；程序按 ID 取得真实原文，两者都会保存在 Evidence 中。
+- 当前不做 quote 与原文的字符匹配；Passage ID 负责定位，二者留待以后校准。
+- Evidence 记录文档版本、位置、模型和提示词版本，为未来 LLM/人类校准保留可能性；当前不实现校准队列。
 - 相同 `(subject, relation, object)` 只保存一个 Claim，不同 Source 的 Evidence 自动累计。
 - 实体对齐只有 `same / new / uncertain`。`uncertain` 会保留独立实体，之后可用 `reconcile` 重新判断。
 - `is_a` 和 `prerequisite_of` 写入前检查循环；孤立 Entity 合法。

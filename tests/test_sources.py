@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest import mock
 
 from kg.models import SourceSpec
-from kg.sources import chunk_text, load_catalog, load_source
+from kg.sources import chunk_text, load_catalog, load_source, segment_text
 
 
 class SourcesTest(unittest.TestCase):
@@ -103,10 +103,35 @@ class SourcesTest(unittest.TestCase):
 
     def test_chunking_has_overlap_and_page_locations(self):
         text = ("第一段。" * 80) + "\f" + ("第二段。" * 80)
-        chunks = chunk_text(text, max_chars=220, overlap_chars=20)
+        chunks = chunk_text(
+            text,
+            max_chars=220,
+            overlap_chars=20,
+            max_passage_chars=200,
+        )
         self.assertGreater(len(chunks), 2)
         self.assertEqual([item.index for item in chunks], list(range(len(chunks))))
         self.assertTrue(any("page 2" in item.location for item in chunks))
+        passage_ids = [
+            passage.passage_id
+            for chunk in chunks
+            for passage in chunk.passages
+        ]
+        self.assertIn("P000001", passage_ids)
+        self.assertTrue(all("[P" in chunk.text for chunk in chunks))
+
+    def test_passages_preserve_actual_source_text_and_offsets(self):
+        text = "第一段真实原文。\n\n第二段真实原文。"
+        passages = segment_text(text)
+        self.assertEqual(
+            [(item.passage_id, item.text) for item in passages],
+            [
+                ("P000001", "第一段真实原文。"),
+                ("P000002", "第二段真实原文。"),
+            ],
+        )
+        for passage in passages:
+            self.assertEqual(text[passage.start:passage.end], passage.text)
 
 
 if __name__ == "__main__":
