@@ -1,0 +1,12 @@
+{
+  "sources": [
+    {
+      "key": "example-optimization-intro",
+      "name": "示例：优化方法简介",
+      "type": "course",
+      "path": "corpus/intro.txt",
+      "language": "zh",
+      "version": "1"
+    }
+  ]
+}

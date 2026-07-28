@@ -1,0 +1,88 @@
+{
+  "sources": [
+    {
+      "key": "nndl-v2",
+      "name": "神经网络与深度学习（第二版）",
+      "type": "textbook",
+      "path": "../data/docs/nndl.pdf",
+      "language": "zh"
+    },
+    {
+      "key": "stanford-cs229",
+      "name": "Stanford CS229 Machine Learning Notes",
+      "type": "course",
+      "path": "../data/docs/cs229.pdf",
+      "language": "en"
+    },
+    {
+      "key": "convex-optimization",
+      "name": "Convex Optimization",
+      "type": "textbook",
+      "path": "../data/docs/cvxbook.pdf",
+      "language": "en"
+    },
+    {
+      "key": "graph-representation-learning",
+      "name": "Graph Representation Learning",
+      "type": "textbook",
+      "path": "../data/docs/grl.pdf",
+      "language": "en"
+    },
+    {
+      "key": "mathematics-for-machine-learning",
+      "name": "Mathematics for Machine Learning",
+      "type": "textbook",
+      "path": "../data/docs/mml.pdf",
+      "language": "en"
+    },
+    {
+      "key": "probabilistic-machine-learning-introduction",
+      "name": "Probabilistic Machine Learning: An Introduction",
+      "type": "textbook",
+      "path": "../data/docs/pml1.pdf",
+      "language": "en"
+    },
+    {
+      "key": "pattern-recognition-machine-learning",
+      "name": "Pattern Recognition and Machine Learning",
+      "type": "textbook",
+      "path": "../data/docs/prml.pdf",
+      "language": "en"
+    },
+    {
+      "key": "reinforcement-learning-introduction",
+      "name": "Reinforcement Learning: An Introduction",
+      "type": "textbook",
+      "path": "../data/docs/sutton-barto.pdf",
+      "language": "en"
+    },
+    {
+      "key": "speech-language-processing-3",
+      "name": "Speech and Language Processing (3rd ed. draft)",
+      "type": "textbook",
+      "path": "../data/docs/slp3.pdf",
+      "language": "en"
+    },
+    {
+      "key": "understanding-deep-learning",
+      "name": "Understanding Deep Learning",
+      "type": "textbook",
+      "path": "../data/docs/udl.pdf",
+      "language": "en"
+    },
+    {
+      "key": "rlhf-book",
+      "name": "Reinforcement Learning from Human Feedback",
+      "type": "textbook",
+      "path": "../data/docs/rlhf-book.pdf",
+      "language": "en"
+    },
+    {
+      "key": "llmbook-zh",
+      "name": "大语言模型",
+      "type": "textbook",
+      "path": "../data/docs/llmbook-zh.pdf",
+      "language": "zh"
+    }
+  ]
+}
