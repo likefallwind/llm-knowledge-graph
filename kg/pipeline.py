@@ -157,6 +157,7 @@ def process_chunk(
             polarity="support",
             extraction_model=extraction_model,
             extraction_prompt_version=extraction.EXTRACTION_PROMPT_VERSION,
+            observed_entity_type=observation.entity_type,
             entity_id=entity_id,
         ):
             result.evidence += 1

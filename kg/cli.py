@@ -56,15 +56,39 @@ def _status(conn) -> dict:
             "SELECT status,COUNT(*) AS count FROM source_progress GROUP BY status"
         )
     }
+    # 类型是 mention 级观察的汇总，不是实体的单值属性，因此下面按类型统计的
+    # 实体数之和会大于实体总数——一个实体可以同时出现在多个类型下。
     entity_types = {
-        str(row["entity_type"]): int(row["count"])
+        str(row["entity_type"]): {
+            "entities": int(row["entities"]),
+            "observations": int(row["observations"]),
+            "sources": int(row["sources"]),
+        }
         for row in conn.execute(
             """
-            SELECT entity_type,COUNT(*) AS count
-            FROM entities GROUP BY entity_type ORDER BY entity_type
+            SELECT observed_entity_type AS entity_type,
+                   COUNT(DISTINCT entity_id) AS entities,
+                   COUNT(*) AS observations,
+                   COUNT(DISTINCT source_id) AS sources
+            FROM evidence
+            WHERE entity_id IS NOT NULL AND polarity='support'
+              AND observed_entity_type<>''
+            GROUP BY observed_entity_type ORDER BY observed_entity_type
             """
         )
     }
+    multi_typed = int(
+        conn.execute(
+            """
+            SELECT COUNT(*) FROM (
+              SELECT entity_id FROM evidence
+              WHERE entity_id IS NOT NULL AND polarity='support'
+                AND observed_entity_type<>''
+              GROUP BY entity_id HAVING COUNT(DISTINCT observed_entity_type) > 1
+            )
+            """
+        ).fetchone()[0]
+    )
     relations = {
         str(row["relation"]): int(row["count"])
         for row in conn.execute(
@@ -80,6 +104,7 @@ def _status(conn) -> dict:
         ),
         "counts": store.counts(conn),
         "entity_types": entity_types,
+        "multi_typed_entities": multi_typed,
         "relations": relations,
         "progress": progress,
     }

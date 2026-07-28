@@ -11,7 +11,7 @@ Read → Extract → Resolve → Merge → Repeat
 ## 设计边界
 
 - 只有四类知识对象：`Source`、`Entity`、`Claim`、`Evidence`。
-- Entity 只有 `resource / criterion / data / task / solution / concept` 六种主类型。
+- 类型只有 `resource / criterion / data / task / solution / concept` 六种。类型是每次观察的判断，记在 Evidence 上；Entity 层汇总为 type profile，允许一个实体同时属于多个类型。
 - Claim 只有 `is_a / part_of / prerequisite_of` 三种关系。
 - Entity 和 Claim 没有 `proposed / published / shadow` 状态机。
 - 每个 Entity 都必须有可定位的来源 Evidence；没有被证据裁判确认的 Claim 不入图。

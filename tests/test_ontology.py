@@ -75,8 +75,8 @@ class DefinitionsReachThePromptsTest(unittest.TestCase):
         self.addCleanup(conn.close)
         # 先建一个实体，否则唯一精确匹配路径会跳过 LLM 调用。
         conn.execute(
-            "INSERT INTO entities(canonical_name,normalized_name,definition,entity_type)"
-            " VALUES ('梯度下降法','梯度下降法','一种优化方法','solution')"
+            "INSERT INTO entities(canonical_name,normalized_name,definition)"
+            " VALUES ('梯度下降法','梯度下降法','一种优化方法')"
         )
         conn.commit()
         llm = RecordingLLM(

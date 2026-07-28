@@ -49,7 +49,7 @@ def candidate_entities(
                     "canonical_name": str(row["canonical_name"]),
                     "aliases": names[1:],
                     "definition": str(row["definition"]),
-                    "entity_type": str(row["entity_type"]),
+                    "type_profile": store.type_profile(conn, entity_id),
                     "evidence": store.evidence_for_entity(conn, entity_id),
                     "score": round(score, 4),
                 }
@@ -72,7 +72,9 @@ def resolve_observation(
     payload = llm.complete_json(
         RESOLUTION_SYSTEM,
         """判断新观察与候选是否指向同一个知识对象。
-entity_type 不同通常意味着不是同一个对象，但类型可能判错，仅作参考而非硬性依据。
+候选的 type_profile 是它历次观察各判出什么类型的汇总，不是唯一类型：
+一个对象确实可能同时属于多个类型（例如既是一族做法，又是一个研究方向）。
+因此类型与新观察不一致不构成否决理由，判断以名称、定义和证据为准。
 返回：
 {
   "decision": "same | new | uncertain",
@@ -207,6 +209,6 @@ def _entity_context(
         "canonical_name": str(row["canonical_name"]),
         "aliases": store.aliases_for(conn, entity_id),
         "definition": str(row["definition"]),
-        "entity_type": str(row["entity_type"]),
+        "type_profile": store.type_profile(conn, entity_id),
         "evidence": store.evidence_for_entity(conn, entity_id),
     }

@@ -28,6 +28,7 @@ Read → Extract → Resolve → Merge → Repeat
 
 1. 每个 Entity 至少有一条 support Evidence。
 2. 每个 Claim 至少有一条 support Evidence。
+2.1 Entity 没有单值类型；类型只存在于 Evidence 上，Entity 层按需汇总为 type profile。
 3. Evidence 必须且只能指向一个 Entity 或 Claim。
 4. Evidence 同时保存 LLM 原始 quote 和程序从 Source Passage 取得的真实原文。
 5. Passage ID 必须属于对应 Source 版本和当前抽取片段。
@@ -222,6 +223,8 @@ Entity 必须同时满足：
 
 类型由模型根据 definition 判定；机械层只验证类型词表，不根据名称重新猜类型。
 
+判出的类型写进该次观察对应的 `evidence.observed_entity_type`，**不写进 Entity**。详见第 6.6 节。
+
 ### 5.4 Claim 机械校验
 
 Claim 必须同时满足：
@@ -322,6 +325,43 @@ score >= 0.55
 
 其中 `S` 是短名称字符串相似度成本。第一版通过 `--limit` 控制重判规模，不提前引入向量数据库。
 
+### 6.6 类型下沉与 type profile
+
+类型是 mention 级的观察，不是 Entity 的属性。每条 Entity Evidence 记录本次观察判出的类型：
+
+```text
+evidence.observed_entity_type
+```
+
+Entity 层不存类型，需要时用一条聚合查询得到 profile（`store.type_profile`）：
+
+```sql
+SELECT observed_entity_type,
+       COUNT(*)                  AS observations,
+       COUNT(DISTINCT source_id) AS sources
+FROM evidence
+WHERE entity_id=? AND polarity='support' AND observed_entity_type<>''
+GROUP BY observed_entity_type
+```
+
+结果形如：
+
+```text
+深度学习   solution: 17 个来源 / 31 条观察
+           concept:   9 个来源 / 14 条观察
+```
+
+**profile 不是投票，不取 argmax。** 一个词确实可能同时属于多个类型——「深度学习」既是一族做法也是一个研究方向。语言学上这叫 inherent polysemy / dot object：两个义项不互斥，同时成立。因此「实体只有一个类型」这个前提本身是错的，profile 如实保留分布而不折叠。
+
+两个计数口径含义不同，都要给出：`observations` 会被单一来源反复使用刷高，反映的是语料分布；`sources` 反映有多少独立来源这样判。默认展示口径留待真实数据出来后再定。
+
+这个设计顺带消解了两处旧缺陷，不需要单独修补：
+
+1. 复用已有实体时，新观察的类型判断此前被完全丢弃（`entities.entity_type` 只在建实体时写一次）；现在它作为一条 Evidence 自然进入 profile。
+2. `merge_entities` 此前不处理类型冲突，`reconcile` 按 `min(id)` 选 target，等于按建库顺序随机保留一边；现在没有单值列可冲突，Evidence 一转移，两边 profile 自然并集。
+
+需要单值类型的下游场景（如导航查询）应在查询层定阈值，并明确那是可调策略而非既成事实。
+
 ## 7. Claim 端点物化
 
 片段内已解析 Entity 建立：
@@ -351,7 +391,7 @@ insufficient
 
 摘要（完整定义见 `kg/ontology.py`）：
 
-- `is_a`：实例测试成立，且两端 `entity_type` 相同。
+- `is_a`：实例测试成立。两端 `entity_type` 通常相同，但只作自查线索，不作否决理由。
 - `part_of`：构件、正文明确列出的阶段，或原文明确陈述的领域归属。
 - `prerequisite_of`：原文明确陈述 subject 是学习 object 的实质性前提。
 

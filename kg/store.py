@@ -6,7 +6,7 @@ import re
 import sqlite3
 import unicodedata
 from collections import defaultdict
-from typing import Iterable
+from typing import Any, Iterable
 
 from .models import EntityObservation, LoadedSource, RELATIONS
 
@@ -92,6 +92,35 @@ def evidence_for_entity(
     ]
 
 
+def type_profile(conn: sqlite3.Connection, entity_id: int) -> list[dict[str, Any]]:
+    """Entity 层的类型表示：各类型分别有多少条观察、来自多少个独立来源。
+
+    这不是投票——不取 argmax，也不折叠成单一类型。一个词确实可能同时属于
+    多个类型（「深度学习」既是一族做法也是一个研究方向），profile 如实保留
+    这一点。observations 反映语料分布，sources 反映有多少独立来源这样判，
+    两者含义不同，因此都给出。
+    """
+    return [
+        {
+            "entity_type": str(row["entity_type"]),
+            "observations": int(row["observations"]),
+            "sources": int(row["sources"]),
+        }
+        for row in conn.execute(
+            """
+            SELECT observed_entity_type AS entity_type,
+                   COUNT(*) AS observations,
+                   COUNT(DISTINCT source_id) AS sources
+            FROM evidence
+            WHERE entity_id=? AND polarity='support' AND observed_entity_type<>''
+            GROUP BY observed_entity_type
+            ORDER BY sources DESC, observations DESC, observed_entity_type
+            """,
+            (entity_id,),
+        )
+    ]
+
+
 def create_entity(
     conn: sqlite3.Connection,
     observation: EntityObservation,
@@ -108,15 +137,10 @@ def create_entity(
     else:
         cursor = conn.execute(
             """
-            INSERT INTO entities(canonical_name,normalized_name,definition,entity_type)
-            VALUES (?,?,?,?)
+            INSERT INTO entities(canonical_name,normalized_name,definition)
+            VALUES (?,?,?)
             """,
-            (
-                canonical,
-                normalized,
-                observation.definition,
-                observation.entity_type,
-            ),
+            (canonical, normalized, observation.definition),
         )
         entity_id = int(cursor.lastrowid)
     for alias in (observation.name, *observation.aliases):
@@ -154,6 +178,7 @@ def add_evidence(
     validator_prompt_version: str = "",
     validator_verdict: str = "",
     validator_reason: str = "",
+    observed_entity_type: str = "",
     entity_id: int | None = None,
     claim_id: int | None = None,
 ) -> bool:
@@ -174,10 +199,10 @@ def add_evidence(
         """
         INSERT OR IGNORE INTO evidence
         (target_key,entity_id,claim_id,source_id,excerpt,model_quote,
-         passage_ids,passage_version,extraction_model,
+         observed_entity_type,passage_ids,passage_version,extraction_model,
          extraction_prompt_version,validator_model,validator_prompt_version,
          validator_verdict,validator_reason,excerpt_hash,location,polarity)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """,
         (
             target_key,
@@ -186,6 +211,7 @@ def add_evidence(
             source_id,
             source_text,
             model_quote,
+            observed_entity_type,
             json.dumps(passage_list, ensure_ascii=False),
             passage_version,
             extraction_model,
@@ -336,6 +362,7 @@ def merge_entities(
                 validator_prompt_version=str(row["validator_prompt_version"]),
                 validator_verdict=str(row["validator_verdict"]),
                 validator_reason=str(row["validator_reason"]),
+                observed_entity_type=str(row["observed_entity_type"]),
                 entity_id=target_id,
             )
         conn.execute("DELETE FROM evidence WHERE entity_id=?", (source_id,))

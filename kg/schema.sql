@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS schema_meta (
     value TEXT NOT NULL
 );
 
-INSERT OR IGNORE INTO schema_meta(key, value) VALUES ('schema_version', '3');
+INSERT OR IGNORE INTO schema_meta(key, value) VALUES ('schema_version', '4');
 
 -- A row is one immutable version of one logical source.
 CREATE TABLE IF NOT EXISTS sources (
@@ -24,19 +24,18 @@ CREATE TABLE IF NOT EXISTS sources (
 
 CREATE INDEX IF NOT EXISTS idx_sources_key ON sources(source_key, created_at);
 
+-- Entity 没有单值 entity_type。类型是 mention 级的观察，记在
+-- evidence.observed_entity_type 上；Entity 层的类型表示是这些观察的汇总
+-- （type profile，见 store.type_profile）。一个词确实可能同时是多个类型，
+-- 例如「深度学习」既是一族做法也是一个研究方向。
 CREATE TABLE IF NOT EXISTS entities (
     id              INTEGER PRIMARY KEY,
     canonical_name  TEXT NOT NULL,
     normalized_name TEXT NOT NULL UNIQUE,
     definition      TEXT NOT NULL,
-    entity_type     TEXT NOT NULL CHECK(entity_type IN (
-        'resource', 'criterion', 'data', 'task', 'solution', 'concept'
-    )),
     created_at      TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-
-CREATE INDEX IF NOT EXISTS idx_entities_type ON entities(entity_type);
 
 -- Aliases are an Entity attribute, not another knowledge-object type.
 CREATE TABLE IF NOT EXISTS entity_aliases (
@@ -75,6 +74,11 @@ CREATE TABLE IF NOT EXISTS evidence (
     source_id    INTEGER NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
     excerpt      TEXT NOT NULL,
     model_quote  TEXT NOT NULL DEFAULT '',
+    -- 本次观察判出的类型。仅对 Entity Evidence 有意义；空串表示未记录
+    -- （schema 4 之前的历史行，无法回填——我们不知道当时判的是什么）。
+    observed_entity_type TEXT NOT NULL DEFAULT '' CHECK(observed_entity_type IN (
+        '', 'resource', 'criterion', 'data', 'task', 'solution', 'concept'
+    )),
     passage_ids  TEXT NOT NULL DEFAULT '[]',
     passage_version TEXT NOT NULL DEFAULT 'source-passages-1',
     extraction_model TEXT NOT NULL DEFAULT '',
@@ -95,6 +99,8 @@ CREATE TABLE IF NOT EXISTS evidence (
 );
 
 CREATE INDEX IF NOT EXISTS idx_evidence_entity ON evidence(entity_id);
+-- idx_evidence_observed_type 建在 db._migrate_evidence 里：本脚本对已存在的表
+-- 是 no-op，而该索引依赖的列要等迁移才补上，写在这里会先于列执行而失败。
 CREATE INDEX IF NOT EXISTS idx_evidence_claim ON evidence(claim_id);
 CREATE INDEX IF NOT EXISTS idx_evidence_source ON evidence(source_id);
 

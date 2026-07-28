@@ -54,6 +54,17 @@ concept
 
 类型根据 definition 判断，不按名称字面猜测；无法归入前五类时才使用 `concept`。
 
+**类型是 mention 级的观察，不是 Entity 的单值属性。** 每次抽取判出的类型记在 `evidence.observed_entity_type` 上；Entity 层的类型表示是这些观察的汇总（type profile，见 `store.type_profile`），`entities` 表没有 `entity_type` 列。
+
+这样处理是因为一个词确实可能同时属于多个类型，而且取决于语境：「深度学习」既是一族做法（`solution`），也是一个研究方向（`concept`）。这类词在语言学上叫 dot object，两个义项不互斥、同时成立，所以「给它选一个正确类型」这个问题本身就是错的。
+
+由此产生的约束：
+
+- 不要把 profile 折叠成单一类型（argmax、多数派、首次观察都不行），它不是投票。
+- profile 同时给 `observations` 和 `sources`：前者反映语料分布，一本书反复使用会刷高；后者反映有多少独立来源这样判。两者含义不同，不要混用。
+- 历史 Evidence 的类型留空，不得用实体旧类型回填——我们不知道当时那次观察判的是什么，回填等于编造观察记录。
+- 需要单值类型的场景（例如将来的导航查询）应当在查询层定阈值，并明确它是一个可调策略，不是数据库里的既成事实。
+
 Claim 关系只能是：
 
 ```text
@@ -72,7 +83,7 @@ prerequisite_of
 
 要点摘要：
 
-- `is_a`：实例测试——任取一个 subject，它本身就是一个 object。领域归属和构件关系都不是 `is_a`。两端 `entity_type` 通常相同，但只作自查线索，不作否决理由（见 4.2）。
+- `is_a`：实例测试——任取一个 subject，它本身就是一个 object。领域归属和构件关系都不是 `is_a`。两端 `entity_type` 通常相同，但只作自查线索，不作否决理由（见 4.1）。
 - `part_of`：构件、正文明确列出的阶段，或**原文明确陈述的领域归属**（三者之一即可）。
 - `prerequisite_of`：原文明确陈述不先掌握 subject 就无法学习 object。教材先后顺序本身不是证据。
 
@@ -80,7 +91,16 @@ prerequisite_of
 
 修改 `kg/ontology.py` 的语义时，必须同时 bump `extraction.EXTRACTION_PROMPT_VERSION`、`resolution.RESOLUTION_PROMPT_VERSION` 和 `validation.VALIDATION_PROMPT_VERSION`，否则旧的 `done` 片段会被错误跳过。
 
-### 4.1 已知弱证据风险
+### 4.1 不要用类型一致性做门槛
+
+`is_a` 在本体论上要求两端同类型，但**不得**把它实现为硬约束——无论是提示词里的“必须”，还是 `kg check` 的检查项。原因有二：
+
+1. 判别力低。`深度学习 is_a 人工智能`（两端多半都是 `concept`）和 `卷积层 is_a 卷积神经网络`（两端都是 `solution`）这两个典型错误，类型一致性一个都拦不住；它只能拦住本来就不会发生的离谱组合。
+2. 误伤代价高且不可见。类型判断本身不可靠，一旦作为门槛，正确的 `is_a` 会被静默丢弃，连 `rejected` 记录都不留。
+
+因此类型一致性只作为模型的自查线索出现在定义里，判定始终以实例测试和排除项为准。
+
+### 4.2 已知弱证据风险
 
 真实 MiniMax M3 冒烟曾把“人工智能，特别是神经网络与深度学习的发展”接受为 `神经网络/深度学习 part_of 人工智能`。**注意这条至今仍是假阳性**：`part_of` 放宽的是“领域归属这种语义可以入图”，不是“弱表达可以入图”。“特别是”只做强调，没有陈述任何归属关系，正确判定是 `insufficient`。该句已作为反例写进 `kg/ontology.py` 的 `part_of` 定义。
 

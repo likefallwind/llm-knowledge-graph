@@ -5,6 +5,8 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
+from . import store
+
 
 def graph_dict(conn: sqlite3.Connection) -> dict[str, Any]:
     entities = []
@@ -22,7 +24,7 @@ def graph_dict(conn: sqlite3.Connection) -> dict[str, Any]:
                 "canonical_name": str(row["canonical_name"]),
                 "aliases": aliases,
                 "definition": str(row["definition"]),
-                "entity_type": str(row["entity_type"]),
+                "type_profile": store.type_profile(conn, int(row["id"])),
             }
         )
     claims = []
