@@ -5,10 +5,12 @@ import sqlite3
 from difflib import SequenceMatcher
 from typing import Any
 
-from . import store
+from . import ontology, store
 from .llm import JSONLLM
 from .models import EntityObservation, Resolution
 
+
+RESOLUTION_PROMPT_VERSION = "entity-identity-ontology-2"
 
 RESOLUTION_SYSTEM = """你是实体身份裁判，不是知识来源。
 只能根据给出的语料观察与候选实体判断身份，禁止补充外部知识。
@@ -70,6 +72,7 @@ def resolve_observation(
     payload = llm.complete_json(
         RESOLUTION_SYSTEM,
         """判断新观察与候选是否指向同一个知识对象。
+entity_type 不同通常意味着不是同一个对象，但类型可能判错，仅作参考而非硬性依据。
 返回：
 {
   "decision": "same | new | uncertain",
@@ -78,12 +81,16 @@ def resolve_observation(
   "reason": "简短理由"
 }
 
+entity_type 含义：
+%s
+
 新观察：
 %s
 
 候选：
 %s"""
         % (
+            ontology.entity_type_summary(),
             json.dumps(
                 {
                     "name": observation.name,

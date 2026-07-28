@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from . import ontology
 from .llm import JSONLLM
 from .models import (
     ENTITY_TYPES,
@@ -15,7 +16,7 @@ from .models import (
 )
 
 
-EXTRACTION_PROMPT_VERSION = "grounded-extract-passages-1"
+EXTRACTION_PROMPT_VERSION = "grounded-extract-ontology-2"
 PASSAGE_VERSION = "source-passages-1"
 
 SYSTEM_PROMPT = """你是语料约束的知识抽取器。
@@ -25,27 +26,20 @@ SYSTEM_PROMPT = """你是语料约束的知识抽取器。
 EXTRACTION_PROMPT = """从下面的单个语料片段抽取 Entity、Claim 和 Evidence。
 
 Entity 必须是在本片段中有稳定名称、可复指，并有实质性定义或知识含义的对象。
-不要抽取“定义、公式、方法、过程、属性”等离开上下文没有明确身份的通用词。
 
-六种 entity_type（根据 definition 判断，concept 兜底）：
-- resource：论文、教材、课程、文档等知识载体
-- criterion：损失函数、指标、优化目标、评测协议
-- data：数据集、训练数据、样本集合
-- task：有目标、输入输出或成功条件的问题
-- solution：算法、过程、模型、架构、系统或工具
-- concept：数学对象、性质、规律、现象、研究领域等其他对象
+六种 entity_type。根据原文给出的 definition 判断，不按名称字面猜测，concept 兜底：
+{entity_types}
 
-只允许三种 relation：
-- is_a：subject 是 object 的一种
-- part_of：subject 是 object 的真实组成部分或明确阶段
-- prerequisite_of：理解 subject 是学习 object 的实质性前提
+只允许三种 relation。先做判定测试，再逐条核对排除项；两者冲突时以排除项为准：
+{relations}
 
 规则：
 1. evidence.passage_ids 必须选择片段中真实存在的段落 ID，最多 3 个。
 2. evidence.quote 是你认为最关键的引文。应尽量忠实引用，但允许轻微省略或改写。
 3. aliases 只列出本片段表达过的别名。
 4. Claim 的两个端点都必须使用本片段表达的完整名称，不得截短限定词。
-5. 共现、超链接和章节顺序都不能证明关系。
+5. 判不准关系属于哪一种，或命题只是常识为真而原文没有陈述时，不要输出该 Claim。
+   宁可漏，不要猜。
 6. stance 是 support 或 oppose；不确定的关系不要输出。
 7. 最多输出 {max_entities} 个实体和 {max_claims} 个 Claim。
 
@@ -99,6 +93,8 @@ def extract(
             location=location,
             max_entities=max_entities,
             max_claims=max_claims,
+            entity_types=ontology.entity_type_block(),
+            relations=ontology.relation_block(),
         ),
     )
     return parse_payload(

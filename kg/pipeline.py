@@ -250,6 +250,7 @@ def _processing_hash(
         "chunk_hash": chunk_hash,
         "passage_version": extraction.PASSAGE_VERSION,
         "extraction_prompt_version": extraction.EXTRACTION_PROMPT_VERSION,
+        "resolution_prompt_version": resolution.RESOLUTION_PROMPT_VERSION,
         "validator_prompt_version": validation.VALIDATION_PROMPT_VERSION,
         "model": model,
         "max_entities": max_entities,
