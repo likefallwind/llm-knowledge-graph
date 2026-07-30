@@ -87,6 +87,16 @@ class MiniMaxM3LLM:
             },
             method="POST",
         )
+        for generation_attempt in range(2):
+            data = self._send(request)
+            try:
+                return parse_json_object(_message_text(data))
+            except ValueError:
+                if generation_attempt == 1:
+                    raise
+        raise AssertionError("unreachable")
+
+    def _send(self, request: urllib.request.Request) -> dict[str, Any]:
         for attempt in range(self.config.retries + 1):
             try:
                 with urllib.request.urlopen(
@@ -94,7 +104,7 @@ class MiniMaxM3LLM:
                 ) as response:
                     data = json.loads(response.read().decode("utf-8"))
                 _validate_response(data)
-                return parse_json_object(_message_text(data))
+                return data
             except urllib.error.HTTPError as exc:
                 retryable = exc.code == 429 or exc.code >= 500
                 if not retryable or attempt >= self.config.retries:

@@ -15,6 +15,15 @@ from kg.llm import (
 
 
 class LLMTest(unittest.TestCase):
+    @staticmethod
+    def _response(content: str):
+        item = mock.MagicMock()
+        item.read.return_value = json.dumps(
+            {"choices": [{"message": {"content": content}}]}
+        ).encode("utf-8")
+        item.__enter__.return_value = item
+        return item
+
     def test_parse_fenced_or_surrounded_json(self):
         self.assertEqual(
             parse_json_object("思考完成\n```json\n{\"ok\": true}\n```"),
@@ -59,11 +68,7 @@ class LLMTest(unittest.TestCase):
     @mock.patch("kg.llm.time.sleep")
     @mock.patch("kg.llm.urllib.request.urlopen")
     def test_client_retries_read_timeout(self, urlopen, sleep):
-        item = mock.MagicMock()
-        item.read.return_value = json.dumps(
-            {"choices": [{"message": {"content": '{"ok": true}'}}]}
-        ).encode("utf-8")
-        item.__enter__.return_value = item
+        item = self._response('{"ok": true}')
         urlopen.side_effect = [TimeoutError("read timed out"), item]
         client = MiniMaxM3LLM(
             LLMConfig(
@@ -75,6 +80,41 @@ class LLMTest(unittest.TestCase):
         self.assertEqual(client.complete_json("system", "user"), {"ok": True})
         self.assertEqual(urlopen.call_count, 2)
         sleep.assert_called_once()
+
+    @mock.patch("kg.llm.urllib.request.urlopen")
+    def test_client_regenerates_once_after_invalid_json(self, urlopen):
+        urlopen.side_effect = [
+            self._response('{"ok": true "missing": 1}'),
+            self._response('{"ok": true}'),
+        ]
+        client = MiniMaxM3LLM(
+            LLMConfig(
+                base_url="https://gateway.example/v1",
+                api_key="secret",
+                model="MiniMax-M3",
+            )
+        )
+
+        self.assertEqual(client.complete_json("system", "user"), {"ok": True})
+        self.assertEqual(urlopen.call_count, 2)
+
+    @mock.patch("kg.llm.urllib.request.urlopen")
+    def test_client_stops_after_second_invalid_json(self, urlopen):
+        urlopen.side_effect = [
+            self._response('{"first": true "missing": 1}'),
+            self._response('{"second": true "missing": 1}'),
+        ]
+        client = MiniMaxM3LLM(
+            LLMConfig(
+                base_url="https://gateway.example/v1",
+                api_key="secret",
+                model="MiniMax-M3",
+            )
+        )
+
+        with self.assertRaises(json.JSONDecodeError):
+            client.complete_json("system", "user")
+        self.assertEqual(urlopen.call_count, 2)
 
 
 if __name__ == "__main__":
