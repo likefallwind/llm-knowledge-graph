@@ -9,6 +9,8 @@ import urllib.request
 from dataclasses import dataclass
 from typing import Any, Protocol
 
+import json_repair
+
 
 DEFAULT_MINIMAX_BASE_URL = "https://api.minimaxi.com/v1"
 DEFAULT_MINIMAX_MODEL = "MiniMax-M3"
@@ -164,7 +166,14 @@ def parse_json_object(text: str) -> dict[str, Any]:
     start = candidate.find("{")
     if start < 0:
         raise ValueError("LLM 输出中没有 JSON 对象")
-    value, _ = decoder.raw_decode(candidate[start:])
+    candidate = candidate[start:]
+    try:
+        value, _ = decoder.raw_decode(candidate)
+    except json.JSONDecodeError as original:
+        try:
+            value = json_repair.loads(candidate, strict=True)
+        except (json.JSONDecodeError, TypeError, ValueError):
+            raise original
     if not isinstance(value, dict):
         raise ValueError("LLM 输出的顶层 JSON 必须是对象")
     return value

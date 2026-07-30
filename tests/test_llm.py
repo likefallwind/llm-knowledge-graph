@@ -34,6 +34,22 @@ class LLMTest(unittest.TestCase):
             {"value": 3},
         )
 
+    def test_parse_repairs_unescaped_quotes_in_nested_string_values(self):
+        payload = parse_json_object(
+            '{"entities":[{"name":"扩散模型",'
+            '"definition":"一种称为"生成模型"的模型",'
+            '"aliases":["扩散"模型""]}]}'
+        )
+
+        self.assertEqual(
+            payload["entities"][0],
+            {
+                "name": "扩散模型",
+                "definition": '一种称为"生成模型"的模型',
+                "aliases": ['扩散"模型"'],
+            },
+        )
+
     def test_top_level_must_be_object(self):
         with self.assertRaises(ValueError):
             parse_json_object("[1, 2]")
@@ -84,7 +100,7 @@ class LLMTest(unittest.TestCase):
     @mock.patch("kg.llm.urllib.request.urlopen")
     def test_client_regenerates_once_after_invalid_json(self, urlopen):
         urlopen.side_effect = [
-            self._response('{"ok": true "missing": 1}'),
+            self._response('{"ok" true}'),
             self._response('{"ok": true}'),
         ]
         client = MiniMaxM3LLM(
@@ -99,10 +115,34 @@ class LLMTest(unittest.TestCase):
         self.assertEqual(urlopen.call_count, 2)
 
     @mock.patch("kg.llm.urllib.request.urlopen")
+    def test_client_repairs_real_unescaped_quotes_without_regeneration(self, urlopen):
+        urlopen.return_value = self._response(
+            '```json\n{"verdict":"supports","reason":"source_text 明确说'
+            '"第二部分 \'基础模型\' 介绍 Transformer"，因此支持。"}\n```'
+        )
+        client = MiniMaxM3LLM(
+            LLMConfig(
+                base_url="https://gateway.example/v1",
+                api_key="secret",
+                model="MiniMax-M3",
+            )
+        )
+
+        self.assertEqual(
+            client.complete_json("system", "user"),
+            {
+                "verdict": "supports",
+                "reason": 'source_text 明确说"第二部分 \'基础模型\' 介绍 Transformer"，'
+                "因此支持。",
+            },
+        )
+        self.assertEqual(urlopen.call_count, 1)
+
+    @mock.patch("kg.llm.urllib.request.urlopen")
     def test_client_stops_after_second_invalid_json(self, urlopen):
         urlopen.side_effect = [
-            self._response('{"first": true "missing": 1}'),
-            self._response('{"second": true "missing": 1}'),
+            self._response('{"first" true}'),
+            self._response('{"second" true}'),
         ]
         client = MiniMaxM3LLM(
             LLMConfig(
