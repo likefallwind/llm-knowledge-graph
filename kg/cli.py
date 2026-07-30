@@ -37,6 +37,12 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--overlap-chars", type=int, default=500)
     run.add_argument("--max-entities", type=int, default=20)
     run.add_argument("--max-claims", type=int, default=30)
+    run.add_argument(
+        "--judge-workers",
+        type=int,
+        default=1,
+        help="并行关系裁判数；数据库写入仍保持串行（默认 1）",
+    )
     run.add_argument("--stop-on-error", action="store_true")
 
     reconcile = sub.add_parser(
@@ -141,6 +147,7 @@ def main(argv: list[str] | None = None) -> int:
                 overlap_chars=args.overlap_chars,
                 max_entities=args.max_entities,
                 max_claims=args.max_claims,
+                judge_workers=args.judge_workers,
                 stop_on_error=args.stop_on_error,
             )
             _json(result)

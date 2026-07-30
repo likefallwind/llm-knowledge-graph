@@ -75,8 +75,11 @@ python -m kg --db data/knowledge.db run sources/catalog.json \
 
 ```bash
 python -m kg --db data/knowledge.db run sources.json \
-  --source-limit 2 --max-chunks 20
+  --source-limit 2 --max-chunks 20 --judge-workers 4
 ```
+
+`--judge-workers` 只并行同一片段内彼此独立的关系证据裁判。Entity 对齐、
+Claim 写入和 Chunk 顺序仍保持串行，避免改变图谱合并语义。
 
 随着 Evidence 增加，重新判断相似但尚未合并的 Entity：
 

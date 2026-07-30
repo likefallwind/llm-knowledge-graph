@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import json
 import tempfile
+import threading
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from kg import db, pipeline, resolution, store
 from kg.models import EntityObservation
@@ -59,6 +61,28 @@ class PipelineTest(unittest.TestCase):
             encoding="utf-8",
         )
         return catalog
+
+    def test_claim_judges_can_run_in_parallel(self):
+        barrier = threading.Barrier(2)
+        thread_ids: set[int] = set()
+
+        def judge(_llm, claim):
+            thread_ids.add(threading.get_ident())
+            barrier.wait(timeout=1)
+            return "supports", claim
+
+        with mock.patch(
+            "kg.pipeline.validation.judge_claim", side_effect=judge
+        ):
+            results = pipeline._judge_claims(
+                object(), ["first", "second"], workers=2
+            )
+
+        self.assertEqual(
+            results,
+            [("supports", "first"), ("supports", "second")],
+        )
+        self.assertEqual(len(thread_ids), 2)
 
     def test_end_to_end_claim_aggregation_and_resume(self):
         first = (

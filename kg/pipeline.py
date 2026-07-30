@@ -3,12 +3,13 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
 from . import extraction, resolution, sources, store, validation
 from .llm import JSONLLM
-from .models import ChunkResult, SourcePassage
+from .models import ClaimObservation, ChunkResult, SourcePassage
 
 
 def process_catalog(
@@ -22,6 +23,7 @@ def process_catalog(
     overlap_chars: int = 500,
     max_entities: int = 20,
     max_claims: int = 30,
+    judge_workers: int = 1,
     stop_on_error: bool = False,
 ) -> dict[str, Any]:
     specs = sources.load_catalog(catalog_path)
@@ -78,6 +80,7 @@ def process_catalog(
                         location=chunk.location,
                         max_entities=max_entities,
                         max_claims=max_claims,
+                        judge_workers=judge_workers,
                     )
                     store.save_progress(
                         conn,
@@ -127,6 +130,7 @@ def process_chunk(
     location: str,
     max_entities: int = 20,
     max_claims: int = 30,
+    judge_workers: int = 1,
 ) -> ChunkResult:
     batch = extraction.extract(
         llm,
@@ -163,6 +167,7 @@ def process_chunk(
             result.evidence += 1
         result.entities += 1
 
+    pending_claims: list[tuple[ClaimObservation, int, int]] = []
     for claim in batch.claims:
         subject_id = _endpoint(conn, local, claim.subject)
         object_id = _endpoint(conn, local, claim.object)
@@ -171,7 +176,16 @@ def process_chunk(
                 f"Claim 端点无法唯一解析: {claim.subject} -> {claim.object}"
             )
             continue
-        verdict, reason = validation.judge_claim(llm, claim)
+        pending_claims.append((claim, subject_id, object_id))
+
+    judgments = _judge_claims(
+        llm,
+        [claim for claim, _, _ in pending_claims],
+        workers=judge_workers,
+    )
+    for (claim, subject_id, object_id), (verdict, reason) in zip(
+        pending_claims, judgments
+    ):
         expected = "supports" if claim.polarity == "support" else "contradicts"
         if verdict != expected:
             result.rejected.append(
@@ -222,6 +236,25 @@ def process_chunk(
             result.evidence += 1
     conn.commit()
     return result
+
+
+def _judge_claims(
+    llm: JSONLLM,
+    claims: list[ClaimObservation],
+    *,
+    workers: int,
+) -> list[tuple[str, str]]:
+    if workers < 1:
+        raise ValueError("judge_workers 必须至少为 1")
+    if workers == 1 or len(claims) < 2:
+        return [validation.judge_claim(llm, claim) for claim in claims]
+    with ThreadPoolExecutor(max_workers=min(workers, len(claims))) as executor:
+        return list(
+            executor.map(
+                lambda claim: validation.judge_claim(llm, claim),
+                claims,
+            )
+        )
 
 
 def _endpoint(

@@ -410,6 +410,10 @@ stance=oppose 且 verdict=contradicts 且 Claim 已存在
 
 反对证据不会凭空创建一条只有反对 Evidence 的 Claim。
 
+同一 Chunk 中已经解析好两端的 Claim 可以通过 `--judge-workers` 并行裁判；
+裁判结果按原顺序返回，Claim 去重、循环检查、Evidence 和数据库写入仍串行
+执行。Entity 对齐依赖当前图谱状态，也保持串行。
+
 ### 8.1 已知语义风险
 
 有效 Passage ID 只能证明模型选择了真实原文范围，不能证明关系判得正确。真实 MiniMax M3 冒烟中：
