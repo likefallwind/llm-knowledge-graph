@@ -131,7 +131,10 @@ python -m kg --db data/knowledge.db viz --out out/graph.html
 记录、被语义裁判拒绝的记录和三次以上的 Entity 晋升候选。
 
 HTML 默认展示高连接实体的局部子图，可搜索实体、切换关系、调整邻域层数，
-并点击节点或边查看 Source、Passage、真实原文和模型裁判理由。拒绝统计将
+并点击节点或边查看 Source、Passage、真实原文和模型裁判理由。右侧
+Observation 审计可按待定端点、待裁判、支持但未落实、物化阻塞和语义裁判
+结果筛选，点击记录可查看原始端点、解析 Entity、证据和模型/提示词版本；
+三次以上的 Entity 晋升候选也单独列出，不混入正式图。拒绝统计将
 旧运行中的端点未解析、非法 Passage 等算法性损失与语义拒绝分开显示；新运行
 的待定端点及 `insufficient/contradicts` 主要以 Observation 统计呈现，不再把
 可恢复记录归入终止性拒绝。

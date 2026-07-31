@@ -748,6 +748,144 @@ def observation_report(conn: sqlite3.Connection) -> dict[str, int]:
     }
 
 
+def observation_audit(
+    conn: sqlite3.Connection, *, detail_limit: int = 500
+) -> dict[str, Any]:
+    """Return inspectable non-materialized observations for the HTML audit.
+
+    Materialized observations are summarized but omitted from ``items`` because
+    their provenance is already visible on the corresponding graph edge.
+    """
+    rows = conn.execute(
+        """
+        WITH latest AS (
+          SELECT * FROM (
+            SELECT j.*,
+                   ROW_NUMBER() OVER (
+                     PARTITION BY observation_id ORDER BY id DESC
+                   ) AS position
+            FROM claim_observation_judgments j
+          ) WHERE position=1
+        )
+        SELECT o.*,latest.validator_model,latest.validator_prompt_version,
+               latest.verdict,latest.reason AS validator_reason,
+               s.name AS source_name,s.uri AS source_uri,s.version AS source_version,
+               se.canonical_name AS subject_entity_name,
+               oe.canonical_name AS object_entity_name
+        FROM claim_observations o
+        JOIN sources s ON s.id=o.source_id
+        LEFT JOIN latest ON latest.observation_id=o.id
+        LEFT JOIN entities se ON se.id=o.subject_entity_id
+        LEFT JOIN entities oe ON oe.id=o.object_entity_id
+        WHERE o.claim_id IS NULL OR o.materialization_error<>''
+        ORDER BY
+          CASE
+            WHEN o.materialization_error<>'' THEN 0
+            WHEN latest.observation_id IS NULL THEN 1
+            WHEN o.subject_entity_id IS NULL OR o.object_entity_id IS NULL THEN 2
+            ELSE 3
+          END,
+          o.id
+        LIMIT ?
+        """,
+        (max(0, detail_limit),),
+    ).fetchall()
+    items = [_audit_item(row) for row in rows]
+    candidates = []
+    for candidate in promotion_candidates(conn, threshold=3):
+        evidence = []
+        for row in candidate["rows"][:10]:
+            evidence.append(
+                {
+                    "source_id": int(row["source_id"]),
+                    "passage_ids": json.loads(str(row["passage_ids"])),
+                    "source_text": str(row["source_text"]),
+                    "model_quote": str(row["model_quote"]),
+                }
+            )
+        candidates.append(
+            {
+                "reference_key": str(candidate["reference_key"]),
+                "name": str(candidate["name"]),
+                "names": list(candidate["names"]),
+                "passage_count": int(candidate["passage_count"]),
+                "source_count": int(candidate["source_count"]),
+                "evidence": evidence,
+            }
+        )
+    return {
+        "summary": observation_report(conn),
+        "items": items,
+        "detail_limit": max(0, detail_limit),
+        "promotion_candidates": candidates,
+    }
+
+
+def _audit_item(row: sqlite3.Row) -> dict[str, Any]:
+    verdict = str(row["verdict"] or "")
+    expected = "supports" if row["polarity"] == "support" else "contradicts"
+    statuses = []
+    if str(row["materialization_error"]):
+        statuses.append("blocked")
+    if not verdict:
+        statuses.append("pending_judgment")
+    elif verdict != expected:
+        statuses.append(verdict)
+    if row["subject_entity_id"] is None or row["object_entity_id"] is None:
+        statuses.append("pending_endpoint")
+    if verdict == expected and "pending_endpoint" not in statuses:
+        statuses.append("supported_unmaterialized")
+    status = statuses[0] if statuses else "supported_unmaterialized"
+    return {
+        "id": int(row["id"]),
+        "status": status,
+        "statuses": statuses or [status],
+        "source": {
+            "id": int(row["source_id"]),
+            "name": str(row["source_name"]),
+            "uri": str(row["source_uri"]),
+            "version": str(row["source_version"]),
+        },
+        "chunk_index": int(row["chunk_index"]),
+        "subject": {
+            "name": str(row["subject_name"]),
+            "entity_id": (
+                int(row["subject_entity_id"])
+                if row["subject_entity_id"] is not None
+                else None
+            ),
+            "entity_name": str(row["subject_entity_name"] or ""),
+        },
+        "relation": str(row["relation"]),
+        "object": {
+            "name": str(row["object_name"]),
+            "entity_id": (
+                int(row["object_entity_id"])
+                if row["object_entity_id"] is not None
+                else None
+            ),
+            "entity_name": str(row["object_entity_name"] or ""),
+        },
+        "polarity": str(row["polarity"]),
+        "source_text": str(row["source_text"]),
+        "model_quote": str(row["model_quote"]),
+        "passage_ids": json.loads(str(row["passage_ids"])),
+        "passage_version": str(row["passage_version"]),
+        "location": str(row["location"]),
+        "extraction": {
+            "model": str(row["extraction_model"]),
+            "prompt_version": str(row["extraction_prompt_version"]),
+        },
+        "validation": {
+            "model": str(row["validator_model"] or ""),
+            "prompt_version": str(row["validator_prompt_version"] or ""),
+            "verdict": verdict,
+            "reason": str(row["validator_reason"] or ""),
+        },
+        "materialization_error": str(row["materialization_error"]),
+    }
+
+
 def _model_name(llm: JSONLLM) -> str:
     config = getattr(llm, "config", None)
     return str(getattr(config, "model", "") or llm.__class__.__name__)

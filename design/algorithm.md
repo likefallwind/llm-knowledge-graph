@@ -694,6 +694,10 @@ for spec in load_catalog(catalog):
 - 按 `is_a / part_of / prerequisite_of` 开关关系；
 - 点击节点查看定义、alias、type profile 和 Entity Evidence；
 - 点击边查看真实原文、Passage 位置和关系裁判；
+- 搜索、筛选并查看未落实 ClaimObservation、端点解析和晋升候选；
 - 查看拒绝类别和代表样本。
+
+待定端点和晋升候选只进入右侧审计面板，不画成正式 Entity 或 Claim，避免把
+研究线索误表示为已经入图的知识。
 
 可视化是只读的质量审计入口，不引入新的知识对象或发布状态。

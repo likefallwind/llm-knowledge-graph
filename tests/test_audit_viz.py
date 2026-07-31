@@ -5,8 +5,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from kg import audit, db, store, viz
-from kg.models import EntityObservation, LoadedSource, SourceSpec
+from kg import audit, db, observations, store, viz
+from kg.models import (
+    ClaimObservation,
+    EntityObservation,
+    LoadedSource,
+    SourceSpec,
+)
 
 
 def observation(name: str) -> EntityObservation:
@@ -70,6 +75,32 @@ class AuditVizTest(unittest.TestCase):
                 ],
             },
         )
+        pending_id, _ = observations.add_claim_observation(
+            self.conn,
+            source_id=self.source_id,
+            chunk_index=1,
+            claim=ClaimObservation(
+                subject="缺失实体",
+                relation="is_a",
+                object="实体乙",
+                model_quote="缺失实体是实体乙的一种",
+                source_text="缺失实体是实体乙的一种。",
+                passage_ids=("P000001",),
+                location="P000001",
+            ),
+            extraction_model="FakeLLM",
+            extraction_prompt_version="test-extract",
+        )
+        observations.save_judgment(
+            self.conn,
+            pending_id,
+            validator_model="FakeLLM",
+            validator_prompt_version="test-validator",
+            verdict="supports",
+            reason="原文明确定义类属关系",
+        )
+        observations.resolve_endpoint_ids(self.conn, [pending_id])
+        self.conn.commit()
 
     def tearDown(self):
         self.conn.close()
@@ -108,6 +139,8 @@ class AuditVizTest(unittest.TestCase):
         self.assertIn("实体甲", html)
         self.assertIn("原文明确定义类属关系", html)
         self.assertIn("endpoint_unresolved", html)
+        self.assertIn("Observation 审计", html)
+        self.assertIn("缺失实体", html)
         self.assertIn("<canvas", html)
         self.assertNotIn('src="http', html)
         self.assertNotIn("unpkg.com", html)
@@ -117,6 +150,15 @@ class AuditVizTest(unittest.TestCase):
         payload = json.loads(payload_text)
         self.assertEqual(len(payload["entities"]), 2)
         self.assertEqual(len(payload["claims"]), 1)
+        observation_audit = payload["observation_audit"]
+        self.assertEqual(observation_audit["summary"]["pending_endpoint"], 1)
+        self.assertEqual(len(observation_audit["items"]), 1)
+        self.assertEqual(
+            observation_audit["items"][0]["status"], "pending_endpoint"
+        )
+        self.assertEqual(
+            observation_audit["items"][0]["object"]["entity_name"], "实体乙"
+        )
 
 
 if __name__ == "__main__":
