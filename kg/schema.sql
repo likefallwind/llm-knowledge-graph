@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS schema_meta (
     value TEXT NOT NULL
 );
 
-INSERT OR IGNORE INTO schema_meta(key, value) VALUES ('schema_version', '5');
+INSERT OR IGNORE INTO schema_meta(key, value) VALUES ('schema_version', '6');
 
 -- A row is one immutable version of one logical source.
 CREATE TABLE IF NOT EXISTS sources (

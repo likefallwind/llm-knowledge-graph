@@ -7,7 +7,7 @@ from .llm import JSONLLM
 from .models import ClaimObservation
 
 
-VALIDATION_PROMPT_VERSION = "relation-judge-ontology-2"
+VALIDATION_PROMPT_VERSION = "relation-judge-ontology-3"
 
 VALIDATION_SYSTEM = """你是关系证据裁判，不是知识来源。
 只根据程序从 Source 取得的 source_text 判断关系；禁止使用外部知识补足省略信息。

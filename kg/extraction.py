@@ -16,7 +16,7 @@ from .models import (
 )
 
 
-EXTRACTION_PROMPT_VERSION = "grounded-extract-ontology-4"
+EXTRACTION_PROMPT_VERSION = "grounded-extract-ontology-5"
 PASSAGE_VERSION = "source-passages-1"
 
 SYSTEM_PROMPT = """你是语料约束的知识抽取器。

@@ -63,6 +63,19 @@ class DefinitionsReachThePromptsTest(unittest.TestCase):
                 with self.subTest(relation=relation, exclude=text[:20]):
                     self.assertIn(text, user_prompt)
 
+    def test_live_failure_boundaries_remain_explicit(self):
+        part_of = ontology.RELATION_BY_NAME["part_of"]
+        prerequisite = ontology.RELATION_BY_NAME["prerequisite_of"]
+        self.assertTrue(
+            any("完整 resource 身份" in text for text in part_of.excludes)
+        )
+        self.assertTrue(
+            any("可替换选项" in text for text in part_of.excludes)
+        )
+        self.assertTrue(
+            any("建议先浏览" in text for text in prerequisite.excludes)
+        )
+
     def test_resolution_prompt_explains_entity_types(self):
         prompt_seen: list[str] = []
 

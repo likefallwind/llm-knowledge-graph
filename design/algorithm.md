@@ -259,6 +259,12 @@ Claim 通过 5.2 和 5.4 的机械校验后，先写入不可丢失的
 Observation 没有手写状态机：端点列为空、当前版本裁判缺失、`claim_id`
 存在等字段直接导出 pending/materialized 等审计口径。
 
+旧数据库中的 Claim Evidence 只在升级时执行一次 Observation 回填；新数据库
+直接保存原生 Observation，后续 `status/check/audit` 重新连接数据库时不得把
+已落实 Evidence 再导入为第二条 legacy Observation。schema 6 使用独立回填
+标记保证该迁移只执行一次，并清理由早期 schema 5 行为产生、且已有完整原生
+Observation 对应的重复 legacy 行。
+
 ### 5.6 待定端点与 Entity 晋升
 
 未解析 subject/object 按保留标点、忽略空白的 reference key 聚合。至少三个
@@ -469,9 +475,19 @@ stance=oppose 且 verdict=contradicts 且 Claim 已存在
 深度学习 part_of 人工智能
 ```
 
-该句只有强调和共现，没有明确归属陈述，正确判定是 `insufficient`。这两条至今仍是假阳性——`part_of` 接受领域归属这种**语义**，但不接受“特别是”这种**弱表达**。该句现已作为反例写进 `kg/ontology.py` 的 `part_of` 定义，直接送进抽取和裁判两处提示词。
+该句只有强调和共现，没有明确归属陈述，正确判定是 `insufficient`。这两条在旧
+实验结果中是假阳性——`part_of` 接受领域归属这种**语义**，但不接受“特别是”
+这种**弱表达**。该句现已作为反例写进 `kg/ontology.py` 的 `part_of` 定义，
+直接送进抽取和裁判两处提示词。
 
 在此之前，最强的 `part_of` 措辞（带“领域相关、研究分支、用途和共现默认都不是”排除项）只存在于 `agent.md`，抽取和裁判看到的都是剥掉排除项的弱版本。`tests/test_ontology.py` 的 `DefinitionsReachThePromptsTest` 就是为防止这种分叉复发而存在的：它断言每条定义的每个排除项都真的出现在送给 LLM 的提示词里。
+
+2026-08-01 的五 Chunk 有界运行又暴露出三类可重复边界：把“建议先浏览以便
+更顺畅理解”判成必需前提；把目录中的同名算法当作章节构件；把解决同一问题
+的可替换途径当作共存构件。它们没有被写成字符串拦截规则，而是作为通用排除
+项和反例加入同一 ontology。更新后的 MiniMax M3 对三条原始 Source Evidence
+独立复判，均返回 `insufficient`。旧实验库保留原始判断用于对照，不当作正式
+知识库继续扩张。
 
 ### 8.2 领域归属暂并入 part_of
 
@@ -480,7 +496,9 @@ stance=oppose 且 verdict=contradicts 且 Claim 已存在
 1. 表面触发词不互斥——中文教材大量用“组成部分”表述子领域，要正确路由必须先裁定某个词是不是“领域”，而 `entity_type` 是单值列，装不下 `深度学习`（既是方法族又是研究方向）这类随上下文变化的类型；
 2. 当前没有多跳遍历功能，混合语义的代价尚未发生，按第 14 节的门槛应当推迟。
 
-因此领域归属暂记为 `part_of`。它作为 `claims` 表的一等数据，将来要拆分只需对存量 Claim 重判，不必重跑抽取；频次也可以直接用 SQL 统计，作为是否单列 `subfield_of` 的决策依据。
+因此领域归属暂记为 `part_of`。它作为 `claims` 表的一等数据，将来要拆分只需
+对存量 Claim 重判，不必重跑抽取。只有真实的跨来源合并和知识导航反复受这种
+混合语义阻碍时才考虑拆分，不以关系频次本身作为决策依据。
 
 ## 9. Claim 合并和循环检查
 
@@ -569,7 +587,9 @@ object ⇢ subject
 
 这里的 `chunk_hash` 实际是处理指纹，包含正文 Chunk 哈希、Passage 版本、**抽取/身份裁决/关系裁判三个提示词版本**、模型和每块实体/Claim 上限。算法或参数变化后，同一文本会重新处理，不会被旧 `done` 错误跳过。
 
-三个提示词版本都渲染自 `kg/ontology.py`，因此改动定义语义时必须同时 bump 它们，否则已有 `done` 片段会带着旧定义的结果被跳过。
+三个提示词都从 `kg/ontology.py` 取得所需定义。Entity 类型语义变化时 bump
+抽取和身份裁决版本；relation 语义变化时 bump 抽取和关系裁判版本。这样受影响
+的已有 `done` 片段会重新处理，而无关判断不会仅因版本联动被重复执行。
 
 状态只有：
 

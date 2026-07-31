@@ -6,6 +6,8 @@ from pathlib import Path
 
 DEFAULT_DB = Path("data/knowledge.db")
 SCHEMA = Path(__file__).with_name("schema.sql")
+SCHEMA_VERSION = "6"
+CLAIM_OBSERVATION_BACKFILL_VERSION = "1"
 
 
 def connect(path: str | Path = DEFAULT_DB) -> sqlite3.Connection:
@@ -23,6 +25,7 @@ def _install_schema(conn: sqlite3.Connection) -> None:
     existing = conn.execute(
         "SELECT name FROM sqlite_master WHERE type='table' AND name='entities'"
     ).fetchone()
+    had_existing_database = existing is not None
     if existing:
         columns = {
             row["name"] for row in conn.execute("PRAGMA table_info(entities)")
@@ -36,7 +39,30 @@ def _install_schema(conn: sqlite3.Connection) -> None:
     conn.executescript(SCHEMA.read_text(encoding="utf-8"))
     _migrate_evidence(conn)
     _migrate_entity_type_to_profile(conn)
-    _migrate_claim_observations(conn)
+    backfill = conn.execute(
+        "SELECT value FROM schema_meta WHERE key=?",
+        ("claim_observation_backfill_version",),
+    ).fetchone()
+    backfill_version = str(backfill["value"]) if backfill else ""
+    if backfill_version != CLAIM_OBSERVATION_BACKFILL_VERSION:
+        # A new database already writes native ClaimObservations before it
+        # materializes Claim Evidence, so there is no legacy data to import.
+        # Existing databases need this one-time backfill.  The separate marker
+        # keeps later read-only commands from re-importing newly written
+        # Evidence as duplicate legacy observations.
+        if had_existing_database:
+            _migrate_claim_observations(conn)
+            _remove_duplicate_legacy_claim_observations(conn)
+        conn.execute(
+            """
+            INSERT INTO schema_meta(key,value) VALUES (?,?)
+            ON CONFLICT(key) DO UPDATE SET value=excluded.value
+            """,
+            (
+                "claim_observation_backfill_version",
+                CLAIM_OBSERVATION_BACKFILL_VERSION,
+            ),
+        )
     # A migration or an Entity/Alias added by another process may make an old
     # endpoint deterministically resolvable.  This step is read-mostly and never
     # calls an LLM or materializes an unjudged Claim.
@@ -45,9 +71,10 @@ def _install_schema(conn: sqlite3.Connection) -> None:
     observations.resolve_endpoint_ids(conn)
     conn.execute(
         """
-        INSERT INTO schema_meta(key,value) VALUES ('schema_version','5')
+        INSERT INTO schema_meta(key,value) VALUES ('schema_version',?)
         ON CONFLICT(key) DO UPDATE SET value=excluded.value
-        """
+        """,
+        (SCHEMA_VERSION,),
     )
     conn.commit()
 
@@ -139,8 +166,27 @@ def _migrate_claim_observations(conn: sqlite3.Connection) -> None:
         """
     ).fetchall()
     for row in accepted:
+        represented = conn.execute(
+            """
+            SELECT id FROM claim_observations
+            WHERE observation_key NOT LIKE 'legacy-claim-evidence:%'
+              AND claim_id=? AND source_id=? AND source_text=?
+              AND model_quote=? AND passage_ids=? AND polarity=?
+            LIMIT 1
+            """,
+            (
+                int(row["claim_id"]),
+                int(row["source_id"]),
+                str(row["excerpt"]),
+                str(row["model_quote"]),
+                str(row["passage_ids"]),
+                str(row["polarity"]),
+            ),
+        ).fetchone()
+        if represented:
+            continue
         key = f"legacy-claim-evidence:{int(row['evidence_id'])}"
-        cursor = conn.execute(
+        conn.execute(
             """
             INSERT OR IGNORE INTO claim_observations
             (observation_key,source_id,chunk_index,subject_name,
@@ -295,3 +341,38 @@ def _migrate_claim_observations(conn: sqlite3.Connection) -> None:
                         str(detail.get("reason", "")),
                     ),
                 )
+
+
+def _remove_duplicate_legacy_claim_observations(
+    conn: sqlite3.Connection,
+) -> int:
+    """Remove schema-5 backfill rows duplicated by a native observation.
+
+    Early schema-5 installs ran the legacy backfill on every connection.  A
+    current pipeline run could therefore gain a second, synthetic Observation
+    for the same Claim Evidence when ``status`` or ``check`` reopened the DB.
+    Keep genuine legacy rows, and delete only rows whose complete grounded
+    Evidence identity is already represented by a non-legacy Observation.
+    """
+    cursor = conn.execute(
+        """
+        DELETE FROM claim_observations
+        WHERE id IN (
+          SELECT legacy.id
+          FROM claim_observations legacy
+          WHERE legacy.observation_key LIKE 'legacy-claim-evidence:%'
+            AND EXISTS (
+              SELECT 1 FROM claim_observations native
+              WHERE native.id<>legacy.id
+                AND native.observation_key NOT LIKE 'legacy-claim-evidence:%'
+                AND native.claim_id=legacy.claim_id
+                AND native.source_id=legacy.source_id
+                AND native.source_text=legacy.source_text
+                AND native.model_quote=legacy.model_quote
+                AND native.passage_ids=legacy.passage_ids
+                AND native.polarity=legacy.polarity
+            )
+        )
+        """
+    )
+    return cursor.rowcount

@@ -205,7 +205,7 @@ class MigrationFromSchema3Test(unittest.TestCase):
         self.assertEqual(
             conn.execute("SELECT value FROM schema_meta WHERE key='schema_version'")
             .fetchone()[0],
-            "5",
+            "6",
         )
         self.assertEqual(
             int(conn.execute("SELECT COUNT(*) FROM entities").fetchone()[0]), 1
