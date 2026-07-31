@@ -272,7 +272,7 @@ class PipelineTest(unittest.TestCase):
         self.assertEqual(store.counts(self.conn)["entities"], 0)
         self.assertEqual(store.counts(self.conn)["evidence"], 0)
 
-    def test_claim_judge_failure_rolls_back_the_whole_chunk(self):
+    def test_claim_judge_failure_preserves_grounded_observation(self):
         catalog = self._catalog(["实体甲是实体乙的一种。"])
         llm = FakeLLM(
             {
@@ -314,6 +314,18 @@ class PipelineTest(unittest.TestCase):
         self.assertEqual(store.counts(self.conn)["entities"], 0)
         self.assertEqual(store.counts(self.conn)["claims"], 0)
         self.assertEqual(store.counts(self.conn)["evidence"], 0)
+        observation = self.conn.execute(
+            "SELECT * FROM claim_observations"
+        ).fetchone()
+        self.assertIsNotNone(observation)
+        self.assertEqual(observation["subject_name"], "实体甲")
+        self.assertTrue(observation["source_text"])
+        self.assertEqual(
+            self.conn.execute(
+                "SELECT COUNT(*) FROM claim_observation_judgments"
+            ).fetchone()[0],
+            0,
+        )
 
     def test_uncertain_keeps_independent_entity_then_reconcile_merges(self):
         source_id = self.conn.execute(
@@ -512,16 +524,16 @@ class PipelineTest(unittest.TestCase):
         pipeline.process_catalog(self.conn, llm, catalog)
         self.assertEqual(store.counts(self.conn)["entities"], 2)
         self.assertEqual(store.counts(self.conn)["claims"], 0)
-        saved = json.loads(
-            self.conn.execute(
-                "SELECT result FROM source_progress WHERE status='done'"
-            ).fetchone()[0]
-        )
-        detail = saved["rejection_details"][0]
-        self.assertEqual(detail["stage"], "evidence_validation")
-        self.assertEqual(detail["subject"], "梯度下降法")
-        self.assertEqual(detail["verdict"], "insufficient")
-        self.assertTrue(detail["source_text"])
+        row = self.conn.execute(
+            """
+            SELECT o.subject_name,o.source_text,j.verdict,j.reason
+            FROM claim_observations o
+            JOIN claim_observation_judgments j ON j.observation_id=o.id
+            """
+        ).fetchone()
+        self.assertEqual(row["subject_name"], "梯度下降法")
+        self.assertEqual(row["verdict"], "insufficient")
+        self.assertTrue(row["source_text"])
 
 
 if __name__ == "__main__":

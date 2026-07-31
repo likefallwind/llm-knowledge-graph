@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
-from . import extraction, resolution, sources, store, validation
+from . import extraction, observations, resolution, sources, store, validation
 from .llm import JSONLLM
 from .models import ClaimObservation, ChunkResult, SourcePassage
 
@@ -54,6 +54,7 @@ def process_catalog(
                 "entities": 0,
                 "claims": 0,
                 "evidence": 0,
+                "claim_observations": 0,
                 "rejected": [],
             }
             for chunk in chunks:
@@ -80,6 +81,7 @@ def process_catalog(
                         conn,
                         llm,
                         source_id=source_id,
+                        chunk_index=chunk.index,
                         text=chunk.text,
                         passages=chunk.passages,
                         location=chunk.location,
@@ -96,7 +98,12 @@ def process_catalog(
                         result=result.as_dict(),
                     )
                     source_result["processed_chunks"] += 1
-                    for key in ("entities", "claims", "evidence"):
+                    for key in (
+                        "entities",
+                        "claims",
+                        "evidence",
+                        "claim_observations",
+                    ):
                         source_result[key] += getattr(result, key)
                     source_result["rejected"].extend(result.rejected)
                 except Exception as exc:
@@ -130,6 +137,7 @@ def process_chunk(
     llm: JSONLLM,
     *,
     source_id: int,
+    chunk_index: int = 0,
     text: str,
     passages: tuple[SourcePassage, ...],
     location: str,
@@ -146,15 +154,31 @@ def process_chunk(
         max_claims=max_claims,
     )
     result = ChunkResult(rejected=list(batch.rejected))
-    local: dict[str, int] = {}
+    local_candidates: dict[str, set[int]] = {}
     extraction_model = _model_name(llm)
+
+    observation_ids: list[int] = []
+    for claim in batch.claims:
+        observation_id, created = observations.add_claim_observation(
+            conn,
+            source_id=source_id,
+            chunk_index=chunk_index,
+            claim=claim,
+            extraction_model=extraction_model,
+        )
+        observation_ids.append(observation_id)
+        result.claim_observations += int(created)
+    # Observation evidence survives later entity-resolution or model failures.
+    conn.commit()
 
     for observation in batch.entities:
         resolved = resolution.resolve_observation(conn, llm, observation)
         entity_id = resolved.entity_id
         keys = (observation.name, *observation.aliases)
         for name in keys:
-            local[store.normalize_name(name)] = entity_id
+            local_candidates.setdefault(store.reference_key(name), set()).add(
+                entity_id
+            )
         if store.add_evidence(
             conn,
             source_id=source_id,
@@ -172,129 +196,68 @@ def process_chunk(
             result.evidence += 1
         result.entities += 1
 
-    pending_claims: list[tuple[ClaimObservation, int, int]] = []
-    for claim in batch.claims:
-        subject_id = _endpoint(conn, local, claim.subject)
-        object_id = _endpoint(conn, local, claim.object)
-        if subject_id is None or object_id is None:
-            message = (
-                "Claim 端点无法唯一解析: "
-                f"{claim.subject} -> {claim.object}"
-            )
-            result.rejected.append(message)
-            result.rejection_details.append(
-                _claim_rejection_detail(
-                    claim,
-                    stage="endpoint_resolution",
-                    reason=message,
-                )
-            )
-            continue
-        pending_claims.append((claim, subject_id, object_id))
-
+    local = {
+        key: next(iter(entity_ids))
+        for key, entity_ids in local_candidates.items()
+        if len(entity_ids) == 1
+    }
+    observations.resolve_endpoint_ids(conn, observation_ids, local=local)
+    rows = [
+        observations.get_observation(conn, observation_id)
+        for observation_id in observation_ids
+    ]
+    missing = [
+        row
+        for row in rows
+        if row is not None
+        and observations.current_judgment(
+            conn, int(row["id"]), validator_model=extraction_model
+        )
+        is None
+    ]
     judgments = _judge_claims(
         llm,
-        [claim for claim, _, _ in pending_claims],
+        [observations.as_claim(row) for row in missing],
         workers=judge_workers,
     )
-    for (claim, subject_id, object_id), (verdict, reason) in zip(
-        pending_claims, judgments
-    ):
-        expected = "supports" if claim.polarity == "support" else "contradicts"
-        if verdict != expected:
-            message = (
-                f"Claim 证据裁决为 {verdict}: "
-                f"{claim.subject} {claim.relation} {claim.object}; {reason}"
-            )
-            result.rejected.append(message)
-            result.rejection_details.append(
-                _claim_rejection_detail(
-                    claim,
-                    stage="evidence_validation",
-                    reason=reason,
-                    verdict=verdict,
-                )
-            )
-            continue
-
-        existing = store.find_claim(
-            conn, subject_id, claim.relation, object_id
-        )
-        if claim.polarity == "oppose" and existing is None:
-            message = "反对证据对应的 Claim 尚不存在，按首版规则暂不入库"
-            result.rejected.append(message)
-            result.rejection_details.append(
-                _claim_rejection_detail(
-                    claim,
-                    stage="claim_write",
-                    reason=message,
-                )
-            )
-            continue
-        if existing is None:
-            claim_id, created, error = store.upsert_claim(
-                conn, subject_id, claim.relation, object_id
-            )
-            if claim_id is None:
-                message = (
-                    f"Claim 未写入: {claim.subject} {claim.relation} "
-                    f"{claim.object}; {error}"
-                )
-                result.rejected.append(message)
-                result.rejection_details.append(
-                    _claim_rejection_detail(
-                        claim,
-                        stage="claim_write",
-                        reason=error,
-                    )
-                )
-                continue
-            if created:
-                result.claims += 1
-        else:
-            claim_id = int(existing["id"])
-        if store.add_evidence(
+    for row, (verdict, reason) in zip(missing, judgments):
+        observations.save_judgment(
             conn,
-            source_id=source_id,
-            source_text=claim.source_text,
-            model_quote=claim.model_quote,
-            passage_ids=claim.passage_ids,
-            passage_version=extraction.PASSAGE_VERSION,
-            location=claim.location,
-            polarity=claim.polarity,
-            extraction_model=extraction_model,
-            extraction_prompt_version=extraction.EXTRACTION_PROMPT_VERSION,
+            int(row["id"]),
             validator_model=extraction_model,
-            validator_prompt_version=validation.VALIDATION_PROMPT_VERSION,
-            validator_verdict=verdict,
-            validator_reason=reason,
-            claim_id=claim_id,
-        ):
-            result.evidence += 1
+            verdict=verdict,
+            reason=reason,
+        )
+    # Cache relation judgments independently of whether endpoints exist yet.
+    conn.commit()
+
+    for observation_id in observation_ids:
+        materialized = observations.materialize(
+            conn, observation_id, validator_model=extraction_model
+        )
+        outcome = materialized["outcome"]
+        if outcome == "materialized":
+            result.claims += int(materialized["claim_created"])
+            result.evidence += int(materialized["evidence_created"])
+        elif outcome == "pending_endpoint":
+            row = observations.get_observation(conn, observation_id)
+            result.pending.append(
+                {
+                    "stage": "endpoint_resolution",
+                    "observation_id": observation_id,
+                    "subject": str(row["subject_name"]),
+                    "relation": str(row["relation"]),
+                    "object": str(row["object_name"]),
+                }
+            )
+        elif outcome in {"not_supported", "blocked"}:
+            detail = {"observation_id": observation_id, **materialized}
+            result.not_materialized.append(detail)
+    # Any Entity or verified alias learned in this Chunk may unlock older
+    # observations.  This deterministic replay uses cached judgments only.
+    observations.resolve_and_materialize_cached(conn)
     conn.commit()
     return result
-
-
-def _claim_rejection_detail(
-    claim: ClaimObservation,
-    *,
-    stage: str,
-    reason: str,
-    verdict: str = "",
-) -> dict[str, Any]:
-    return {
-        "stage": stage,
-        "subject": claim.subject,
-        "relation": claim.relation,
-        "object": claim.object,
-        "polarity": claim.polarity,
-        "verdict": verdict,
-        "reason": reason,
-        "model_quote": claim.model_quote,
-        "source_text": claim.source_text,
-        "passage_ids": list(claim.passage_ids),
-        "location": claim.location,
-    }
 
 
 def _judge_claims(
@@ -314,16 +277,6 @@ def _judge_claims(
                 claims,
             )
         )
-
-
-def _endpoint(
-    conn: sqlite3.Connection, local: dict[str, int], name: str
-) -> int | None:
-    key = store.normalize_name(name)
-    if key in local:
-        return local[key]
-    matches = store.exact_entity_ids(conn, name)
-    return matches[0] if len(matches) == 1 else None
 
 
 def _model_name(llm: JSONLLM) -> str:

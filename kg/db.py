@@ -36,9 +36,16 @@ def _install_schema(conn: sqlite3.Connection) -> None:
     conn.executescript(SCHEMA.read_text(encoding="utf-8"))
     _migrate_evidence(conn)
     _migrate_entity_type_to_profile(conn)
+    _migrate_claim_observations(conn)
+    # A migration or an Entity/Alias added by another process may make an old
+    # endpoint deterministically resolvable.  This step is read-mostly and never
+    # calls an LLM or materializes an unjudged Claim.
+    from . import observations
+
+    observations.resolve_endpoint_ids(conn)
     conn.execute(
         """
-        INSERT INTO schema_meta(key,value) VALUES ('schema_version','4')
+        INSERT INTO schema_meta(key,value) VALUES ('schema_version','5')
         ON CONFLICT(key) DO UPDATE SET value=excluded.value
         """
     )
@@ -104,3 +111,187 @@ def _migrate_evidence(conn: sqlite3.Connection) -> None:
         WHERE passage_ids='[]'
         """
     )
+
+
+def _migrate_claim_observations(conn: sqlite3.Connection) -> None:
+    """Backfill accepted Claim Evidence as already-materialized observations.
+
+    Historical rejected strings are intentionally not guessed.  Newer
+    structured rejection_details are imported when all grounded fields exist.
+    Re-running their source Chunk later is still safe because observation_key
+    makes this migration and normal extraction idempotent.
+    """
+    import hashlib
+    import json
+
+    from . import store
+
+    accepted = conn.execute(
+        """
+        SELECT v.id AS evidence_id,v.*,c.subject_id,c.relation,c.object_id,
+               s.canonical_name AS subject_name,o.canonical_name AS object_name
+        FROM evidence v
+        JOIN claims c ON c.id=v.claim_id
+        JOIN entities s ON s.id=c.subject_id
+        JOIN entities o ON o.id=c.object_id
+        WHERE v.claim_id IS NOT NULL
+        ORDER BY v.id
+        """
+    ).fetchall()
+    for row in accepted:
+        key = f"legacy-claim-evidence:{int(row['evidence_id'])}"
+        cursor = conn.execute(
+            """
+            INSERT OR IGNORE INTO claim_observations
+            (observation_key,source_id,chunk_index,subject_name,
+             subject_reference_key,subject_entity_id,relation,object_name,
+             object_reference_key,object_entity_id,polarity,source_text,
+             model_quote,passage_ids,passage_version,location,
+             extraction_model,extraction_prompt_version,claim_id)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            """,
+            (
+                key,
+                int(row["source_id"]),
+                -1,
+                str(row["subject_name"]),
+                store.reference_key(str(row["subject_name"])),
+                int(row["subject_id"]),
+                str(row["relation"]),
+                str(row["object_name"]),
+                store.reference_key(str(row["object_name"])),
+                int(row["object_id"]),
+                str(row["polarity"]),
+                str(row["excerpt"]),
+                str(row["model_quote"]),
+                str(row["passage_ids"]),
+                str(row["passage_version"]),
+                str(row["location"]),
+                str(row["extraction_model"]),
+                str(row["extraction_prompt_version"]),
+                int(row["claim_id"]),
+            ),
+        )
+        observation_id = int(
+            conn.execute(
+                "SELECT id FROM claim_observations WHERE observation_key=?", (key,)
+            ).fetchone()[0]
+        )
+        verdict = str(row["validator_verdict"])
+        if verdict in {"supports", "contradicts", "insufficient"}:
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO claim_observation_judgments
+                (observation_id,validator_model,validator_prompt_version,verdict,reason)
+                VALUES (?,?,?,?,?)
+                """,
+                (
+                    observation_id,
+                    str(row["validator_model"]),
+                    str(row["validator_prompt_version"]),
+                    verdict,
+                    str(row["validator_reason"]),
+                ),
+            )
+
+    progress_rows = conn.execute(
+        """
+        SELECT source_id,chunk_index,result FROM source_progress
+        WHERE status='done' AND json_valid(result)
+        """
+    ).fetchall()
+    for progress in progress_rows:
+        try:
+            result = json.loads(str(progress["result"]))
+        except (TypeError, ValueError, json.JSONDecodeError):
+            continue
+        details = result.get("rejection_details", [])
+        if not isinstance(details, list):
+            continue
+        for detail in details:
+            if not isinstance(detail, dict):
+                continue
+            subject = str(detail.get("subject", "")).strip()
+            relation = str(detail.get("relation", "")).strip()
+            object_name = str(detail.get("object", "")).strip()
+            source_text = str(detail.get("source_text", "")).strip()
+            passage_ids = detail.get("passage_ids", [])
+            if (
+                not subject
+                or relation not in {"is_a", "part_of", "prerequisite_of"}
+                or not object_name
+                or not source_text
+                or not isinstance(passage_ids, list)
+                or not passage_ids
+            ):
+                continue
+            raw_key = json.dumps(
+                [
+                    int(progress["source_id"]),
+                    int(progress["chunk_index"]),
+                    subject,
+                    relation,
+                    object_name,
+                    str(detail.get("polarity", "support")),
+                    source_text,
+                    passage_ids,
+                ],
+                ensure_ascii=False,
+            )
+            key = "legacy-rejection:" + hashlib.sha256(
+                raw_key.encode("utf-8")
+            ).hexdigest()
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO claim_observations
+                (observation_key,source_id,chunk_index,subject_name,
+                 subject_reference_key,relation,object_name,object_reference_key,
+                 polarity,source_text,model_quote,passage_ids,location)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+                """,
+                (
+                    key,
+                    int(progress["source_id"]),
+                    int(progress["chunk_index"]),
+                    subject,
+                    store.reference_key(subject),
+                    relation,
+                    object_name,
+                    store.reference_key(object_name),
+                    str(detail.get("polarity", "support")),
+                    source_text,
+                    str(detail.get("model_quote", "")),
+                    json.dumps(passage_ids, ensure_ascii=False),
+                    str(detail.get("location", "")),
+                ),
+            )
+            observation_id = int(
+                conn.execute(
+                    "SELECT id FROM claim_observations WHERE observation_key=?",
+                    (key,),
+                ).fetchone()[0]
+            )
+            stage = str(detail.get("stage", ""))
+            verdict = str(detail.get("verdict", "")).strip()
+            if stage == "claim_write" and not verdict:
+                verdict = (
+                    "supports"
+                    if str(detail.get("polarity", "support")) == "support"
+                    else "contradicts"
+                )
+            if verdict in {"supports", "contradicts", "insufficient"}:
+                conn.execute(
+                    """
+                    INSERT OR IGNORE INTO claim_observation_judgments
+                    (observation_id,validator_model,validator_prompt_version,
+                     verdict,reason)
+                    VALUES (?,?,?,?,?)
+                    """,
+                    (
+                        observation_id,
+                        "legacy-recorded",
+                        "legacy-recorded",
+                        verdict,
+                        str(detail.get("reason", "")),
+                    ),
+                )

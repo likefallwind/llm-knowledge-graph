@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS schema_meta (
     value TEXT NOT NULL
 );
 
-INSERT OR IGNORE INTO schema_meta(key, value) VALUES ('schema_version', '4');
+INSERT OR IGNORE INTO schema_meta(key, value) VALUES ('schema_version', '5');
 
 -- A row is one immutable version of one logical source.
 CREATE TABLE IF NOT EXISTS sources (
@@ -65,6 +65,78 @@ CREATE TABLE IF NOT EXISTS claims (
 
 CREATE INDEX IF NOT EXISTS idx_claims_subject ON claims(subject_id, relation);
 CREATE INDEX IF NOT EXISTS idx_claims_object ON claims(object_id, relation);
+
+-- LLM extraction is an immutable observation, while Claim is the current
+-- materialized graph.  An observation may wait for either endpoint to become
+-- a uniquely resolvable Entity; its grounded Source evidence is never lost.
+CREATE TABLE IF NOT EXISTS claim_observations (
+    id                    INTEGER PRIMARY KEY,
+    observation_key       TEXT NOT NULL UNIQUE,
+    source_id             INTEGER NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
+    chunk_index           INTEGER NOT NULL,
+    subject_name          TEXT NOT NULL,
+    subject_reference_key TEXT NOT NULL,
+    subject_entity_id     INTEGER REFERENCES entities(id) ON DELETE SET NULL,
+    relation              TEXT NOT NULL CHECK(relation IN (
+        'is_a', 'part_of', 'prerequisite_of'
+    )),
+    object_name           TEXT NOT NULL,
+    object_reference_key  TEXT NOT NULL,
+    object_entity_id      INTEGER REFERENCES entities(id) ON DELETE SET NULL,
+    polarity              TEXT NOT NULL CHECK(polarity IN ('support', 'oppose')),
+    source_text           TEXT NOT NULL,
+    model_quote           TEXT NOT NULL DEFAULT '',
+    passage_ids           TEXT NOT NULL DEFAULT '[]',
+    passage_version       TEXT NOT NULL DEFAULT 'source-passages-1',
+    location              TEXT NOT NULL DEFAULT '',
+    extraction_model      TEXT NOT NULL DEFAULT '',
+    extraction_prompt_version TEXT NOT NULL DEFAULT '',
+    claim_id              INTEGER REFERENCES claims(id) ON DELETE SET NULL,
+    materialization_error TEXT NOT NULL DEFAULT '',
+    created_at            TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at            TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_claim_observations_subject
+ON claim_observations(subject_reference_key, subject_entity_id);
+CREATE INDEX IF NOT EXISTS idx_claim_observations_object
+ON claim_observations(object_reference_key, object_entity_id);
+CREATE INDEX IF NOT EXISTS idx_claim_observations_claim
+ON claim_observations(claim_id);
+
+-- Relation judgments are cached by model and prompt version.  A new ontology
+-- can rejudge stored evidence without extracting the Source again.
+CREATE TABLE IF NOT EXISTS claim_observation_judgments (
+    id                       INTEGER PRIMARY KEY,
+    observation_id           INTEGER NOT NULL REFERENCES claim_observations(id) ON DELETE CASCADE,
+    validator_model          TEXT NOT NULL,
+    validator_prompt_version TEXT NOT NULL,
+    verdict                  TEXT NOT NULL CHECK(verdict IN (
+        'supports', 'contradicts', 'insufficient'
+    )),
+    reason                   TEXT NOT NULL DEFAULT '',
+    created_at               TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(observation_id, validator_model, validator_prompt_version)
+);
+
+CREATE INDEX IF NOT EXISTS idx_claim_observation_judgments_observation
+ON claim_observation_judgments(observation_id, id);
+
+-- Repeated unresolved endpoint references can be reviewed for promotion to an
+-- Entity.  The evidence fingerprint prevents rerunning the same unchanged
+-- candidate with the same reviewer version.
+CREATE TABLE IF NOT EXISTS entity_candidate_reviews (
+    id                INTEGER PRIMARY KEY,
+    reference_key     TEXT NOT NULL,
+    evidence_fingerprint TEXT NOT NULL,
+    reviewer_model    TEXT NOT NULL,
+    reviewer_version  TEXT NOT NULL,
+    decision          TEXT NOT NULL CHECK(decision IN ('same', 'new', 'uncertain')),
+    entity_id         INTEGER REFERENCES entities(id) ON DELETE SET NULL,
+    reason            TEXT NOT NULL DEFAULT '',
+    created_at        TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(reference_key, evidence_fingerprint, reviewer_model, reviewer_version)
+);
 
 CREATE TABLE IF NOT EXISTS evidence (
     id           INTEGER PRIMARY KEY,

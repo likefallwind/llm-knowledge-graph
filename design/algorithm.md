@@ -22,6 +22,10 @@ Read → Extract → Resolve → Merge → Repeat
 
 模型默认使用 MiniMax M3。模型输出只是候选观察，只有引用当前片段中的有效 Passage、完成实体解析和关系证据裁决后才能写入知识图谱。
 
+通过 Passage 校验的 ClaimObservation 是持久研究记录。Entity/Claim 是当前
+已落实的图谱，Observation 端点暂时无法解析时保留为 pending，后续只重放
+解析和物化，不重新抽取 Source。
+
 ## 2. 核心不变量
 
 数据库在任何完整片段处理后都应满足：
@@ -36,6 +40,8 @@ Read → Extract → Resolve → Merge → Repeat
 7. Claim 唯一键为 `(subject_id, relation, object_id)`。
 8. `is_a` 和 `prerequisite_of` 不形成有向循环。
 9. 不确定的实体身份不触发合并；不确定的关系不写入。
+10. 有效 ClaimObservation 不因端点未解析或语义证据不足而删除。
+11. 相同模型与提示词版本不重复裁判同一 Observation。
 
 `kg check` 检查外键、无证据对象和关系循环。语义正确性仍需要语料约束和关系裁判共同保证。
 
@@ -177,9 +183,9 @@ SHA256(chunk)
 }
 ```
 
-默认每个 Chunk 最多输出 30 个 Entity 和 30 个 Claim。每个 Claim 的
-subject/object 必须同时出现在当前输出的 Entity 数组中；接近上限时优先
-保留 Claim 端点对应的 Entity。
+默认每个 Chunk 最多输出 30 个 Entity 和 30 个 Claim。Claim 端点具有实质
+定义时应同时输出 Entity；否则仍允许输出有 Passage 关系证据的 Claim，端点
+作为待定引用保存。因此 Entity 上限不会再删除 ClaimObservation。
 
 ### 5.2 Evidence Passage 解析
 
@@ -227,9 +233,8 @@ Entity 必须同时满足：
 
 类型由模型根据 definition 判定；机械层只验证类型词表，不根据名称重新猜类型。
 
-模型意外返回超过上限的 Entity 时，程序先保留名称或 alias 与 Claim 端点精确
-对应的 Entity，再按原顺序填充剩余额度。这只重排模型已经给出的有据观察，
-不创建缺失 Entity，也不使用相似度猜测端点。
+模型意外返回超过上限的 Entity 时按原顺序截断；ClaimObservation 单独保存，
+不要求为了即时物化而把端点强行包装为无定义的 Entity。
 
 判出的类型写进该次观察对应的 `evidence.observed_entity_type`，**不写进 Entity**。详见第 6.6 节。
 
@@ -243,6 +248,27 @@ Claim 必须同时满足：
 4. Evidence 引用当前 Chunk 中 1–3 个有效 Passage。
 
 这一步只证明 LLM 指向了真实原文段落，还没有证明原文真的表达该关系。
+
+### 5.5 Observation 持久化与裁判缓存
+
+Claim 通过 5.2 和 5.4 的机械校验后，先写入不可丢失的
+`claim_observations`，再进行实体解析。关系裁判结果按
+`(observation_id, validator_model, validator_prompt_version)` 保存；端点尚未
+解析也不妨碍裁判。这样新增 Entity 后可直接使用已有裁判结果落实 Claim。
+
+Observation 没有手写状态机：端点列为空、当前版本裁判缺失、`claim_id`
+存在等字段直接导出 pending/materialized 等审计口径。
+
+### 5.6 待定端点与 Entity 晋升
+
+未解析 subject/object 按保留标点、忽略空白的 reference key 聚合。至少三个
+独立 `(Source, Passage ID)` 出现且原文明确出现名称时，进入晋升审核。审核
+只能依据这些 Source 文本：能够形成稳定定义则创建 Entity；能够确认现有
+Entity 则增加 alias；否则保留 uncertain。相似度只召回候选，不自动建立身份。
+审核返回的证据必须用 `(source_id, passage_id)` 精确引用，避免不同 Source 中
+同名 `P000001` 造成来源歧义。
+
+晋升审核以证据集合指纹、模型和审核版本缓存，证据未变化时不重复调用模型。
 
 ## 6. 实体解析
 
@@ -377,7 +403,7 @@ GROUP BY observed_entity_type
 片段内已解析 Entity 建立：
 
 ```text
-normalized observed name/alias → entity_id
+reference key(observed name/alias) → entity_id
 ```
 
 Claim 端点按以下顺序解析：
@@ -385,9 +411,10 @@ Claim 端点按以下顺序解析：
 1. 当前片段的 Entity 映射；
 2. 数据库中 canonical name/alias 的唯一精确匹配。
 
-无法唯一解析任一端点时，Claim 不写入。系统不根据相似度或 LLM 猜测缺失端点。
-该拒绝属于算法性损失而不是语义否定。抽取提示词要求 Claim 端点同时作为当前
-片段 Entity 输出，机械层在模型超出上限时优先保留这些端点，以减少此类损失。
+无法唯一解析任一端点时，Claim 暂不写入，但 ClaimObservation、原文证据和
+裁判结果继续保留。系统不根据相似度或 LLM 猜测缺失端点。新增 Entity、验证
+alias 或 Entity 合并后，确定性重放会重新做唯一精确匹配，并在两端齐备时落实
+Claim；不重新抽取 Source，也不重复当前版本的关系裁判。
 
 ## 8. 关系证据裁判
 
@@ -422,7 +449,8 @@ stance=oppose 且 verdict=contradicts 且 Claim 已存在
 
 反对证据不会凭空创建一条只有反对 Evidence 的 Claim。
 
-同一 Chunk 中已经解析好两端的 Claim 可以通过 `--judge-workers` 并行裁判；
+同一 Chunk 中通过机械校验的 ClaimObservation 可以通过 `--judge-workers` 并行裁判，
+不要求端点已经解析；
 裁判结果按原顺序返回，Claim 去重、循环检查、Evidence 和数据库写入仍串行
 执行。Entity 对齐依赖当前图谱状态，也保持串行。
 
@@ -495,10 +523,12 @@ created_at
 Evidence，不能改写历史 `model_quote/source_text`；稳定引用方式留到校准
 实验设计时确定。
 
-未入图 Claim 仍保留两层可检查信息：`rejected` 是兼容旧结果的简短文本，
-`rejection_details` 对新结果追加 stage、三元组、verdict/reason、Passage ID、
-model quote 和程序取得的 source text。`kg audit` 按最新 Chunk 结果区分
-算法性损失与语义拒绝；`kg viz` 在本地 HTML 中展示图结构和这些审计信息。
+未入图 Claim 以 `claim_observations` 和追加式
+`claim_observation_judgments` 保留三元组引用、原始端点名、source/model quote、
+Source/Passage、模型、提示词版本和裁判理由。端点未解析、证据不足和闭环检查
+失败都不会删除这些研究记录。旧 `rejected/rejection_details` 继续兼容历史运行，
+schema 迁移会在字段完整时导入对应 Observation。`kg status` 和 `kg audit`
+分别报告待定端点、待裁判、语义未通过、阻塞及可晋升候选。
 
 ### 9.3 循环
 
@@ -518,12 +548,14 @@ object ⇢ subject
 
 1. source canonical name 和 aliases 加入 target aliases。
 2. Entity Evidence 转移到 target 并按唯一键去重。
-3. 所有 Claim 端点从 source 改为 target。
-4. 重定向后自环的 Claim 丢弃。
-5. 重复 Claim 合为一条，Evidence 全部转移并去重。
-6. 可能产生关系循环的重定向 Claim 不写回。
-7. 删除 source Entity。
-8. 若模型给出无冲突的更优 canonical name，则更新 target。
+3. ClaimObservation 已解析端点从 source 重定向到 target。
+4. 所有 Claim 端点从 source 改为 target。
+5. 重定向后自环的 Claim 丢弃，但 Observation 和证据仍保留。
+6. 重复 Claim 合为一条，Evidence 全部转移并去重。
+7. 可能产生关系循环的重定向 Claim 不写回。
+8. 删除 source Entity。
+9. 若模型给出无冲突的更优 canonical name，则更新 target。
+10. 使用已缓存裁判重放未落实 Observation。
 
 第一版没有 merge event、撤销或复杂审核状态，因此合并必须坚持“宁可不合并，也不误合并”。
 
@@ -551,8 +583,9 @@ failed
 - `done` 的相同片段直接跳过。
 - `failed` 的片段下次重新执行。
 - `--start-chunk N` 忽略 index 小于 N 的片段，且不消耗 `--max-chunks` 额度。
-- Entity/Evidence/Claim 都有确定性唯一键，因此失败后的重试保持幂等。
-- API、JSON 或处理异常先 rollback 当前未提交事务，再记录失败原因。
+- Entity/Evidence/ClaimObservation/Judgment/Claim 都有确定性唯一键，因此失败后的重试保持幂等。
+- 机械校验通过的 ClaimObservation 先提交；后续 Entity 解析、关系裁判或物化失败
+  只回滚未提交部分，已保存的原文证据不丢失，然后记录失败原因。
 - LLM 没回答不等于知识为假；失败不能产生拒绝关系或虚假知识。
 
 ## 12. 默认 LLM 调用
@@ -597,6 +630,9 @@ for spec in load_catalog(catalog):
             batch = extract_with_minimax_m3(chunk)
             batch = validate_passage_references(batch, chunk.passages)
 
+            observations = persist_claim_observations(batch.claims)
+            commit()  # 后续失败也保留已定位到 Source 的关系证据
+
             local_entities = {}
             for observed_entity in batch.entities:
                 entity_id = resolve(observed_entity)
@@ -612,31 +648,21 @@ for spec in load_catalog(catalog):
                 )
                 local_entities[observed_entity.names] = entity_id
 
-            for observed_claim in batch.claims:
-                subject_id, object_id = resolve_exact_endpoints(
-                    observed_claim, local_entities
-                )
-                source_text = read_selected_passages(
-                    chunk.passages, observed_claim.passage_ids
-                )
-                verdict = judge_relation_evidence(
-                    observed_claim,
-                    model_quote=observed_claim.quote,
-                    source_text=source_text,
-                )
-                if verdict_matches_stance(verdict, observed_claim.stance):
+            resolve_observation_endpoints(observations, local_entities)
+            for observation in observations:
+                verdict = cached_or_judge_relation_evidence(observation)
+                save_append_only_judgment(observation, verdict)
+                if endpoints_ready(observation) and verdict_matches_stance(
+                    verdict, observation.stance
+                ):
                     claim_id = upsert_claim_with_cycle_check(
-                        subject_id,
-                        observed_claim.relation,
-                        object_id,
+                        observation.subject_id,
+                        observation.relation,
+                        observation.object_id,
                     )
-                    add_claim_evidence(
-                        claim_id,
-                        source_id,
-                        model_quote=observed_claim.quote,
-                        source_text=source_text,
-                        passage_ids=observed_claim.passage_ids,
-                    )
+                    add_claim_evidence_from_observation(claim_id, observation)
+
+            replay_cached_observations_unlocked_by_new_entities()
 
             mark_done(source_id, chunk)
         except Exception as error:

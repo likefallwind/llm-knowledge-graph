@@ -222,11 +222,15 @@ def reconcile(
                     "reason": reason,
                 }
             )
+    from . import observations
+
+    replayed = observations.resolve_and_materialize_cached(conn)
     return {
         "examined": examined,
         "merged": merged,
         "uncertain": uncertain,
         "distinct": distinct,
+        "replayed": replayed,
     }
 
 

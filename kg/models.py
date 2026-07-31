@@ -94,14 +94,20 @@ class ChunkResult:
     entities: int = 0
     claims: int = 0
     evidence: int = 0
+    claim_observations: int = 0
     rejected: list[str] = field(default_factory=list)
     rejection_details: list[dict[str, Any]] = field(default_factory=list)
+    pending: list[dict[str, Any]] = field(default_factory=list)
+    not_materialized: list[dict[str, Any]] = field(default_factory=list)
 
     def as_dict(self) -> dict[str, Any]:
         return {
             "entities": self.entities,
             "claims": self.claims,
             "evidence": self.evidence,
+            "claim_observations": self.claim_observations,
             "rejected": self.rejected,
             "rejection_details": self.rejection_details,
+            "pending": self.pending,
+            "not_materialized": self.not_materialized,
         }

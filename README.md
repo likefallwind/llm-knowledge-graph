@@ -13,7 +13,8 @@ Read → Extract → Resolve → Merge → Repeat
 - 只有四类知识对象：`Source`、`Entity`、`Claim`、`Evidence`。
 - 类型只有 `resource / criterion / data / task / solution / concept` 六种。类型是每次观察的判断，记在 Evidence 上；Entity 层汇总为 type profile，允许一个实体同时属于多个类型。
 - Claim 只有 `is_a / part_of / prerequisite_of` 三种关系。
-- Entity 和 Claim 没有 `proposed / published / shadow` 状态机。
+- Entity 和 Claim 没有 `proposed / published / shadow` 状态机。通过 Passage
+  校验的 ClaimObservation 会永久保存；端点暂时不存在只是 pending，不是拒绝。
 - 每个 Entity 都必须有可定位的来源 Evidence；没有被证据裁判确认的 Claim 不入图。
 - LLM 同时输出关键 quote 和 Passage ID；程序按 ID 取得真实原文，两者都会保存在 Evidence 中。
 - 当前不做 quote 与原文的字符匹配；Passage ID 负责定位，二者留待以后校准。
@@ -78,9 +79,9 @@ python -m kg --db data/knowledge.db run sources.json \
   --source-limit 2 --max-chunks 20 --judge-workers 4
 ```
 
-默认每个 Chunk 最多抽取 30 个 Entity 和 30 个 Claim。每个 Claim 的两个端点
-必须同时作为当前 Chunk 的 Entity observation 输出；模型意外超过实体上限时，
-程序优先保留 Claim 端点，避免仅因数组顺序丢掉可物化的关系。
+默认每个 Chunk 最多抽取 30 个 Entity 和 30 个 Claim。Claim 端点满足 Entity
+标准且有定义证据时应同时输出 Entity；否则 ClaimObservation 和关系证据仍会
+保存，等待后续 Entity、已验证 alias 或实体合并使端点唯一可解析。
 
 如需只处理指定下界之后的片段，可使用 `--start-chunk`。它按 Chunk index
 过滤，不会消耗 `--max-chunks` 的处理额度：
@@ -100,6 +101,18 @@ Claim 写入和 Chunk 顺序仍保持串行，避免改变图谱合并语义。
 python -m kg --db data/knowledge.db reconcile --limit 20
 ```
 
+使用已保存的 Observation 重放待定端点，不重新抽取 Source。默认同一端点在
+至少 3 个独立 Passage 出现后进入有据 Entity 晋升审核；只有原文足以形成稳定
+定义时才创建 Entity，字符串相似仅用于召回候选：
+
+```bash
+python -m kg --db data/knowledge.db replay-pending \
+  --promote-threshold 3
+```
+
+关系裁判按模型和提示词版本缓存。新增 Entity、确认 alias 或合并 Entity 后，
+已裁判且两端齐全的 Observation 会直接落实为 Claim 并累计 Evidence。
+
 检查硬约束并导出：
 
 ```bash
@@ -114,10 +127,14 @@ python -m kg --db data/knowledge.db audit
 python -m kg --db data/knowledge.db viz --out out/graph.html
 ```
 
+`status` 和 `audit` 同时报告 Observation 总数、待定端点、未裁判记录、已落实
+记录、被语义裁判拒绝的记录和三次以上的 Entity 晋升候选。
+
 HTML 默认展示高连接实体的局部子图，可搜索实体、切换关系、调整邻域层数，
 并点击节点或边查看 Source、Passage、真实原文和模型裁判理由。拒绝统计将
-端点未解析、非法 Passage 等算法性损失与 `insufficient/contradicts` 等语义
-拒绝分开显示。
+旧运行中的端点未解析、非法 Passage 等算法性损失与语义拒绝分开显示；新运行
+的待定端点及 `insufficient/contradicts` 主要以 Observation 统计呈现，不再把
+可恢复记录归入终止性拒绝。
 
 ## 语料目录
 

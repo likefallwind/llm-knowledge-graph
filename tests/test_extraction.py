@@ -8,18 +8,18 @@ from tests.helpers import FakeLLM
 
 
 class ExtractionTest(unittest.TestCase):
-    def test_prompt_requires_every_claim_endpoint_to_be_an_entity(self):
+    def test_prompt_preserves_claims_with_pending_entity_endpoints(self):
         passages = segment_text("批量梯度下降法是梯度下降法的一种。")
         llm = FakeLLM({"entities": [], "claims": []})
 
         extract(llm, "测试片段", passages=passages)
 
         prompt = llm.calls[0][1]
-        self.assertIn("每个 Claim 的 subject 和 object", prompt)
-        self.assertIn("entities 数组", prompt)
+        self.assertIn("待定 Entity 引用永久保留", prompt)
+        self.assertIn("若端点满足 Entity 标准", prompt)
         self.assertIn("最多输出 30 个实体", prompt)
 
-    def test_entity_cap_keeps_claim_endpoints_before_unreferenced_entities(self):
+    def test_entity_cap_does_not_discard_claim_observation(self):
         passages = segment_text("A、B、C 都有定义，B 是 C 的一种。")
         payload = {
             "entities": [
@@ -50,9 +50,9 @@ class ExtractionTest(unittest.TestCase):
 
         batch = parse_payload(payload, passages, max_entities=2)
 
-        self.assertEqual([item.name for item in batch.entities], ["B", "C"])
+        self.assertEqual([item.name for item in batch.entities], ["A", "B"])
         self.assertEqual(len(batch.claims), 1)
-        self.assertIn("已优先保留 Claim 端点", batch.rejected[-1])
+        self.assertIn("entities 超过上限 2，已截断", batch.rejected[-1])
 
     def test_paraphrased_quote_and_actual_source_are_both_preserved(self):
         passages = segment_text(

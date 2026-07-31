@@ -16,6 +16,11 @@ def normalize_name(value: str) -> str:
     return re.sub(r"\s+", " ", folded)
 
 
+def reference_key(value: str) -> str:
+    """Identity lookup key: preserve punctuation, ignore whitespace only."""
+    return re.sub(r"\s+", "", normalize_name(value))
+
+
 def add_source(conn: sqlite3.Connection, loaded: LoadedSource) -> tuple[int, bool]:
     row = conn.execute(
         "SELECT id FROM sources WHERE source_key=? AND content_hash=?",
@@ -58,6 +63,23 @@ def exact_entity_ids(conn: sqlite3.Connection, name: str) -> list[int]:
         ORDER BY id
         """,
         (normalized, normalized),
+    ).fetchall()
+    return [int(row["id"]) for row in rows]
+
+
+def reference_entity_ids(conn: sqlite3.Connection, name: str) -> list[int]:
+    """Resolve a canonical name or verified alias only when the key is unique."""
+    key = reference_key(name)
+    rows = conn.execute(
+        """
+        SELECT id FROM entities
+        WHERE REPLACE(normalized_name,' ','')=?
+        UNION
+        SELECT entity_id AS id FROM entity_aliases
+        WHERE REPLACE(normalized_name,' ','')=?
+        ORDER BY id
+        """,
+        (key, key),
     ).fetchall()
     return [int(row["id"]) for row in rows]
 
@@ -337,6 +359,14 @@ def merge_entities(
         raise ValueError("待合并实体不存在")
 
     with conn:
+        conn.execute(
+            "UPDATE claim_observations SET subject_entity_id=? WHERE subject_entity_id=?",
+            (target_id, source_id),
+        )
+        conn.execute(
+            "UPDATE claim_observations SET object_entity_id=? WHERE object_entity_id=?",
+            (target_id, source_id),
+        )
         add_alias(conn, target_id, str(source["canonical_name"]))
         for alias in aliases_for(conn, source_id):
             add_alias(conn, target_id, alias)
@@ -480,12 +510,27 @@ def integrity_report(conn: sqlite3.Connection) -> dict:
             """
         )
     ]
+    broken_observations = [
+        int(row["id"])
+        for row in conn.execute(
+            """
+            SELECT o.id FROM claim_observations o
+            LEFT JOIN claims c ON c.id=o.claim_id
+            WHERE o.claim_id IS NOT NULL AND (
+              c.id IS NULL OR c.subject_id<>o.subject_entity_id
+              OR c.object_id<>o.object_entity_id OR c.relation<>o.relation
+            )
+            """
+        )
+    ]
     return {
-        "ok": not fk and not cycles and not no_evidence and not claim_no_evidence,
+        "ok": not fk and not cycles and not no_evidence and not claim_no_evidence
+        and not broken_observations,
         "foreign_key_errors": fk,
         "cycles": cycles,
         "entities_without_evidence": no_evidence,
         "claims_without_support": claim_no_evidence,
+        "broken_claim_observations": broken_observations,
     }
 
 

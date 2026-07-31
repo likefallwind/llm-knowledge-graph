@@ -16,7 +16,7 @@ from .models import (
 )
 
 
-EXTRACTION_PROMPT_VERSION = "grounded-extract-ontology-3"
+EXTRACTION_PROMPT_VERSION = "grounded-extract-ontology-4"
 PASSAGE_VERSION = "source-passages-1"
 
 SYSTEM_PROMPT = """你是语料约束的知识抽取器。
@@ -38,9 +38,8 @@ Entity 必须是在本片段中有稳定名称、可复指，并有实质性定�
 2. evidence.quote 是你认为最关键的引文。应尽量忠实引用，但允许轻微省略或改写。
 3. aliases 只列出本片段表达过的别名。
 4. Claim 的两个端点都必须使用本片段表达的完整名称，不得截短限定词。
-   每个 Claim 的 subject 和 object 都必须各自在 entities 数组中出现；
-   即使该实体已在先前片段出现，本片段也要用当前原文重新给出它的 Entity Evidence。
-   实体数量接近上限时，优先保留 Claim 端点对应的 Entity。
+   若端点满足 Entity 标准且原文给出实质定义，应同时输出 Entity；否则仍可
+   输出有关系证据的 Claim，系统会将该端点作为待定 Entity 引用永久保留。
 5. 判不准关系属于哪一种，或命题只是常识为真而原文没有陈述时，不要输出该 Claim。
    宁可漏，不要猜。
 6. stance 是 support 或 oppose；不确定的关系不要输出。
@@ -135,10 +134,7 @@ def parse_payload(
     if not isinstance(raw_claims, list):
         raw_claims = []
         rejected.append("claims 不是数组")
-    prioritized_entities = _prioritize_claim_endpoint_entities(
-        raw_entities, raw_claims, max_entities
-    )
-    for index, raw in prioritized_entities:
+    for index, raw in enumerate(raw_entities[:max_entities]):
         if not isinstance(raw, dict):
             rejected.append(f"entity[{index}] 不是对象")
             continue
@@ -215,10 +211,7 @@ def parse_payload(
             )
         )
     if len(raw_entities) > max_entities:
-        rejected.append(
-            f"entities 超过上限 {max_entities}，"
-            "已优先保留 Claim 端点并截断"
-        )
+        rejected.append(f"entities 超过上限 {max_entities}，已截断")
     if len(raw_claims) > max_claims:
         rejected.append(f"claims 超过上限 {max_claims}，已截断")
     return ExtractionBatch(
@@ -226,48 +219,6 @@ def parse_payload(
         claims=tuple(claims),
         rejected=tuple(rejected),
     )
-
-
-def _prioritize_claim_endpoint_entities(
-    raw_entities: list[Any],
-    raw_claims: list[Any],
-    limit: int,
-) -> list[tuple[int, Any]]:
-    """Keep locally emitted Claim endpoints before unrelated Entity rows.
-
-    The model is asked to stay within the limit, but transport repair or model
-    drift can still return too many rows.  Prioritizing already-grounded rows
-    does not invent an endpoint; it only prevents array order from discarding
-    the Entity observations needed to materialize the model's own Claims.
-    """
-    endpoint_names: set[str] = set()
-    for raw in raw_claims:
-        if not isinstance(raw, dict):
-            continue
-        for key in ("subject", "object"):
-            value = _string(raw, key)
-            if value:
-                endpoint_names.add(_compact(value))
-
-    indexed = list(enumerate(raw_entities))
-
-    def is_endpoint(item: tuple[int, Any]) -> bool:
-        _, raw = item
-        if not isinstance(raw, dict):
-            return False
-        names = [_string(raw, "name")]
-        aliases = raw.get("aliases", [])
-        if isinstance(aliases, list):
-            names.extend(
-                alias.strip()
-                for alias in aliases
-                if isinstance(alias, str) and alias.strip()
-            )
-        return any(_compact(name) in endpoint_names for name in names if name)
-
-    endpoints = [item for item in indexed if is_endpoint(item)]
-    others = [item for item in indexed if not is_endpoint(item)]
-    return (endpoints + others)[:limit]
 
 
 def _resolve_evidence(

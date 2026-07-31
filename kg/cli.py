@@ -5,7 +5,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import audit, db, export, pipeline, resolution, store, viz
+from . import audit, db, export, observations, pipeline, resolution, store, viz
 from .llm import LLMConfig, MiniMaxM3LLM
 
 
@@ -56,6 +56,13 @@ def _parser() -> argparse.ArgumentParser:
         "reconcile", help="重新判断疑似重复实体并安全合并"
     )
     reconcile.add_argument("--limit", type=int, default=20)
+
+    replay = sub.add_parser(
+        "replay-pending",
+        help="用已保存证据重放待定端点、实体晋升与 Claim 落实",
+    )
+    replay.add_argument("--limit", type=int)
+    replay.add_argument("--promote-threshold", type=int, default=3)
 
     dump = sub.add_parser("export", help="导出不含 Source 正文的 JSON 图谱")
     dump.add_argument("--out", default="out/graph.json")
@@ -122,6 +129,7 @@ def _status(conn) -> dict:
         "multi_typed_entities": multi_typed,
         "relations": relations,
         "progress": progress,
+        "observations": observations.observation_report(conn),
     }
 
 
@@ -144,6 +152,7 @@ def main(argv: list[str] | None = None) -> int:
                 {
                     "graph": audit.graph_report(conn),
                     "rejections": audit.rejection_report(conn),
+                    "observations": observations.observation_report(conn),
                 }
             )
             return 0
@@ -176,6 +185,16 @@ def main(argv: list[str] | None = None) -> int:
             return 1 if result["failures"] else 0
         if args.command == "reconcile":
             _json(resolution.reconcile(conn, llm, limit=args.limit))
+            return 0
+        if args.command == "replay-pending":
+            _json(
+                observations.replay_pending(
+                    conn,
+                    llm,
+                    limit=args.limit,
+                    promote_threshold=args.promote_threshold,
+                )
+            )
             return 0
     except (OSError, RuntimeError, ValueError) as exc:
         print(f"错误: {exc}", file=sys.stderr)

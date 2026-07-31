@@ -34,6 +34,10 @@
 | `Claim`    | 两个实体之间的规范关系           | subject、relation、object |
 | `Evidence` | 支持 Entity 或 Claim 的原文 | 来源、摘录、位置、支持或反对          |
 
+此外保存抽取阶段的 `ClaimObservation` 作为审计与延迟落实记录；它不是第五类
+图谱对象，也不参与图谱导出。只要通过 Passage 机械校验，即使端点暂时不是
+Entity，Observation 和原文证据也必须保留。
+
 ### 3.1 Entity
 
 实体只保留六种主类型：
@@ -96,15 +100,20 @@ Claim：subject、relation、object、原文证据
 ```text
 1. 读取并保存 Source
 2. 将正文切成适当片段
-3. LLM 抽取 Entity、Claim 和 Evidence
-4. 将新 Entity 与已有 Entity 对齐
-5. 将 Claim 两端替换为规范 Entity
-6. LLM 判断证据是否真的表达该关系
-7. 新 Claim 入图；已有 Claim 追加 Evidence
-8. 继续读取下一批语料
+3. LLM 抽取 EntityObservation、ClaimObservation 和原文证据
+4. 永久保存通过 Passage 校验的 ClaimObservation，并独立完成关系证据裁判
+5. 将新 Entity 与已有 Entity 对齐
+6. 将 Observation 端点替换为唯一规范 Entity；不能唯一解析时保持 pending
+7. 两端齐全且证据支持时，新 Claim 入图；已有 Claim 追加 Evidence
+8. 新 Entity、alias 或合并出现后重放 pending Observation，不重新抽取语料
+9. 继续读取下一批语料
 ```
 
 新实体暂时无法连接到旧图不是错误。只要有清楚定义和来源，就可以先保存，等待后续语料补充关系。
+
+Claim 端点暂时不是 Entity 也不是错误。相同端点在至少三个独立 Passage 中
+反复出现时进入 Entity 晋升审核；必须能够从这些原文中形成稳定名称和实质性
+定义，才能创建 Entity。重叠 Chunk 中的同一 Passage 只计一次。
 
 ---
 
@@ -187,6 +196,8 @@ LLM 可以用于：
 4. `is_a` 与 `prerequisite_of` 不允许形成明显循环。
 5. 类型主要用于描述和检索，不作为大多数关系的硬性拦截条件。
 6. 不确定时不强行判断：实体暂不合并，关系暂不写入。
+7. 端点未解析、证据不足和 alias 歧义都保留 Observation；只有机械契约无效
+   才是终止性拒绝。
 
 除此以外，不提前增加复杂规则。
 
