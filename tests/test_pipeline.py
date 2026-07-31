@@ -198,6 +198,36 @@ class PipelineTest(unittest.TestCase):
         )
         self.assertEqual(len(no_calls.calls), 0)
 
+    def test_start_chunk_ignores_earlier_chunks_without_spending_limit(self):
+        text = "\n\n".join(
+            f"第 {index} 段包含足够长的测试正文。" * 12
+            for index in range(4)
+        )
+        catalog = self._catalog([text])
+        llm = FakeLLM({"entities": [], "claims": []})
+
+        result = pipeline.process_catalog(
+            self.conn,
+            llm,
+            catalog,
+            start_chunk=1,
+            max_chunks=1,
+            chunk_chars=240,
+            overlap_chars=0,
+        )
+
+        self.assertFalse(result["failures"])
+        self.assertEqual(result["completed"][0]["before_start_chunks"], 1)
+        self.assertEqual(result["completed"][0]["processed_chunks"], 1)
+        progress = self.conn.execute(
+            "SELECT chunk_index,status FROM source_progress"
+        ).fetchall()
+        self.assertEqual(
+            [(row["chunk_index"], row["status"]) for row in progress],
+            [(1, "done")],
+        )
+        llm.assert_finished()
+
     def test_invalid_passage_cannot_create_knowledge(self):
         catalog = self._catalog(["这里只介绍优化。"])
         llm = FakeLLM(
@@ -359,6 +389,63 @@ class PipelineTest(unittest.TestCase):
         self.assertEqual(store.counts(self.conn)["entities"], 1)
         self.assertTrue(store.integrity_report(self.conn)["ok"])
 
+    def test_reconcile_limit_prioritizes_highest_similarity_pair(self):
+        source_id = self.conn.execute(
+            """
+            INSERT INTO sources
+            (source_key,name,source_type,version,content,content_hash)
+            VALUES ('rank','Rank','test','1','正文','rank-hash')
+            """
+        ).lastrowid
+        ids = []
+        for name in ("实体甲", "实体乙", "实体丙"):
+            item = EntityObservation(
+                name=name,
+                definition=f"{name} 的独立定义",
+                entity_type="concept",
+                model_quote=name,
+                source_text=name,
+                passage_ids=("P000001",),
+                location="P000001",
+            )
+            entity_id = store.create_entity(self.conn, item)
+            store.add_evidence(
+                self.conn,
+                source_id=source_id,
+                source_text=name,
+                model_quote=name,
+                passage_ids=("P000001",),
+                location="P000001",
+                polarity="support",
+                observed_entity_type="concept",
+                entity_id=entity_id,
+            )
+            ids.append(entity_id)
+        self.conn.commit()
+
+        def candidates(_conn, name, **_kwargs):
+            if name != "实体甲":
+                return []
+            return [
+                {"id": ids[1], "score": 0.6},
+                {"id": ids[2], "score": 0.95},
+            ]
+
+        llm = FakeLLM(
+            {
+                "decision": "new",
+                "canonical_name": "",
+                "reason": "不同对象",
+            }
+        )
+        with mock.patch(
+            "kg.resolution.candidate_entities", side_effect=candidates
+        ):
+            report = resolution.reconcile(self.conn, llm, limit=1)
+
+        self.assertEqual(report["distinct"][0]["ids"], [ids[0], ids[2]])
+        self.assertEqual(report["distinct"][0]["score"], 0.95)
+
     def test_new_entity_uses_llm_canonical_name_and_keeps_source_alias(self):
         observed = EntityObservation(
             name="GD",
@@ -425,6 +512,16 @@ class PipelineTest(unittest.TestCase):
         pipeline.process_catalog(self.conn, llm, catalog)
         self.assertEqual(store.counts(self.conn)["entities"], 2)
         self.assertEqual(store.counts(self.conn)["claims"], 0)
+        saved = json.loads(
+            self.conn.execute(
+                "SELECT result FROM source_progress WHERE status='done'"
+            ).fetchone()[0]
+        )
+        detail = saved["rejection_details"][0]
+        self.assertEqual(detail["stage"], "evidence_validation")
+        self.assertEqual(detail["subject"], "梯度下降法")
+        self.assertEqual(detail["verdict"], "insufficient")
+        self.assertTrue(detail["source_text"])
 
 
 if __name__ == "__main__":

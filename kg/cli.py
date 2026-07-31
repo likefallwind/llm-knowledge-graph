@@ -5,7 +5,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import db, export, pipeline, resolution, store
+from . import audit, db, export, pipeline, resolution, store, viz
 from .llm import LLMConfig, MiniMaxM3LLM
 
 
@@ -28,14 +28,21 @@ def _parser() -> argparse.ArgumentParser:
     sub.add_parser("init", help="初始化最小数据库")
     sub.add_parser("status", help="查看核心对象与处理进度")
     sub.add_parser("check", help="检查外键、证据与关系循环")
+    sub.add_parser("audit", help="查看图结构和拒绝原因统计")
 
     run = sub.add_parser("run", help="批量读取目录并运行核心闭环")
     run.add_argument("catalog", help="JSON/YAML 人工维护语料目录")
     run.add_argument("--source-limit", type=int)
+    run.add_argument(
+        "--start-chunk",
+        type=int,
+        default=0,
+        help="从该 Chunk index 开始处理（默认 0）",
+    )
     run.add_argument("--max-chunks", type=int)
     run.add_argument("--chunk-chars", type=int, default=8000)
     run.add_argument("--overlap-chars", type=int, default=500)
-    run.add_argument("--max-entities", type=int, default=20)
+    run.add_argument("--max-entities", type=int, default=30)
     run.add_argument("--max-claims", type=int, default=30)
     run.add_argument(
         "--judge-workers",
@@ -52,6 +59,8 @@ def _parser() -> argparse.ArgumentParser:
 
     dump = sub.add_parser("export", help="导出不含 Source 正文的 JSON 图谱")
     dump.add_argument("--out", default="out/graph.json")
+    visualize = sub.add_parser("viz", help="生成可搜索、可追溯证据的交互式 HTML")
+    visualize.add_argument("--out", default="out/graph.html")
     return parser
 
 
@@ -130,8 +139,20 @@ def main(argv: list[str] | None = None) -> int:
             report = store.integrity_report(conn)
             _json(report)
             return 0 if report["ok"] else 1
+        if args.command == "audit":
+            _json(
+                {
+                    "graph": audit.graph_report(conn),
+                    "rejections": audit.rejection_report(conn),
+                }
+            )
+            return 0
         if args.command == "export":
             output = export.write_json(conn, args.out)
+            _json({"output": str(output), "counts": store.counts(conn)})
+            return 0
+        if args.command == "viz":
+            output = viz.write_html(conn, args.out)
             _json({"output": str(output), "counts": store.counts(conn)})
             return 0
 
@@ -142,6 +163,7 @@ def main(argv: list[str] | None = None) -> int:
                 llm,
                 args.catalog,
                 source_limit=args.source_limit,
+                start_chunk=args.start_chunk,
                 max_chunks=args.max_chunks,
                 chunk_chars=args.chunk_chars,
                 overlap_chars=args.overlap_chars,

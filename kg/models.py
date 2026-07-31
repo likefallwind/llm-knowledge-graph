@@ -95,6 +95,7 @@ class ChunkResult:
     claims: int = 0
     evidence: int = 0
     rejected: list[str] = field(default_factory=list)
+    rejection_details: list[dict[str, Any]] = field(default_factory=list)
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -102,4 +103,5 @@ class ChunkResult:
             "claims": self.claims,
             "evidence": self.evidence,
             "rejected": self.rejected,
+            "rejection_details": self.rejection_details,
         }

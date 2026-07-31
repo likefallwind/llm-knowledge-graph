@@ -18,10 +18,11 @@ def process_catalog(
     catalog_path: str | Path,
     *,
     source_limit: int | None = None,
+    start_chunk: int = 0,
     max_chunks: int | None = None,
     chunk_chars: int = 8000,
     overlap_chars: int = 500,
-    max_entities: int = 20,
+    max_entities: int = 30,
     max_claims: int = 30,
     judge_workers: int = 1,
     stop_on_error: bool = False,
@@ -49,12 +50,16 @@ def process_catalog(
                 "new_version": is_new_version,
                 "processed_chunks": 0,
                 "skipped_chunks": 0,
+                "before_start_chunks": 0,
                 "entities": 0,
                 "claims": 0,
                 "evidence": 0,
                 "rejected": [],
             }
             for chunk in chunks:
+                if chunk.index < max(0, start_chunk):
+                    source_result["before_start_chunks"] += 1
+                    continue
                 if remaining_chunks is not None and remaining_chunks <= 0:
                     break
                 processing_hash = _processing_hash(
@@ -172,8 +177,17 @@ def process_chunk(
         subject_id = _endpoint(conn, local, claim.subject)
         object_id = _endpoint(conn, local, claim.object)
         if subject_id is None or object_id is None:
-            result.rejected.append(
-                f"Claim 端点无法唯一解析: {claim.subject} -> {claim.object}"
+            message = (
+                "Claim 端点无法唯一解析: "
+                f"{claim.subject} -> {claim.object}"
+            )
+            result.rejected.append(message)
+            result.rejection_details.append(
+                _claim_rejection_detail(
+                    claim,
+                    stage="endpoint_resolution",
+                    reason=message,
+                )
             )
             continue
         pending_claims.append((claim, subject_id, object_id))
@@ -188,9 +202,18 @@ def process_chunk(
     ):
         expected = "supports" if claim.polarity == "support" else "contradicts"
         if verdict != expected:
-            result.rejected.append(
+            message = (
                 f"Claim 证据裁决为 {verdict}: "
                 f"{claim.subject} {claim.relation} {claim.object}; {reason}"
+            )
+            result.rejected.append(message)
+            result.rejection_details.append(
+                _claim_rejection_detail(
+                    claim,
+                    stage="evidence_validation",
+                    reason=reason,
+                    verdict=verdict,
+                )
             )
             continue
 
@@ -198,8 +221,14 @@ def process_chunk(
             conn, subject_id, claim.relation, object_id
         )
         if claim.polarity == "oppose" and existing is None:
-            result.rejected.append(
-                "反对证据对应的 Claim 尚不存在，按首版规则暂不入库"
+            message = "反对证据对应的 Claim 尚不存在，按首版规则暂不入库"
+            result.rejected.append(message)
+            result.rejection_details.append(
+                _claim_rejection_detail(
+                    claim,
+                    stage="claim_write",
+                    reason=message,
+                )
             )
             continue
         if existing is None:
@@ -207,9 +236,17 @@ def process_chunk(
                 conn, subject_id, claim.relation, object_id
             )
             if claim_id is None:
-                result.rejected.append(
+                message = (
                     f"Claim 未写入: {claim.subject} {claim.relation} "
                     f"{claim.object}; {error}"
+                )
+                result.rejected.append(message)
+                result.rejection_details.append(
+                    _claim_rejection_detail(
+                        claim,
+                        stage="claim_write",
+                        reason=error,
+                    )
                 )
                 continue
             if created:
@@ -236,6 +273,28 @@ def process_chunk(
             result.evidence += 1
     conn.commit()
     return result
+
+
+def _claim_rejection_detail(
+    claim: ClaimObservation,
+    *,
+    stage: str,
+    reason: str,
+    verdict: str = "",
+) -> dict[str, Any]:
+    return {
+        "stage": stage,
+        "subject": claim.subject,
+        "relation": claim.relation,
+        "object": claim.object,
+        "polarity": claim.polarity,
+        "verdict": verdict,
+        "reason": reason,
+        "model_quote": claim.model_quote,
+        "source_text": claim.source_text,
+        "passage_ids": list(claim.passage_ids),
+        "location": claim.location,
+    }
 
 
 def _judge_claims(

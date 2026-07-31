@@ -78,6 +78,19 @@ python -m kg --db data/knowledge.db run sources.json \
   --source-limit 2 --max-chunks 20 --judge-workers 4
 ```
 
+默认每个 Chunk 最多抽取 30 个 Entity 和 30 个 Claim。每个 Claim 的两个端点
+必须同时作为当前 Chunk 的 Entity observation 输出；模型意外超过实体上限时，
+程序优先保留 Claim 端点，避免仅因数组顺序丢掉可物化的关系。
+
+如需只处理指定下界之后的片段，可使用 `--start-chunk`。它按 Chunk index
+过滤，不会消耗 `--max-chunks` 的处理额度：
+
+```bash
+python -m kg --db data/knowledge.db run sources/catalog.json \
+  --source-limit 1 --start-chunk 120 --max-chunks 17 \
+  --max-entities 30 --judge-workers 4
+```
+
 `--judge-workers` 只并行同一片段内彼此独立的关系证据裁判。Entity 对齐、
 Claim 写入和 Chunk 顺序仍保持串行，避免改变图谱合并语义。
 
@@ -93,6 +106,18 @@ python -m kg --db data/knowledge.db reconcile --limit 20
 python -m kg --db data/knowledge.db check
 python -m kg --db data/knowledge.db export --out out/graph.json
 ```
+
+查看图结构、拒绝原因，并生成不依赖外部 JavaScript 的交互式审计页面：
+
+```bash
+python -m kg --db data/knowledge.db audit
+python -m kg --db data/knowledge.db viz --out out/graph.html
+```
+
+HTML 默认展示高连接实体的局部子图，可搜索实体、切换关系、调整邻域层数，
+并点击节点或边查看 Source、Passage、真实原文和模型裁判理由。拒绝统计将
+端点未解析、非法 Passage 等算法性损失与 `insufficient/contradicts` 等语义
+拒绝分开显示。
 
 ## 语料目录
 

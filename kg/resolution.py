@@ -150,7 +150,9 @@ def reconcile(
     conn: sqlite3.Connection, llm: JSONLLM, *, limit: int = 20
 ) -> dict[str, Any]:
     """Revisit similar existing entities; merge only explicit `same` decisions."""
-    pairs: dict[tuple[int, int], tuple[dict[str, Any], dict[str, Any]]] = {}
+    pairs: dict[
+        tuple[int, int], tuple[dict[str, Any], dict[str, Any], float]
+    ] = {}
     entities = [_entity_context(conn, int(row["id"])) for row in store.list_entities(conn)]
     by_id = {int(item["id"]): item for item in entities}
     for entity in entities:
@@ -162,12 +164,18 @@ def reconcile(
             threshold=0.55,
         ):
             pair = tuple(sorted((source_id, int(candidate["id"]))))
-            if pair not in pairs:
-                pairs[pair] = (by_id[pair[0]], by_id[pair[1]])
+            score = float(candidate["score"])
+            if pair not in pairs or score > pairs[pair][2]:
+                pairs[pair] = (by_id[pair[0]], by_id[pair[1]], score)
     examined = 0
     merged: list[dict[str, Any]] = []
     uncertain: list[dict[str, Any]] = []
-    for (left_id, right_id), (left, right) in list(pairs.items())[:limit]:
+    distinct: list[dict[str, Any]] = []
+    ranked = sorted(
+        pairs.items(),
+        key=lambda item: (-item[1][2], item[0][0], item[0][1]),
+    )
+    for (left_id, right_id), (left, right, score) in ranked[:limit]:
         if not store.get_entity(conn, left_id) or not store.get_entity(conn, right_id):
             continue
         examined += 1
@@ -191,11 +199,35 @@ def reconcile(
                 conn, target_id, str(payload.get("canonical_name", ""))
             )
             merged.append(
-                {"source_id": source_id, "target_id": target_id, "reason": reason}
+                {
+                    "source_id": source_id,
+                    "target_id": target_id,
+                    "score": score,
+                    "reason": reason,
+                }
             )
         elif decision == "uncertain":
-            uncertain.append({"ids": [left_id, right_id], "reason": reason})
-    return {"examined": examined, "merged": merged, "uncertain": uncertain}
+            uncertain.append(
+                {
+                    "ids": [left_id, right_id],
+                    "score": score,
+                    "reason": reason,
+                }
+            )
+        else:
+            distinct.append(
+                {
+                    "ids": [left_id, right_id],
+                    "score": score,
+                    "reason": reason,
+                }
+            )
+    return {
+        "examined": examined,
+        "merged": merged,
+        "uncertain": uncertain,
+        "distinct": distinct,
+    }
 
 
 def _entity_context(

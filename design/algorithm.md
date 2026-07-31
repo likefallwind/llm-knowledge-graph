@@ -177,6 +177,10 @@ SHA256(chunk)
 }
 ```
 
+默认每个 Chunk 最多输出 30 个 Entity 和 30 个 Claim。每个 Claim 的
+subject/object 必须同时出现在当前输出的 Entity 数组中；接近上限时优先
+保留 Claim 端点对应的 Entity。
+
 ### 5.2 Evidence Passage 解析
 
 LLM 对每个 Entity/Claim 同时输出：
@@ -222,6 +226,10 @@ Entity 必须同时满足：
 5. 同一片段内规范化名称不重复。
 
 类型由模型根据 definition 判定；机械层只验证类型词表，不根据名称重新猜类型。
+
+模型意外返回超过上限的 Entity 时，程序先保留名称或 alias 与 Claim 端点精确
+对应的 Entity，再按原顺序填充剩余额度。这只重排模型已经给出的有据观察，
+不创建缺失 Entity，也不使用相似度猜测端点。
 
 判出的类型写进该次观察对应的 `evidence.observed_entity_type`，**不写进 Entity**。详见第 6.6 节。
 
@@ -315,6 +323,8 @@ score >= 0.55
 ```
 
 模型再次看到双方 definition、aliases 和后来累计的 Evidence。只有明确返回 `same` 才合并；`new` 保持分离，`uncertain` 保持分离。
+有界 `--limit` 优先检查字符串召回分数最高的候选对，避免实体插入顺序决定
+本轮审查对象；相似度仍只负责排序，不能决定合并。
 
 当前候选扫描是全表扫描：
 
@@ -376,6 +386,8 @@ Claim 端点按以下顺序解析：
 2. 数据库中 canonical name/alias 的唯一精确匹配。
 
 无法唯一解析任一端点时，Claim 不写入。系统不根据相似度或 LLM 猜测缺失端点。
+该拒绝属于算法性损失而不是语义否定。抽取提示词要求 Claim 端点同时作为当前
+片段 Entity 输出，机械层在模型超出上限时优先保留这些端点，以减少此类损失。
 
 ## 8. 关系证据裁判
 
@@ -483,6 +495,11 @@ created_at
 Evidence，不能改写历史 `model_quote/source_text`；稳定引用方式留到校准
 实验设计时确定。
 
+未入图 Claim 仍保留两层可检查信息：`rejected` 是兼容旧结果的简短文本，
+`rejection_details` 对新结果追加 stage、三元组、verdict/reason、Passage ID、
+model quote 和程序取得的 source text。`kg audit` 按最新 Chunk 结果区分
+算法性损失与语义拒绝；`kg viz` 在本地 HTML 中展示图结构和这些审计信息。
+
 ### 9.3 循环
 
 添加 `subject → object` 前，对 `is_a/prerequisite_of` 检查现有图中是否存在：
@@ -533,6 +550,7 @@ failed
 
 - `done` 的相同片段直接跳过。
 - `failed` 的片段下次重新执行。
+- `--start-chunk N` 忽略 index 小于 N 的片段，且不消耗 `--max-chunks` 额度。
 - Entity/Evidence/Claim 都有确定性唯一键，因此失败后的重试保持幂等。
 - API、JSON 或处理异常先 rollback 当前未提交事务，再记录失败原因。
 - LLM 没回答不等于知识为假；失败不能产生拒绝关系或虚假知识。
@@ -639,3 +657,17 @@ for spec in load_catalog(catalog):
 任何新增机制都必须先回答：
 
 > 不加它，当前核心闭环是否真的无法工作？
+
+## 15. 图谱审计视图
+
+`kg viz --out out/graph.html` 生成单个自包含 HTML，不引入服务或前端框架。
+页面内嵌 Entity、Claim、Evidence 和拒绝审计数据，默认只画高连接实体的有限
+邻域，避免把大图渲染成不可读的全量“毛线团”。支持：
+
+- 搜索实体并查看一至三跳邻域；
+- 按 `is_a / part_of / prerequisite_of` 开关关系；
+- 点击节点查看定义、alias、type profile 和 Entity Evidence；
+- 点击边查看真实原文、Passage 位置和关系裁判；
+- 查看拒绝类别和代表样本。
+
+可视化是只读的质量审计入口，不引入新的知识对象或发布状态。
