@@ -75,6 +75,11 @@ class DefinitionsReachThePromptsTest(unittest.TestCase):
         self.assertTrue(
             any("建议先浏览" in text for text in prerequisite.excludes)
         )
+        self.assertIn("实质性学习依赖", prerequisite.test)
+        self.assertIn("不要求绝对逻辑必需", prerequisite.test)
+        self.assertTrue(
+            any("具体依赖机制" in text for text in prerequisite.excludes)
+        )
 
     def test_resolution_prompt_explains_entity_types(self):
         prompt_seen: list[str] = []
@@ -129,6 +134,14 @@ class PromptVersionsAreBumpedTest(unittest.TestCase):
         self.assertEqual(
             resolution.RESOLUTION_PROMPT_VERSION,
             "entity-identity-ontology-3",
+        )
+        self.assertEqual(
+            extraction.EXTRACTION_PROMPT_VERSION,
+            "grounded-extract-ontology-6",
+        )
+        self.assertEqual(
+            validation.VALIDATION_PROMPT_VERSION,
+            "relation-judge-ontology-4",
         )
 
 

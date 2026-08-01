@@ -158,20 +158,31 @@ RELATION_DEFS: tuple[Definition, ...] = (
     ),
     Definition(
         name="prerequisite_of",
-        summary="学习前提：理解 subject 是学习 object 的实质性前提",
-        test="原文明确陈述不先掌握 subject 就无法理解或学习 object。",
+        summary="学习依赖：subject 是理解或学习 object 的实质性基础",
+        test="满足下列之一，且原文针对这两个知识对象明确陈述："
+        "(a) 原文直接要求先掌握 subject，或说明缺少它就难以理解 object；"
+        "(b) 原文把 subject 称为理解 object 的基础、起点、出发点、前置知识或桥梁，"
+        "并在附近给出具体依赖机制，例如 object 会复用 subject 的概念、表示、"
+        "计算步骤、目标或方法语言。这里要求实质性学习依赖，不要求绝对逻辑必需。",
         excludes=(
-            "教材、章节或讲授的先后顺序本身",
-            "「在……基础上」「结合……」这类措辞，若原文没有说明必需性",
+            "只有教材、章节或讲授的先后顺序，没有陈述两个知识对象之间的依赖",
+            "孤立的「基础」「起点」「出发点」「桥梁」「在……基础上」等标签，"
+            "若附近没有说明 object 具体复用了 subject 的什么知识或机制",
             "「建议先浏览」「可先了解」「有助于」「便于」或「更顺畅地理解」只说明"
-            "推荐和帮助，没有陈述不掌握 subject 就无法学习 object",
+            "推荐和帮助；若没有具体依赖机制，不足以建立学习依赖",
             "仅有引用或提及关系",
         ),
-        positive=("线性代数 prerequisite_of 主成分分析（原文写明需先掌握）",),
+        positive=(
+            "线性代数 prerequisite_of 主成分分析（原文写明需先掌握）",
+            "线性模型 prerequisite_of 神经网络：原文称其为理解起点，并解释神经元"
+            "复用线性加权、Softmax 回归和梯度更新",
+        ),
         negative=(
             "第二章 prerequisite_of 第三章（仅有先后顺序）",
             "概率图模型 prerequisite_of 深度生成模型，仅因原文建议先浏览前者以便"
-            "更顺畅地理解后者（推荐而非必需，应判 insufficient）",
+            "更顺畅地理解后者，但没有说明后者具体依赖前者的什么知识，应判 insufficient",
+            "表示学习 prerequisite_of 深度学习，仅凭「核心桥梁」这个称呼，附近没有"
+            "说明深度学习具体复用何种表示学习知识时，应判 insufficient",
         ),
     ),
 )

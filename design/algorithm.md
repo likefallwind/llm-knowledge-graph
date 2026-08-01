@@ -438,7 +438,8 @@ insufficient
 
 - `is_a`：实例测试成立。两端 `entity_type` 通常相同，但只作自查线索，不作否决理由。
 - `part_of`：构件、正文明确列出的阶段，或原文明确陈述的领域归属。
-- `prerequisite_of`：原文明确陈述 subject 是学习 object 的实质性前提。
+- `prerequisite_of`：原文明示 subject 是学习 object 的实质性基础；可以是明确的
+  先修要求，也可以是带具体依赖机制说明的基础、起点或桥梁，不要求绝对逻辑必需。
 
 执行规则：
 
@@ -494,6 +495,11 @@ future，并始终按 Source/Chunk index 顺序消费；future 不接收 SQLite 
 项和反例加入同一 ontology。更新后的 MiniMax M3 对三条原始 Source Evidence
 独立复判，均返回 `insufficient`。旧实验库保留原始判断用于对照，不当作正式
 知识库继续扩张。
+
+20 Chunk 基线进一步显示，若只接受“不掌握便无法理解”这类绝对措辞，教材中的
+学习依赖会被系统性漏掉。`prerequisite_of` 因此改为接受原文明示且带具体机制解释
+的基础、起点、出发点或桥梁；纯章节顺序、泛泛推荐和没有机制说明的标签仍判为
+`insufficient`。这是关系语义调整，不以目标数量或统计阈值驱动。
 
 ### 8.2 领域归属暂并入 part_of
 
