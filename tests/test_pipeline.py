@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest import mock
 
 from kg import db, pipeline, resolution, store
-from kg.models import EntityObservation
+from kg.models import ClaimObservation, EntityObservation, ExtractionBatch
 from tests.helpers import FakeLLM
 
 
@@ -83,6 +83,77 @@ class PipelineTest(unittest.TestCase):
             [("supports", "first"), ("supports", "second")],
         )
         self.assertEqual(len(thread_ids), 2)
+
+    def test_chunk_extraction_parallelism_preserves_serial_write_order(self):
+        text = "\n\n".join(
+            f"标记{index}：这一段用于验证有序并行抽取。" * 8
+            for index in range(4)
+        )
+        catalog = self._catalog([text])
+
+        def run(target, workers, *, require_overlap):
+            conn = db.connect(target)
+            barrier = threading.Barrier(2) if require_overlap else None
+            thread_ids: set[int] = set()
+
+            def extract(_llm, chunk_text, *, passages, location, **_kwargs):
+                thread_ids.add(threading.get_ident())
+                if barrier is not None and len(thread_ids) <= 2:
+                    barrier.wait(timeout=2)
+                marker = next(
+                    value for value in range(4) if f"标记{value}" in chunk_text
+                )
+                passage = passages[0]
+                return ExtractionBatch(
+                    entities=(),
+                    claims=(
+                        ClaimObservation(
+                            subject=f"主体{marker}",
+                            relation="part_of",
+                            object=f"整体{marker}",
+                            model_quote=passage.text,
+                            source_text=passage.text,
+                            passage_ids=(passage.passage_id,),
+                            location=location,
+                        ),
+                    ),
+                )
+
+            with mock.patch("kg.pipeline.extraction.extract", side_effect=extract), mock.patch(
+                "kg.pipeline.validation.judge_claim",
+                return_value=("supports", "测试关系"),
+            ):
+                result = pipeline.process_catalog(
+                    conn,
+                    object(),
+                    catalog,
+                    max_chunks=4,
+                    chunk_chars=240,
+                    overlap_chars=0,
+                    chunk_workers=workers,
+                )
+            rows = conn.execute(
+                """
+                SELECT id,chunk_index,subject_name,relation,object_name
+                FROM claim_observations ORDER BY id
+                """
+            ).fetchall()
+            snapshot = [tuple(row) for row in rows]
+            conn.close()
+            self.assertFalse(result["failures"])
+            return snapshot, thread_ids
+
+        serial, _ = run(self.root / "serial.db", 1, require_overlap=False)
+        parallel, parallel_threads = run(
+            self.root / "parallel.db", 2, require_overlap=True
+        )
+
+        self.assertEqual(parallel, serial)
+        self.assertEqual(
+            [row[1] for row in parallel],
+            sorted(row[1] for row in parallel),
+        )
+        self.assertEqual(len(parallel_threads), 2)
 
     def test_end_to_end_claim_aggregation_and_resume(self):
         first = (
@@ -479,6 +550,62 @@ class PipelineTest(unittest.TestCase):
         row = store.get_entity(self.conn, resolved.entity_id)
         self.assertEqual(row["canonical_name"], "梯度下降法")
         self.assertIn("GD", store.aliases_for(self.conn, resolved.entity_id))
+
+    def test_exact_name_with_conflicting_type_requires_llm_identity_judgment(self):
+        section = EntityObservation(
+            name="玻尔兹曼机",
+            definition="第 15 章下编号为 15.1 的章节资源",
+            entity_type="resource",
+            model_quote="15.1 玻尔兹曼机",
+            source_text="第 15 章 深度信念网络\n15.1 玻尔兹曼机",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        section_id = store.create_entity(self.conn, section)
+        store.add_evidence(
+            self.conn,
+            source_id=self.conn.execute(
+                """
+                INSERT INTO sources
+                (source_key,name,source_type,version,content,content_hash)
+                VALUES ('toc','目录','textbook','1','目录','toc-hash')
+                """
+            ).lastrowid,
+            source_text=section.source_text,
+            model_quote=section.model_quote,
+            passage_ids=section.passage_ids,
+            location=section.location,
+            polarity="support",
+            observed_entity_type="resource",
+            entity_id=section_id,
+        )
+        algorithm = EntityObservation(
+            name="玻尔兹曼机",
+            definition="由能量函数定义的随机神经网络模型",
+            entity_type="solution",
+            model_quote="玻尔兹曼机是一种随机神经网络",
+            source_text="玻尔兹曼机是一种随机神经网络",
+            passage_ids=("P000002",),
+            location="P000002",
+        )
+        llm = FakeLLM(
+            {
+                "decision": "new",
+                "canonical_name": "玻尔兹曼机（模型）",
+                "reason": "同名章节资源与模型是不同对象",
+            }
+        )
+
+        resolved = resolution.resolve_observation(self.conn, llm, algorithm)
+
+        self.assertEqual(resolved.outcome, "new")
+        self.assertNotEqual(resolved.entity_id, section_id)
+        self.assertEqual(
+            store.get_entity(self.conn, resolved.entity_id)["canonical_name"],
+            "玻尔兹曼机（模型）",
+        )
+        self.assertIn("同名也不构成 same", llm.calls[0][1])
+        llm.assert_finished()
 
     def test_insufficient_relationship_does_not_enter_graph(self):
         text = "梯度下降法和机器学习都在本章出现。"

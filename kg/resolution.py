@@ -10,7 +10,7 @@ from .llm import JSONLLM
 from .models import EntityObservation, Resolution
 
 
-RESOLUTION_PROMPT_VERSION = "entity-identity-ontology-2"
+RESOLUTION_PROMPT_VERSION = "entity-identity-ontology-3"
 
 RESOLUTION_SYSTEM = """你是实体身份裁判，不是知识来源。
 只能根据给出的语料观察与候选实体判断身份，禁止补充外部知识。
@@ -64,9 +64,22 @@ def resolve_observation(
     exact = store.exact_entity_ids(conn, observation.name)
     if len(exact) == 1:
         entity_id = exact[0]
-        for alias in observation.aliases:
-            store.add_alias(conn, entity_id, alias)
-        return Resolution(entity_id=entity_id, outcome="same", reason="exact name/alias")
+        type_profile = store.type_profile(conn, entity_id)
+        # Exact spelling is a safe shortcut only after the graph has observed
+        # the same kind of object.  A section/resource and the algorithm or
+        # concept named by that section can legitimately share a short name;
+        # those cases need the LLM identity judgment below.
+        if any(
+            item["entity_type"] == observation.entity_type
+            for item in type_profile
+        ):
+            for alias in observation.aliases:
+                store.add_alias(conn, entity_id, alias)
+            return Resolution(
+                entity_id=entity_id,
+                outcome="same",
+                reason="exact name/alias with compatible observed type",
+            )
 
     candidates = candidate_entities(conn, observation.name)
     payload = llm.complete_json(
@@ -75,6 +88,13 @@ def resolve_observation(
 候选的 type_profile 是它历次观察各判出什么类型的汇总，不是唯一类型：
 一个对象确实可能同时属于多个类型（例如既是一族做法，又是一个研究方向）。
 因此类型与新观察不一致不构成否决理由，判断以名称、定义和证据为准。
+但同名也不构成 same：教材章节、目录条目等 resource 与其讲述的同名算法、
+模型或概念是不同知识对象。比如「15.1 玻尔兹曼机」这一节不能与
+「玻尔兹曼机」算法合并；即使观察名被写成同一个短名，也要根据定义、类型和
+source_text 判为 new 或 uncertain。
+canonical_name 必须保留区分知识对象身份所必需的信息。若观察是章节、节、附录等
+resource，不能删去章节编号或载体限定后变成同名知识内容；例如应保留
+「15.1 玻尔兹曼机」，不能规范成「玻尔兹曼机」。
 返回：
 {
   "decision": "same | new | uncertain",

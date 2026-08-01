@@ -45,6 +45,12 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--max-entities", type=int, default=30)
     run.add_argument("--max-claims", type=int, default=30)
     run.add_argument(
+        "--chunk-workers",
+        type=int,
+        default=1,
+        help="并行预取 Chunk 抽取数；消歧与数据库写入仍按原顺序串行（默认 1）",
+    )
+    run.add_argument(
         "--judge-workers",
         type=int,
         default=1,
@@ -178,6 +184,7 @@ def main(argv: list[str] | None = None) -> int:
                 overlap_chars=args.overlap_chars,
                 max_entities=args.max_entities,
                 max_claims=args.max_claims,
+                chunk_workers=args.chunk_workers,
                 judge_workers=args.judge_workers,
                 stop_on_error=args.stop_on_error,
             )

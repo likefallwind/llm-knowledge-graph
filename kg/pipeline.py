@@ -3,13 +3,20 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+from collections import deque
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 from . import extraction, observations, resolution, sources, store, validation
 from .llm import JSONLLM
-from .models import ClaimObservation, ChunkResult, SourcePassage
+from .models import (
+    ClaimObservation,
+    ChunkResult,
+    ExtractionBatch,
+    SourcePassage,
+    TextChunk,
+)
 
 
 def process_catalog(
@@ -24,9 +31,12 @@ def process_catalog(
     overlap_chars: int = 500,
     max_entities: int = 30,
     max_claims: int = 30,
+    chunk_workers: int = 1,
     judge_workers: int = 1,
     stop_on_error: bool = False,
 ) -> dict[str, Any]:
+    if chunk_workers < 1:
+        raise ValueError("chunk_workers 必须至少为 1")
     specs = sources.load_catalog(catalog_path)
     if source_limit is not None:
         specs = specs[: max(0, source_limit)]
@@ -57,6 +67,7 @@ def process_catalog(
                 "claim_observations": 0,
                 "rejected": [],
             }
+            work_items: list[tuple[TextChunk, str]] = []
             for chunk in chunks:
                 if chunk.index < max(0, start_chunk):
                     source_result["before_start_chunks"] += 1
@@ -76,7 +87,20 @@ def process_catalog(
                     continue
                 if remaining_chunks is not None:
                     remaining_chunks -= 1
+                work_items.append((chunk, processing_hash))
+
+            for chunk, processing_hash, batch, extraction_error in (
+                _extract_chunks_ordered(
+                    llm,
+                    work_items,
+                    max_entities=max_entities,
+                    max_claims=max_claims,
+                    workers=chunk_workers,
+                )
+            ):
                 try:
+                    if extraction_error is not None:
+                        raise extraction_error
                     result = process_chunk(
                         conn,
                         llm,
@@ -88,6 +112,7 @@ def process_catalog(
                         max_entities=max_entities,
                         max_claims=max_claims,
                         judge_workers=judge_workers,
+                        batch=batch,
                     )
                     store.save_progress(
                         conn,
@@ -144,15 +169,17 @@ def process_chunk(
     max_entities: int = 20,
     max_claims: int = 30,
     judge_workers: int = 1,
+    batch: ExtractionBatch | None = None,
 ) -> ChunkResult:
-    batch = extraction.extract(
-        llm,
-        text,
-        passages=passages,
-        location=location,
-        max_entities=max_entities,
-        max_claims=max_claims,
-    )
+    if batch is None:
+        batch = extraction.extract(
+            llm,
+            text,
+            passages=passages,
+            location=location,
+            max_entities=max_entities,
+            max_claims=max_claims,
+        )
     result = ChunkResult(rejected=list(batch.rejected))
     local_candidates: dict[str, set[int]] = {}
     extraction_model = _model_name(llm)
@@ -258,6 +285,65 @@ def process_chunk(
     observations.resolve_and_materialize_cached(conn)
     conn.commit()
     return result
+
+
+def _extract_chunks_ordered(
+    llm: JSONLLM,
+    work_items: list[tuple[TextChunk, str]],
+    *,
+    max_entities: int,
+    max_claims: int,
+    workers: int,
+) -> Iterator[tuple[TextChunk, str, ExtractionBatch | None, Exception | None]]:
+    """Prefetch extraction concurrently while yielding original Chunk order.
+
+    At most ``workers`` futures exist at once.  No worker receives a database
+    connection; entity resolution and every SQLite mutation stay in the caller.
+    """
+
+    def run(chunk: TextChunk) -> ExtractionBatch:
+        return extraction.extract(
+            llm,
+            chunk.text,
+            passages=chunk.passages,
+            location=chunk.location,
+            max_entities=max_entities,
+            max_claims=max_claims,
+        )
+
+    if workers == 1:
+        for chunk, processing_hash in work_items:
+            try:
+                yield chunk, processing_hash, run(chunk), None
+            except Exception as exc:
+                yield chunk, processing_hash, None, exc
+        return
+
+    executor = ThreadPoolExecutor(max_workers=workers)
+    pending = deque()
+    items = iter(work_items)
+
+    def submit_next() -> bool:
+        try:
+            chunk, processing_hash = next(items)
+        except StopIteration:
+            return False
+        pending.append((chunk, processing_hash, executor.submit(run, chunk)))
+        return True
+
+    try:
+        for _ in range(min(workers, len(work_items))):
+            submit_next()
+        while pending:
+            chunk, processing_hash, future = pending.popleft()
+            try:
+                batch, error = future.result(), None
+            except Exception as exc:
+                batch, error = None, exc
+            submit_next()
+            yield chunk, processing_hash, batch, error
+    finally:
+        executor.shutdown(cancel_futures=True)
 
 
 def _judge_claims(

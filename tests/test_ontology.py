@@ -126,6 +126,10 @@ class PromptVersionsAreBumpedTest(unittest.TestCase):
         self.assertEqual(len(versions), 3)
         self.assertNotIn("grounded-extract-passages-1", versions)
         self.assertNotIn("relation-judge-passages-1", versions)
+        self.assertEqual(
+            resolution.RESOLUTION_PROMPT_VERSION,
+            "entity-identity-ontology-3",
+        )
 
 
 if __name__ == "__main__":

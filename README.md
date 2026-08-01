@@ -76,7 +76,8 @@ python -m kg --db data/knowledge.db run sources/catalog.json \
 
 ```bash
 python -m kg --db data/knowledge.db run sources.json \
-  --source-limit 2 --max-chunks 20 --judge-workers 4
+  --source-limit 2 --max-chunks 20 \
+  --chunk-workers 2 --judge-workers 2
 ```
 
 默认每个 Chunk 最多抽取 30 个 Entity 和 30 个 Claim。Claim 端点满足 Entity
@@ -92,8 +93,10 @@ python -m kg --db data/knowledge.db run sources/catalog.json \
   --max-entities 30 --judge-workers 4
 ```
 
-`--judge-workers` 只并行同一片段内彼此独立的关系证据裁判。Entity 对齐、
-Claim 写入和 Chunk 顺序仍保持串行，避免改变图谱合并语义。
+`--chunk-workers` 有界并行不同 Chunk 的无状态 LLM 抽取，并严格按原 Chunk
+顺序消费结果；`--judge-workers` 并行同一片段内彼此独立的关系证据裁判。
+Entity 对齐、Claim 物化和全部 SQLite 写入仍保持串行，避免改变图谱合并语义。
+两者默认均为 1；小批次建议先使用 `--chunk-workers 2 --judge-workers 2`。
 
 随着 Evidence 增加，重新判断相似但尚未合并的 Entity：
 

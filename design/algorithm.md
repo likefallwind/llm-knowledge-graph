@@ -460,6 +460,12 @@ stance=oppose 且 verdict=contradicts 且 Claim 已存在
 裁判结果按原顺序返回，Claim 去重、循环检查、Evidence 和数据库写入仍串行
 执行。Entity 对齐依赖当前图谱状态，也保持串行。
 
+不同 Chunk 的抽取只读取各自 Source 文本，不依赖当前图谱，因此可通过
+`--chunk-workers` 做有界预取。实现中最多保留 `chunk_workers` 个 extraction
+future，并始终按 Source/Chunk index 顺序消费；future 不接收 SQLite connection。
+因此 Entity 身份裁决、ClaimObservation 落库、关系物化和进度写入的顺序与串行
+模式一致。并发参数不进入 processing hash，因为它不改变知识语义或提示词版本。
+
 ### 8.1 已知语义风险
 
 有效 Passage ID 只能证明模型选择了真实原文范围，不能证明关系判得正确。真实 MiniMax M3 冒烟中：

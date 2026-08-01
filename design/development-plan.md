@@ -218,7 +218,8 @@ run Source
 
 - 新 Source 先做少量 Chunk 冒烟，再扩大到完整 Source；
 - 长批次使用持久后台会话和明确的日志、数据库及完成标记；
-- 只并行彼此独立的 Claim 裁判；Entity 对齐、图谱写入和 Chunk 顺序保持串行；
+- 可有界并行不同 Chunk 的无状态 LLM 抽取，并按原顺序消费；也可并行同一
+  Chunk 中彼此独立的 Claim 裁判；Entity 对齐和图谱写入始终保持串行；
 - 每个 Source 完成后运行 `replay-pending`、有界 `reconcile`、`check` 和 `viz`；
 - 不因图谱变大引入服务层、任务平台或生产级并发架构。
 
