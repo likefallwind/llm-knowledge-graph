@@ -14,7 +14,8 @@ Read → Extract → Resolve → Merge → Repeat
 - 类型只有 `resource / criterion / data / task / solution / concept` 六种。类型是每次观察的判断，记在 Evidence 上；Entity 层汇总为 type profile，允许一个实体同时属于多个类型。
 - Claim 只有 `is_a / part_of / prerequisite_of` 三种关系。
 - Entity 和 Claim 没有 `proposed / published / shadow` 状态机。通过 Passage
-  校验的 ClaimObservation 会永久保存；端点暂时不存在只是 pending，不是拒绝。
+  校验的 EntityObservation 和 ClaimObservation 都会先永久保存；实体身份判断
+  和 Claim 端点暂时不确定都不会丢失原始观察。
 - 每个 Entity 都必须有可定位的来源 Evidence；没有被证据裁判确认的 Claim 不入图。
 - LLM 同时输出关键 quote 和 Passage ID；程序按 ID 取得真实原文，两者都会保存在 Evidence 中。
 - 当前不做 quote 与原文的字符匹配；Passage ID 负责定位，二者留待以后校准。
@@ -80,7 +81,8 @@ python -m kg --db data/knowledge.db run sources.json \
   --chunk-workers 2 --judge-workers 2
 ```
 
-默认每个 Chunk 最多抽取 30 个 Entity 和 30 个 Claim。Claim 端点满足 Entity
+默认每个 Chunk 最多抽取 50 个 Entity 和 30 个 Claim。达到 Entity 上限的 Chunk
+会在运行结果的 `entity_cap_hit_chunks` 中列出，供进一步细分审计。Claim 端点满足 Entity
 标准且有定义证据时应同时输出 Entity；否则 ClaimObservation 和关系证据仍会
 保存，等待后续 Entity、已验证 alias 或实体合并使端点唯一可解析。
 
@@ -90,7 +92,7 @@ python -m kg --db data/knowledge.db run sources.json \
 ```bash
 python -m kg --db data/knowledge.db run sources/catalog.json \
   --source-limit 1 --start-chunk 120 --max-chunks 17 \
-  --max-entities 30 --judge-workers 4
+  --max-entities 50 --judge-workers 4
 ```
 
 `--chunk-workers` 有界并行不同 Chunk 的无状态 LLM 抽取，并严格按原 Chunk
@@ -130,8 +132,9 @@ python -m kg --db data/knowledge.db audit
 python -m kg --db data/knowledge.db viz --out out/graph.html
 ```
 
-`status` 和 `audit` 同时报告 Observation 总数、待定端点、未裁判记录、已落实
-记录、被语义裁判拒绝的记录和三次以上的 Entity 晋升候选。
+`status` 和 `audit` 同时报告 EntityObservation 的身份解析分布，以及
+ClaimObservation 总数、待定端点、未裁判记录、已落实记录、被语义裁判拒绝的
+记录和三次以上的 Entity 晋升候选。
 
 HTML 默认展示高连接实体的局部子图，可搜索实体、切换关系、调整邻域层数，
 并点击节点或边查看 Source、Passage、真实原文和模型裁判理由。右侧
@@ -162,7 +165,12 @@ Observation 审计可按待定端点、待裁判、支持但未落实、物化�
 }
 ```
 
-`path` 相对目录文件解析；省略 `path` 时从 `uri` 下载正文。支持 PDF、HTML、纯文本、Markdown 和 JSONL。Source 正文按内容哈希版本化，同一逻辑来源内容变化后会产生新版本。
+`path` 相对目录文件解析；省略 `path` 时从 `uri` 下载正文。支持 PDF、HTML、
+纯文本、Markdown 和 JSONL。Markdown/HTML 标题及常见教材编号标题会形成
+Section 路径；Chunk 不跨 Section，小节过长时才在该 Section 内继续按 Passage
+切分。没有标题结构的网页或纯文本自动退化为原来的 Passage 分块。标题路径只
+用于切分、定位和抽取上下文，不自动生成知识 Claim。Source 正文按内容哈希
+版本化，同一逻辑来源内容变化后会产生新版本。
 
 YAML 目录也受支持，但需要 PyYAML。
 

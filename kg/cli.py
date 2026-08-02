@@ -42,7 +42,7 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--max-chunks", type=int)
     run.add_argument("--chunk-chars", type=int, default=8000)
     run.add_argument("--overlap-chars", type=int, default=500)
-    run.add_argument("--max-entities", type=int, default=30)
+    run.add_argument("--max-entities", type=int, default=50)
     run.add_argument("--max-claims", type=int, default=30)
     run.add_argument(
         "--chunk-workers",

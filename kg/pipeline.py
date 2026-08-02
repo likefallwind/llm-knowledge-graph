@@ -29,7 +29,7 @@ def process_catalog(
     max_chunks: int | None = None,
     chunk_chars: int = 8000,
     overlap_chars: int = 500,
-    max_entities: int = 30,
+    max_entities: int = 50,
     max_claims: int = 30,
     chunk_workers: int = 1,
     judge_workers: int = 1,
@@ -37,6 +37,8 @@ def process_catalog(
 ) -> dict[str, Any]:
     if chunk_workers < 1:
         raise ValueError("chunk_workers 必须至少为 1")
+    if max_entities < 1 or max_claims < 1:
+        raise ValueError("max_entities 和 max_claims 必须至少为 1")
     specs = sources.load_catalog(catalog_path)
     if source_limit is not None:
         specs = specs[: max(0, source_limit)]
@@ -64,7 +66,9 @@ def process_catalog(
                 "entities": 0,
                 "claims": 0,
                 "evidence": 0,
+                "entity_observations": 0,
                 "claim_observations": 0,
+                "entity_cap_hit_chunks": [],
                 "rejected": [],
             }
             work_items: list[tuple[TextChunk, str]] = []
@@ -127,9 +131,12 @@ def process_catalog(
                         "entities",
                         "claims",
                         "evidence",
+                        "entity_observations",
                         "claim_observations",
                     ):
                         source_result[key] += getattr(result, key)
+                    if result.entity_cap_hit:
+                        source_result["entity_cap_hit_chunks"].append(chunk.index)
                     source_result["rejected"].extend(result.rejected)
                 except Exception as exc:
                     conn.rollback()
@@ -166,7 +173,7 @@ def process_chunk(
     text: str,
     passages: tuple[SourcePassage, ...],
     location: str,
-    max_entities: int = 20,
+    max_entities: int = 50,
     max_claims: int = 30,
     judge_workers: int = 1,
     batch: ExtractionBatch | None = None,
@@ -180,9 +187,24 @@ def process_chunk(
             max_entities=max_entities,
             max_claims=max_claims,
         )
-    result = ChunkResult(rejected=list(batch.rejected))
+    result = ChunkResult(
+        rejected=list(batch.rejected),
+        entity_cap_hit=len(batch.entities) >= max_entities,
+    )
     local_candidates: dict[str, set[int]] = {}
     extraction_model = _model_name(llm)
+
+    entity_observation_ids: list[int] = []
+    for observation in batch.entities:
+        observation_id, created = observations.add_entity_observation(
+            conn,
+            source_id=source_id,
+            chunk_index=chunk_index,
+            observation=observation,
+            extraction_model=extraction_model,
+        )
+        entity_observation_ids.append(observation_id)
+        result.entity_observations += int(created)
 
     observation_ids: list[int] = []
     for claim in batch.claims:
@@ -195,11 +217,19 @@ def process_chunk(
         )
         observation_ids.append(observation_id)
         result.claim_observations += int(created)
-    # Observation evidence survives later entity-resolution or model failures.
+    # Grounded observations survive later identity, validation, or model failures.
     conn.commit()
 
-    for observation in batch.entities:
+    for observation_id, observation in zip(
+        entity_observation_ids, batch.entities
+    ):
         resolved = resolution.resolve_observation(conn, llm, observation)
+        observations.save_entity_resolution(
+            conn,
+            observation_id,
+            resolved,
+            resolver_model=extraction_model,
+        )
         entity_id = resolved.entity_id
         keys = (observation.name, *observation.aliases)
         for name in keys:

@@ -17,7 +17,7 @@ class ExtractionTest(unittest.TestCase):
         prompt = llm.calls[0][1]
         self.assertIn("待定 Entity 引用永久保留", prompt)
         self.assertIn("若端点满足 Entity 标准", prompt)
-        self.assertIn("最多输出 30 个实体", prompt)
+        self.assertIn("最多输出 50 个实体", prompt)
 
     def test_entity_cap_does_not_discard_claim_observation(self):
         passages = segment_text("A、B、C 都有定义，B 是 C 的一种。")

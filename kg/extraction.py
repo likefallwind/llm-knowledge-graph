@@ -17,7 +17,7 @@ from .models import (
 
 
 EXTRACTION_PROMPT_VERSION = "grounded-extract-ontology-6"
-PASSAGE_VERSION = "source-passages-1"
+PASSAGE_VERSION = "source-passages-2"
 
 SYSTEM_PROMPT = """你是语料约束的知识抽取器。
 你只能理解用户给出的原文，禁止用模型参数记忆补充原文没有表达的知识。
@@ -85,7 +85,7 @@ def extract(
     *,
     passages: tuple[SourcePassage, ...],
     location: str = "",
-    max_entities: int = 30,
+    max_entities: int = 50,
     max_claims: int = 30,
 ) -> ExtractionBatch:
     payload = llm.complete_json(
@@ -117,7 +117,7 @@ def parse_payload(
     payload: dict[str, Any],
     passages: tuple[SourcePassage, ...] | list[SourcePassage],
     *,
-    max_entities: int = 30,
+    max_entities: int = 50,
     max_claims: int = 30,
 ) -> ExtractionBatch:
     entities: list[EntityObservation] = []

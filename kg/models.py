@@ -39,6 +39,7 @@ class SourcePassage:
     content_hash: str
     start: int
     end: int
+    section_path: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -48,6 +49,7 @@ class TextChunk:
     location: str
     content_hash: str
     passages: tuple[SourcePassage, ...]
+    section_path: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -94,7 +96,9 @@ class ChunkResult:
     entities: int = 0
     claims: int = 0
     evidence: int = 0
+    entity_observations: int = 0
     claim_observations: int = 0
+    entity_cap_hit: bool = False
     rejected: list[str] = field(default_factory=list)
     rejection_details: list[dict[str, Any]] = field(default_factory=list)
     pending: list[dict[str, Any]] = field(default_factory=list)
@@ -105,7 +109,9 @@ class ChunkResult:
             "entities": self.entities,
             "claims": self.claims,
             "evidence": self.evidence,
+            "entity_observations": self.entity_observations,
             "claim_observations": self.claim_observations,
+            "entity_cap_hit": self.entity_cap_hit,
             "rejected": self.rejected,
             "rejection_details": self.rejection_details,
             "pending": self.pending,

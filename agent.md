@@ -39,7 +39,8 @@ LLM 可以阅读、抽取、归类、消歧、规范命名和裁判证据，但�
 - `Claim`：两个规范 Entity 之间的关系三元组。
 - `Evidence`：支持或反对 Entity/Claim 的完整溯源记录，同时保存 LLM quote、Passage 引用和程序取得的真实原文。
 
-别名是 Entity 的属性，`source_progress` 只是断点续跑记录；它们不是新的知识对象。
+别名是 Entity 的属性，EntityObservation/ClaimObservation 是语料观察记录，
+`source_progress` 是断点续跑记录；它们都不是新的知识对象。
 
 Entity 主类型只能是：
 
@@ -128,6 +129,11 @@ uncertain  信息不足，新建独立 Entity，暂不合并
 - 当前最小实现默认写入 `data/knowledge.db`。
 - `data/kg.db` 是旧复杂 schema 的历史数据库，不得自动迁移、覆盖或修改。
 - Source 以 `(source_key, content_hash)` 版本化；相同内容重复运行必须幂等。
+- 教材、Markdown 和 HTML 优先按标题 Section 切分，过大 Section 才继续切
+  Chunk；无标题语料回退到 Passage 分块。目录层级只用于 Source 结构、定位和
+  覆盖检查，不能单独证明知识 Claim。
+- 通过 Passage 校验的 EntityObservation 必须在身份解析前保存，并记录后续
+  `same/new/uncertain` 结果；默认每个 Chunk 最多抽取 50 个 Entity。
 - 相同 `(subject, relation, object)` 只能有一条 Claim；新来源只追加 Evidence。
 - LLM 必须同时输出 `model_quote` 和 1–3 个当前片段中的 Passage ID。
 - `model_quote` 原样保留；程序根据 Passage ID 取得的 `source_text` 也必须保留，两者不得互相覆盖。

@@ -101,11 +101,50 @@ def graph_dict(conn: sqlite3.Connection) -> dict[str, Any]:
         }
         for row in conn.execute("SELECT * FROM sources ORDER BY id")
     ]
+    entity_observations = [
+        {
+            "id": int(row["id"]),
+            "entity_id": (
+                int(row["entity_id"])
+                if row["entity_id"] is not None
+                else None
+            ),
+            "name": str(row["name"]),
+            "definition": str(row["definition"]),
+            "observed_entity_type": str(row["observed_entity_type"]),
+            "aliases": json.loads(str(row["aliases"])),
+            "source_id": int(row["source_id"]),
+            "source_name": str(row["source_name"]),
+            "chunk_index": int(row["chunk_index"]),
+            "passage_ids": json.loads(str(row["passage_ids"])),
+            "location": str(row["location"]),
+            "source_text": str(row["source_text"]),
+            "model_quote": str(row["model_quote"]),
+            "resolution": {
+                "outcome": str(row["resolution_outcome"]),
+                "reason": str(row["resolution_reason"]),
+                "candidate_entity_ids": json.loads(
+                    str(row["candidate_entity_ids"])
+                ),
+                "model": str(row["resolver_model"]),
+                "prompt_version": str(row["resolver_prompt_version"]),
+            },
+        }
+        for row in conn.execute(
+            """
+            SELECT o.*,s.name AS source_name
+            FROM entity_observations o
+            JOIN sources s ON s.id=o.source_id
+            ORDER BY o.id
+            """
+        )
+    ]
     return {
         "sources": sources,
         "entities": entities,
         "claims": claims,
         "evidence": evidence,
+        "entity_observations": entity_observations,
     }
 
 

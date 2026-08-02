@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS schema_meta (
     value TEXT NOT NULL
 );
 
-INSERT OR IGNORE INTO schema_meta(key, value) VALUES ('schema_version', '6');
+INSERT OR IGNORE INTO schema_meta(key, value) VALUES ('schema_version', '7');
 
 -- A row is one immutable version of one logical source.
 CREATE TABLE IF NOT EXISTS sources (
@@ -50,6 +50,45 @@ CREATE TABLE IF NOT EXISTS entity_aliases (
 CREATE INDEX IF NOT EXISTS idx_aliases_name
 ON entity_aliases(normalized_name, entity_id);
 
+-- Every grounded extraction is retained before identity resolution. Entity is
+-- the materialized object; this table is the immutable Source-level sighting
+-- that explains why the Entity exists and how it was resolved at the time.
+CREATE TABLE IF NOT EXISTS entity_observations (
+    id                    INTEGER PRIMARY KEY,
+    observation_key       TEXT NOT NULL UNIQUE,
+    source_id             INTEGER NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
+    chunk_index           INTEGER NOT NULL,
+    name                  TEXT NOT NULL,
+    reference_key         TEXT NOT NULL,
+    definition            TEXT NOT NULL,
+    observed_entity_type  TEXT NOT NULL CHECK(observed_entity_type IN (
+        'resource', 'criterion', 'data', 'task', 'solution', 'concept'
+    )),
+    aliases               TEXT NOT NULL DEFAULT '[]',
+    source_text           TEXT NOT NULL,
+    model_quote           TEXT NOT NULL DEFAULT '',
+    passage_ids           TEXT NOT NULL DEFAULT '[]',
+    passage_version       TEXT NOT NULL DEFAULT 'source-passages-2',
+    location              TEXT NOT NULL DEFAULT '',
+    extraction_model      TEXT NOT NULL DEFAULT '',
+    extraction_prompt_version TEXT NOT NULL DEFAULT '',
+    entity_id             INTEGER REFERENCES entities(id) ON DELETE SET NULL,
+    resolution_outcome    TEXT NOT NULL DEFAULT '' CHECK(resolution_outcome IN (
+        '', 'same', 'new', 'uncertain'
+    )),
+    resolution_reason     TEXT NOT NULL DEFAULT '',
+    candidate_entity_ids  TEXT NOT NULL DEFAULT '[]',
+    resolver_model        TEXT NOT NULL DEFAULT '',
+    resolver_prompt_version TEXT NOT NULL DEFAULT '',
+    created_at            TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at            TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_entity_observations_entity
+ON entity_observations(entity_id, id);
+CREATE INDEX IF NOT EXISTS idx_entity_observations_reference
+ON entity_observations(reference_key, id);
+
 CREATE TABLE IF NOT EXISTS claims (
     id         INTEGER PRIMARY KEY,
     subject_id INTEGER NOT NULL REFERENCES entities(id),
@@ -87,7 +126,7 @@ CREATE TABLE IF NOT EXISTS claim_observations (
     source_text           TEXT NOT NULL,
     model_quote           TEXT NOT NULL DEFAULT '',
     passage_ids           TEXT NOT NULL DEFAULT '[]',
-    passage_version       TEXT NOT NULL DEFAULT 'source-passages-1',
+    passage_version       TEXT NOT NULL DEFAULT 'source-passages-2',
     location              TEXT NOT NULL DEFAULT '',
     extraction_model      TEXT NOT NULL DEFAULT '',
     extraction_prompt_version TEXT NOT NULL DEFAULT '',
@@ -152,7 +191,7 @@ CREATE TABLE IF NOT EXISTS evidence (
         '', 'resource', 'criterion', 'data', 'task', 'solution', 'concept'
     )),
     passage_ids  TEXT NOT NULL DEFAULT '[]',
-    passage_version TEXT NOT NULL DEFAULT 'source-passages-1',
+    passage_version TEXT NOT NULL DEFAULT 'source-passages-2',
     extraction_model TEXT NOT NULL DEFAULT '',
     extraction_prompt_version TEXT NOT NULL DEFAULT '',
     validator_model TEXT NOT NULL DEFAULT '',

@@ -191,15 +191,26 @@ class _HTMLTextParser:
         r"<(?:script|style|noscript)[^>]*>.*?</(?:script|style|noscript)>",
         re.IGNORECASE | re.DOTALL,
     )
+    HEADING = re.compile(
+        r"<h([1-6])[^>]*>(.*?)</h\1>", re.IGNORECASE | re.DOTALL
+    )
 
 
 def _html_to_text(value: str) -> str:
     visible = _HTMLTextParser.HIDDEN.sub("", value)
+    visible = _HTMLTextParser.HEADING.sub(
+        lambda match: "\n\n%s %s\n\n"
+        % (
+            "#" * int(match.group(1)),
+            _HTMLTextParser.TAGS.sub("", match.group(2)).strip(),
+        ),
+        visible,
+    )
     visible = _HTMLTextParser.BLOCKS.sub("\n", visible)
     visible = _HTMLTextParser.TAGS.sub("", visible)
     visible = html.unescape(visible)
     lines = [re.sub(r"\s+", " ", line).strip() for line in visible.splitlines()]
-    return "\n".join(line for line in lines if line)
+    return "\n\n".join(line for line in lines if line)
 
 
 def chunk_text(
@@ -215,6 +226,29 @@ def chunk_text(
         raise ValueError("overlap_chars 必须满足 0 <= overlap < max_chars")
     passages = segment_text(text, max_chars=max_passage_chars)
     chunks: list[TextChunk] = []
+    groups: list[list[SourcePassage]] = []
+    for passage in passages:
+        if not groups or groups[-1][-1].section_path != passage.section_path:
+            groups.append([])
+        groups[-1].append(passage)
+    for group in groups:
+        _append_section_chunks(
+            chunks,
+            group,
+            max_chars=max_chars,
+            overlap_chars=overlap_chars,
+        )
+    return chunks
+
+
+def _append_section_chunks(
+    chunks: list[TextChunk],
+    passages: list[SourcePassage],
+    *,
+    max_chars: int,
+    overlap_chars: int,
+) -> None:
+    """Chunk one section without crossing its structural boundary."""
     start_index = 0
     while start_index < len(passages):
         selected: list[SourcePassage] = []
@@ -231,14 +265,23 @@ def chunk_text(
         rendered = "\n\n".join(
             f"[{item.passage_id}] {item.text}" for item in selected
         )
-        digest = hashlib.sha256(rendered.encode("utf-8")).hexdigest()
+        section_path = selected[0].section_path
+        digest = hashlib.sha256(
+            json.dumps(
+                [section_path, rendered],
+                ensure_ascii=False,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest()
+        location = f"{selected[0].location} – {selected[-1].location}"
         chunks.append(
             TextChunk(
                 index=len(chunks),
                 text=rendered,
-                location=f"{selected[0].location} – {selected[-1].location}",
+                location=location,
                 content_hash=digest,
                 passages=tuple(selected),
+                section_path=section_path,
             )
         )
         if end_index >= len(passages):
@@ -253,7 +296,6 @@ def chunk_text(
             overlap_size += addition
             next_index -= 1
         start_index = next_index if next_index < end_index else end_index
-    return chunks
 
 
 def segment_text(text: str, *, max_chars: int = 1200) -> list[SourcePassage]:
@@ -268,6 +310,7 @@ def segment_text(text: str, *, max_chars: int = 1200) -> list[SourcePassage]:
     spans.extend(_split_long_span(text, start, len(text), max_chars))
 
     passages: list[SourcePassage] = []
+    section_stack: list[str] = []
     for raw_start, raw_end in spans:
         raw = text[raw_start:raw_end]
         left_trim = len(raw) - len(raw.lstrip())
@@ -277,6 +320,10 @@ def segment_text(text: str, *, max_chars: int = 1200) -> list[SourcePassage]:
         if passage_start >= passage_end:
             continue
         passage_text = text[passage_start:passage_end]
+        heading = _heading(passage_text)
+        if heading is not None:
+            level, title = heading
+            section_stack[level - 1 :] = [title]
         page_start = text.count("\f", 0, passage_start) + 1
         page_end = text.count("\f", 0, passage_end) + 1
         page_label = (
@@ -288,15 +335,48 @@ def segment_text(text: str, *, max_chars: int = 1200) -> list[SourcePassage]:
             SourcePassage(
                 passage_id=f"P{len(passages) + 1:06d}",
                 text=passage_text,
-                location=f"{page_label}, chars {passage_start}-{passage_end}",
+                location=(
+                    f"section {' > '.join(section_stack)}; {page_label}, "
+                    f"chars {passage_start}-{passage_end}"
+                    if section_stack
+                    else f"{page_label}, chars {passage_start}-{passage_end}"
+                ),
                 content_hash=hashlib.sha256(
                     passage_text.encode("utf-8")
                 ).hexdigest(),
                 start=passage_start,
                 end=passage_end,
+                section_path=tuple(section_stack),
             )
         )
     return passages
+
+
+_MARKDOWN_HEADING = re.compile(r"^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$")
+_NUMBERED_HEADING = re.compile(r"^(\d+(?:\.\d+){0,5})[\s、]+(.+)$")
+_CHINESE_HEADING = re.compile(r"^第\s*[0-9一二三四五六七八九十百]+\s*([篇章节部])\s*(.*)$")
+_ENGLISH_HEADING = re.compile(r"^(chapter|part)\s+\d+\b[:.\s-]*(.*)$", re.I)
+
+
+def _heading(text: str) -> tuple[int, str] | None:
+    """Recognize conservative Markdown and textbook-style headings."""
+    value = text.strip()
+    if not value or "\n" in value or len(value) > 160:
+        return None
+    match = _MARKDOWN_HEADING.fullmatch(value)
+    if match:
+        return len(match.group(1)), match.group(2).strip()
+    match = _CHINESE_HEADING.fullmatch(value)
+    if match and not value.endswith(("。", "！", "？")):
+        level = 1 if match.group(1) in {"篇", "章", "部"} else 2
+        return level, value
+    match = _ENGLISH_HEADING.fullmatch(value)
+    if match:
+        return (1 if match.group(1).casefold() == "chapter" else 1), value
+    match = _NUMBERED_HEADING.fullmatch(value)
+    if match and not value.endswith(("。", "！", "？", ".")):
+        return min(6, match.group(1).count(".") + 1), value
+    return None
 
 
 def _split_long_span(

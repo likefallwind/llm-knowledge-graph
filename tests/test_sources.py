@@ -52,7 +52,7 @@ class SourcesTest(unittest.TestCase):
             loaded = load_source(
                 SourceSpec("html", "HTML", "docs", path=html_path)
             )
-            self.assertEqual(loaded.content, "标题\n正文&证据")
+            self.assertEqual(loaded.content, "# 标题\n\n正文&证据")
 
             jsonl_path = root / "items.jsonl"
             jsonl_path.write_text(
@@ -132,6 +132,42 @@ class SourcesTest(unittest.TestCase):
         )
         for passage in passages:
             self.assertEqual(text[passage.start:passage.end], passage.text)
+
+    def test_chunking_respects_markdown_section_boundaries(self):
+        text = (
+            "# 第 1 章\n\n章导言。\n\n"
+            "## 1.1 线性回归\n\n第一节正文。\n\n"
+            "## 1.2 Softmax 回归\n\n第二节正文。"
+        )
+
+        chunks = chunk_text(text, max_chars=8000, overlap_chars=500)
+
+        self.assertEqual(
+            [item.section_path for item in chunks],
+            [
+                ("第 1 章",),
+                ("第 1 章", "1.1 线性回归"),
+                ("第 1 章", "1.2 Softmax 回归"),
+            ],
+        )
+        self.assertNotIn("第二节正文", chunks[1].text)
+        self.assertIn("第 1 章 > 1.1 线性回归", chunks[1].location)
+
+    def test_large_section_splits_only_inside_that_section(self):
+        text = "# 章节甲\n\n" + ("甲节正文。" * 120) + "\n\n# 章节乙\n\n乙节正文。"
+
+        chunks = chunk_text(
+            text,
+            max_chars=240,
+            overlap_chars=20,
+            max_passage_chars=200,
+        )
+
+        first = [item for item in chunks if item.section_path == ("章节甲",)]
+        second = [item for item in chunks if item.section_path == ("章节乙",)]
+        self.assertGreater(len(first), 1)
+        self.assertEqual(len(second), 1)
+        self.assertTrue(all("乙节正文" not in item.text for item in first))
 
 
 if __name__ == "__main__":

@@ -8,13 +8,120 @@ from typing import Any, Iterable
 
 from . import extraction, ontology, resolution, store, validation
 from .llm import JSONLLM
-from .models import ClaimObservation, ENTITY_TYPES, EntityObservation
+from .models import ClaimObservation, ENTITY_TYPES, EntityObservation, Resolution
 
 
 PROMOTION_REVIEW_VERSION = "endpoint-promotion-1"
 PROMOTION_SYSTEM = """你是待定实体审核器，不是知识来源。
 只能使用给出的 Source 原文判断这些反复出现的端点是否稳定指向一个可独立学习的知识对象。
 禁止用模型记忆补充定义；宁可 uncertain，也不要制造空壳实体或错误别名。只输出 JSON 对象。"""
+
+
+def entity_observation_key(
+    *,
+    source_id: int,
+    chunk_index: int,
+    observation: EntityObservation,
+    extraction_model: str,
+    extraction_prompt_version: str,
+) -> str:
+    payload = [
+        source_id,
+        chunk_index,
+        store.reference_key(observation.name),
+        observation.definition,
+        observation.entity_type,
+        list(observation.aliases),
+        observation.source_text,
+        observation.model_quote,
+        list(observation.passage_ids),
+        extraction_model,
+        extraction_prompt_version,
+    ]
+    return hashlib.sha256(
+        json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode(
+            "utf-8"
+        )
+    ).hexdigest()
+
+
+def add_entity_observation(
+    conn: sqlite3.Connection,
+    *,
+    source_id: int,
+    chunk_index: int,
+    observation: EntityObservation,
+    extraction_model: str,
+    extraction_prompt_version: str = extraction.EXTRACTION_PROMPT_VERSION,
+) -> tuple[int, bool]:
+    """Persist one grounded Entity sighting before identity resolution."""
+    key = entity_observation_key(
+        source_id=source_id,
+        chunk_index=chunk_index,
+        observation=observation,
+        extraction_model=extraction_model,
+        extraction_prompt_version=extraction_prompt_version,
+    )
+    cursor = conn.execute(
+        """
+        INSERT OR IGNORE INTO entity_observations
+        (observation_key,source_id,chunk_index,name,reference_key,definition,
+         observed_entity_type,aliases,source_text,model_quote,passage_ids,
+         passage_version,location,extraction_model,extraction_prompt_version)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        """,
+        (
+            key,
+            source_id,
+            chunk_index,
+            observation.name,
+            store.reference_key(observation.name),
+            observation.definition,
+            observation.entity_type,
+            json.dumps(list(observation.aliases), ensure_ascii=False),
+            observation.source_text,
+            observation.model_quote,
+            json.dumps(list(observation.passage_ids), ensure_ascii=False),
+            extraction.PASSAGE_VERSION,
+            observation.location,
+            extraction_model,
+            extraction_prompt_version,
+        ),
+    )
+    row = conn.execute(
+        "SELECT id FROM entity_observations WHERE observation_key=?", (key,)
+    ).fetchone()
+    if not row:
+        raise RuntimeError("EntityObservation 保存失败")
+    return int(row["id"]), cursor.rowcount > 0
+
+
+def save_entity_resolution(
+    conn: sqlite3.Connection,
+    observation_id: int,
+    resolution_result: Resolution,
+    *,
+    resolver_model: str,
+    resolver_prompt_version: str = resolution.RESOLUTION_PROMPT_VERSION,
+) -> None:
+    conn.execute(
+        """
+        UPDATE entity_observations
+        SET entity_id=?,resolution_outcome=?,resolution_reason=?,
+            candidate_entity_ids=?,resolver_model=?,resolver_prompt_version=?,
+            updated_at=CURRENT_TIMESTAMP
+        WHERE id=?
+        """,
+        (
+            resolution_result.entity_id,
+            resolution_result.outcome,
+            resolution_result.reason,
+            json.dumps(list(resolution_result.candidates)),
+            resolver_model,
+            resolver_prompt_version,
+            observation_id,
+        ),
+    )
 
 
 def observation_key(
@@ -732,6 +839,16 @@ def observation_report(conn: sqlite3.Connection) -> dict[str, int]:
         """
     ).fetchone()
     candidate_count = len(promotion_candidates(conn, threshold=3))
+    entity_row = conn.execute(
+        """
+        SELECT COUNT(*) AS observations,
+               SUM(entity_id IS NULL) AS pending,
+               SUM(resolution_outcome='same') AS same_count,
+               SUM(resolution_outcome='new') AS new_count,
+               SUM(resolution_outcome='uncertain') AS uncertain_count
+        FROM entity_observations
+        """
+    ).fetchone()
     return {
         "observations": int(row["observations"] or 0),
         "pending_endpoint": int(row["pending_endpoint"] or 0),
@@ -745,6 +862,11 @@ def observation_report(conn: sqlite3.Connection) -> dict[str, int]:
             row["supported_unmaterialized"] or 0
         ),
         "promotion_candidates_3plus": candidate_count,
+        "entity_observations": int(entity_row["observations"] or 0),
+        "entity_resolution_pending": int(entity_row["pending"] or 0),
+        "entity_resolution_same": int(entity_row["same_count"] or 0),
+        "entity_resolution_new": int(entity_row["new_count"] or 0),
+        "entity_resolution_uncertain": int(entity_row["uncertain_count"] or 0),
     }
 
 

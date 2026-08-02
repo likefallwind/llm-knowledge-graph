@@ -101,12 +101,13 @@ text             程序从 Source 取得的真实文本
 page/location    页码和字符范围
 content_hash     Passage 文本 SHA256
 start/end        Source 正文字符位置
+section_path     可选的章/节/小节标题路径
 ```
 
 Passage ID 只在一个不可变 Source 版本内解释。当前分段算法版本为：
 
 ```text
-source-passages-1
+source-passages-2
 ```
 
 ### 4.2 带 Passage ID 的 Chunk
@@ -119,7 +120,11 @@ overlap_chars = 500
 max_passage_chars = 1200
 ```
 
-Chunk 只能在 Passage 边界切分，尾部 Passage 在不超过 `overlap_chars` 时带入下一块。发送给 LLM 的文本为：
+Markdown/HTML 标题和常见教材编号标题先形成层级 `section_path`。Chunk 不能跨越
+Section 边界；一个 Section 超过 `max_chars` 时，才在该 Section 内按 Passage
+切成多块，尾部 Passage 在不超过 `overlap_chars` 时带入下一块。无标题结构的
+Source 使用空路径并退化为原来的固定长度分块。标题层级是 Source 结构，不据此
+自动创建 `part_of` 等知识 Claim。发送给 LLM 的文本为：
 
 ```text
 [P000001] 第一段真实原文……
@@ -134,6 +139,7 @@ index
 passages
 带 ID 的 prompt text
 page/character location
+section_path
 SHA256(chunk)
 ```
 
@@ -183,7 +189,9 @@ SHA256(chunk)
 }
 ```
 
-默认每个 Chunk 最多输出 30 个 Entity 和 30 个 Claim。Claim 端点具有实质
+默认每个 Chunk 最多输出 50 个 Entity 和 30 个 Claim。达到 Entity 上限的 Chunk
+记入本轮结果的 `entity_cap_hit_chunks`，它是需要检查 Section 粒度的覆盖信号，
+不是放宽 Entity 定义的理由。Claim 端点具有实质
 定义时应同时输出 Entity；否则仍允许输出有 Passage 关系证据的 Claim，端点
 作为待定引用保存。因此 Entity 上限不会再删除 ClaimObservation。
 
@@ -249,7 +257,16 @@ Claim 必须同时满足：
 
 这一步只证明 LLM 指向了真实原文段落，还没有证明原文真的表达该关系。
 
-### 5.5 Observation 持久化与裁判缓存
+### 5.5 EntityObservation 持久化
+
+通过机械校验的 EntityObservation 在身份解析前先提交，保存原始名称、定义、
+类型观察、alias、Source/Chunk/Passage、真实原文、模型引文以及抽取模型和提示词
+版本。随后记录 `same/new/uncertain`、当时的候选 Entity、理由、resolver 版本和
+最终 `entity_id`。这不是新的有效性裁判或审核状态机；Entity 标准仍由抽取定义
+统一决定。身份解析失败时原始观察保留，失败 Chunk 重跑由 `observation_key`
+保持幂等。
+
+### 5.6 ClaimObservation 持久化与裁判缓存
 
 Claim 通过 5.2 和 5.4 的机械校验后，先写入不可丢失的
 `claim_observations`，再进行实体解析。关系裁判结果按
@@ -259,11 +276,12 @@ Claim 通过 5.2 和 5.4 的机械校验后，先写入不可丢失的
 Observation 没有手写状态机：端点列为空、当前版本裁判缺失、`claim_id`
 存在等字段直接导出 pending/materialized 等审计口径。
 
-旧数据库中的 Claim Evidence 只在升级时执行一次 Observation 回填；新数据库
+旧数据库中的 Claim Evidence 只在升级时执行一次 ClaimObservation 回填；新数据库
 直接保存原生 Observation，后续 `status/check/audit` 重新连接数据库时不得把
 已落实 Evidence 再导入为第二条 legacy Observation。schema 6 使用独立回填
 标记保证该迁移只执行一次，并清理由早期 schema 5 行为产生、且已有完整原生
-Observation 对应的重复 legacy 行。
+Observation 对应的重复 legacy 行。schema 7 新增原生 EntityObservation；历史
+Entity Evidence 不反向猜测当时的观察名称或身份裁决，因此不做伪造式回填。
 
 ### 5.6 待定端点与 Entity 晋升
 
@@ -620,7 +638,7 @@ failed
 - `done` 的相同片段直接跳过。
 - `failed` 的片段下次重新执行。
 - `--start-chunk N` 忽略 index 小于 N 的片段，且不消耗 `--max-chunks` 额度。
-- Entity/Evidence/ClaimObservation/Judgment/Claim 都有确定性唯一键，因此失败后的重试保持幂等。
+- EntityObservation/Entity/Evidence/ClaimObservation/Judgment/Claim 都有确定性唯一键，因此失败后的重试保持幂等。
 - 机械校验通过的 ClaimObservation 先提交；后续 Entity 解析、关系裁判或物化失败
   只回滚未提交部分，已保存的原文证据不丢失，然后记录失败原因。
 - LLM 没回答不等于知识为假；失败不能产生拒绝关系或虚假知识。

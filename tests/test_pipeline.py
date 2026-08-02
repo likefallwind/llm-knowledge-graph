@@ -238,6 +238,15 @@ class PipelineTest(unittest.TestCase):
         self.assertEqual(store.counts(self.conn)["sources"], 2)
         self.assertEqual(store.counts(self.conn)["entities"], 2)
         self.assertEqual(store.counts(self.conn)["claims"], 1)
+        entity_observations = self.conn.execute(
+            "SELECT * FROM entity_observations ORDER BY id"
+        ).fetchall()
+        self.assertEqual(len(entity_observations), 4)
+        self.assertTrue(all(row["entity_id"] for row in entity_observations))
+        self.assertEqual(
+            {str(row["resolution_outcome"]) for row in entity_observations},
+            {"new", "same"},
+        )
         evidence = self.conn.execute(
             "SELECT COUNT(*) FROM evidence WHERE claim_id IS NOT NULL"
         ).fetchone()[0]
@@ -342,6 +351,53 @@ class PipelineTest(unittest.TestCase):
         self.assertTrue(result["failures"])
         self.assertEqual(store.counts(self.conn)["entities"], 0)
         self.assertEqual(store.counts(self.conn)["evidence"], 0)
+        observations = self.conn.execute(
+            "SELECT * FROM entity_observations ORDER BY id"
+        ).fetchall()
+        self.assertEqual(len(observations), 2)
+        self.assertTrue(all(row["entity_id"] is None for row in observations))
+        self.assertTrue(
+            all(str(row["resolution_outcome"]) == "" for row in observations)
+        )
+
+    def test_entity_observation_records_resolution_provenance(self):
+        catalog = self._catalog(["GD 是沿负梯度方向更新参数的优化方法。"])
+        llm = FakeLLM(
+            {
+                "entities": [
+                    entity_payload(
+                        "GD",
+                        "沿负梯度方向更新参数的优化方法",
+                        "GD 是沿负梯度方向更新参数的优化方法",
+                    )
+                ],
+                "claims": [],
+            },
+            {
+                "decision": "new",
+                "canonical_name": "梯度下降法",
+                "reason": "当前原文给出了完整定义",
+            },
+        )
+
+        result = pipeline.process_catalog(
+            self.conn, llm, catalog, max_entities=1
+        )
+
+        self.assertFalse(result["failures"])
+        row = self.conn.execute("SELECT * FROM entity_observations").fetchone()
+        self.assertEqual(row["name"], "GD")
+        self.assertEqual(row["resolution_outcome"], "new")
+        self.assertEqual(row["resolution_reason"], "当前原文给出了完整定义")
+        self.assertEqual(row["resolver_model"], "FakeLLM")
+        self.assertTrue(row["resolver_prompt_version"])
+        self.assertIsNotNone(row["entity_id"])
+        self.assertEqual(
+            result["completed"][0]["entity_observations"], 1
+        )
+        self.assertEqual(
+            result["completed"][0]["entity_cap_hit_chunks"], [0]
+        )
 
     def test_claim_judge_failure_preserves_grounded_observation(self):
         catalog = self._catalog(["实体甲是实体乙的一种。"])

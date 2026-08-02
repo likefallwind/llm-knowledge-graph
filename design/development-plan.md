@@ -67,7 +67,9 @@ ClaimObservation、alias 和运行进度是实现核心闭环所需的记录，�
 - 带 Source Evidence 的 Entity 与 Claim 抽取；
 - `same / new / uncertain` 实体身份判断；
 - Claim 关系证据裁判和多 Evidence 累积；
+- EntityObservation 在身份解析前持久保存，并记录 `same/new/uncertain` 留痕；
 - ClaimObservation 持久保存、待定端点重放和 Entity 晋升；
+- 教材优先按目录/标题 Section 切分，过大 Section 才继续切 Chunk；无结构语料回退；
 - Chunk 级事务、幂等和断点续跑；
 - 图谱完整性检查、审计和可搜索的交互式可视化；
 - MiniMax M3 严格 JSON 修复和至多一次相同请求重新生成。
@@ -86,7 +88,7 @@ ClaimObservation、alias 和运行进度是实现核心闭环所需的记录，�
 
 1. 使用最新代码创建一份全新的实验数据库。
 2. 先对《神经网络与深度学习》运行一个有界批次。
-3. 检查 Entity、Claim、Evidence、ClaimObservation 和裁判记录是否完整。
+3. 检查 Entity、Claim、Evidence、EntityObservation、ClaimObservation 和裁判记录是否完整。
 4. 对失败 Chunk 使用相同参数重跑，确认已完成 Chunk 不重复处理。
 5. 执行 `replay-pending`，确认新增 Entity 或 alias 后可以使用已有裁判结果落实
    Claim，而不重新抽取 Source。

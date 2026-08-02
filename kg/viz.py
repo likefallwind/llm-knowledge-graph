@@ -127,6 +127,8 @@ const oa=data.observation_audit||{summary:{},items:[],promotion_candidates:[]};
 const byId=new Map(data.entities.map(x=>[x.id,x]));
 const evidenceByTarget=new Map();
 for(const e of data.evidence){if(!evidenceByTarget.has(e.target))evidenceByTarget.set(e.target,[]);evidenceByTarget.get(e.target).push(e)}
+const entityObservationsByEntity=new Map();
+for(const o of data.entity_observations||[]){if(o.entity_id==null)continue;if(!entityObservationsByEntity.has(o.entity_id))entityObservationsByEntity.set(o.entity_id,[]);entityObservationsByEntity.get(o.entity_id).push(o)}
 const degree=new Map(data.entities.map(x=>[x.id,0]));
 for(const e of data.claims){degree.set(e.subject_id,(degree.get(e.subject_id)||0)+1);degree.set(e.object_id,(degree.get(e.object_id)||0)+1)}
 const colors={is_a:"#5cc8ff",part_of:"#ffc857",prerequisite_of:"#ff6b89"};
@@ -147,7 +149,7 @@ function build(){
    for(const [other] of next)if(!seen.has(other)){seen.add(other);levels.set(other,level+1);queue.push([other,level+1]);if(seen.size>=max)break}
  }
  view.nodes=[...seen].map(id=>byId.get(id));view.edges=data.claims.filter(e=>allowed.has(e.relation)&&seen.has(e.subject_id)&&seen.has(e.object_id));
- layout(levels);startSimulation();document.getElementById("stats").textContent=`当前 ${view.nodes.length} 节点 / ${view.edges.length} 边 · 全库 ${data.entities.length}/${data.claims.length} · Observation ${oa.summary.observations||0} · 待定 ${oa.summary.pending_endpoint||0}`;
+ layout(levels);startSimulation();document.getElementById("stats").textContent=`当前 ${view.nodes.length} 节点 / ${view.edges.length} 边 · 全库 ${data.entities.length}/${data.claims.length} · Entity观察 ${oa.summary.entity_observations||0} · Claim观察 ${oa.summary.observations||0} · 待定 ${oa.summary.pending_endpoint||0}`;
 }
 function layout(levels){
  const w=canvas.clientWidth,h=canvas.clientHeight,cx=w/2,cy=h/2;view.positions=new Map();
@@ -177,9 +179,9 @@ function draw(){
 }
 function nodeAt(x,y){let best=null,dist=20;for(const n of view.nodes){const p=screen(view.positions.get(n.id)),d=Math.hypot(x-p.x,y-p.y);if(d<dist){best=n;dist=d}}return best}
 function edgeAt(x,y){let best=null,dist=7;for(const e of view.edges){const a=screen(view.positions.get(e.subject_id)),b=screen(view.positions.get(e.object_id));const dx=b.x-a.x,dy=b.y-a.y,t=Math.max(0,Math.min(1,((x-a.x)*dx+(y-a.y)*dy)/(dx*dx+dy*dy||1)));const d=Math.hypot(x-(a.x+t*dx),y-(a.y+t*dy));if(d<dist){best=e;dist=d}}return best}
-function showNode(n){selected=n;document.getElementById("selection-kind").textContent="Entity";const ev=evidenceByTarget.get(`entity:${n.id}`)||[];document.getElementById("details").textContent=[
+function showNode(n){selected=n;document.getElementById("selection-kind").textContent="Entity";const ev=evidenceByTarget.get(`entity:${n.id}`)||[],obs=entityObservationsByEntity.get(n.id)||[];document.getElementById("details").textContent=[
  n.canonical_name,`ID: ${n.id}  degree: ${degree.get(n.id)||0}`,`aliases: ${(n.aliases||[]).join(" / ")}`,`definition: ${n.definition}`,
- `type_profile: ${JSON.stringify(n.type_profile)}`,...ev.slice(0,6).map((e,i)=>`\\nEvidence ${i+1} · ${e.source.name} · ${e.location}\\n原文: ${e.source_text}\\n模型引文: ${e.model_quote}`)
+ `type_profile: ${JSON.stringify(n.type_profile)}`,`EntityObservation: ${obs.length}`,...obs.slice(0,6).map((o,i)=>`\\nObservation ${i+1} · ${o.source_name} · Chunk ${o.chunk_index} · ${o.resolution.outcome}\\n观察名: ${o.name}\\n位置: ${o.location}\\n解析理由: ${o.resolution.reason}`),...ev.slice(0,6).map((e,i)=>`\\nEvidence ${i+1} · ${e.source.name} · ${e.location}\\n原文: ${e.source_text}\\n模型引文: ${e.model_quote}`)
  ].join("\\n");draw()}
 function showEdge(e){selected=e;document.getElementById("selection-kind").textContent="Claim";const ev=evidenceByTarget.get(`claim:${e.id}`)||[];document.getElementById("details").textContent=[
  `${e.subject}  --${e.relation}-->  ${e.object}`,`Claim ID: ${e.id}`,...ev.map((x,i)=>`\\nEvidence ${i+1} · ${x.source.name} · ${x.location}\\n原文: ${x.source_text}\\n裁判: ${x.validation.verdict} · ${x.validation.reason}`)
@@ -207,7 +209,7 @@ function renderObservations(){
  for(const item of filtered.slice(0,100)){const button=document.createElement("button");button.className=`obs-item status-${item.status}`;const title=document.createElement("span");title.textContent=`${item.subject.name}  --${item.relation}-->  ${item.object.name}`;const meta=document.createElement("small");meta.textContent=`${(item.statuses||[item.status]).map(x=>statusLabels[x]||x).join(" / ")} · ${item.source.name} · Chunk ${item.chunk_index}`;button.append(title,meta);button.onclick=()=>showObservation(item);box.appendChild(button)}
 }
 function renderObservationAudit(){
- const s=oa.summary;document.getElementById("obs-summary").innerHTML=`<span class="badge">总计 ${s.observations||0}</span><span class="badge">已落实 ${s.materialized||0}</span><span class="badge">待定端点 ${s.pending_endpoint||0}</span><span class="badge">待裁判 ${s.pending_judgment||0}</span><span class="badge">支持未落实 ${s.supported_unmaterialized||0}</span><span class="badge">晋升候选 ${s.promotion_candidates_3plus||0}</span>`;
+ const s=oa.summary;document.getElementById("obs-summary").innerHTML=`<span class="badge">Entity观察 ${s.entity_observations||0}</span><span class="badge">身份待定 ${s.entity_resolution_uncertain||0}</span><span class="badge">Claim观察 ${s.observations||0}</span><span class="badge">已落实 ${s.materialized||0}</span><span class="badge">待定端点 ${s.pending_endpoint||0}</span><span class="badge">待裁判 ${s.pending_judgment||0}</span><span class="badge">支持未落实 ${s.supported_unmaterialized||0}</span><span class="badge">晋升候选 ${s.promotion_candidates_3plus||0}</span>`;
  const candidateBox=document.getElementById("promotion-candidates");candidateBox.replaceChildren();
  for(const candidate of oa.promotion_candidates){const button=document.createElement("button");button.className="obs-item status-pending_endpoint";button.textContent=`晋升候选：${candidate.name} · ${candidate.passage_count} passages / ${candidate.source_count} sources`;button.onclick=()=>{document.getElementById("details").textContent=[`Entity 晋升候选：${candidate.name}`,`变体: ${candidate.names.join(" / ")}`,`${candidate.passage_count} 个独立 Passage · ${candidate.source_count} 个 Source`,...candidate.evidence.map((x,i)=>`\\n证据 ${i+1} · Source #${x.source_id} · ${x.passage_ids.join(", ")}\\n${x.source_text}`)].join("\\n")};candidateBox.appendChild(button)}
  renderObservations();

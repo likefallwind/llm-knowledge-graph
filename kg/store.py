@@ -191,7 +191,7 @@ def add_evidence(
     source_text: str,
     model_quote: str,
     passage_ids: Iterable[str] = (),
-    passage_version: str = "source-passages-1",
+    passage_version: str = "source-passages-2",
     location: str,
     polarity: str,
     extraction_model: str = "",
@@ -360,6 +360,10 @@ def merge_entities(
 
     with conn:
         conn.execute(
+            "UPDATE entity_observations SET entity_id=? WHERE entity_id=?",
+            (target_id, source_id),
+        )
+        conn.execute(
             "UPDATE claim_observations SET subject_entity_id=? WHERE subject_entity_id=?",
             (target_id, source_id),
         )
@@ -523,14 +527,25 @@ def integrity_report(conn: sqlite3.Connection) -> dict:
             """
         )
     ]
+    broken_entity_observations = [
+        int(row["id"])
+        for row in conn.execute(
+            """
+            SELECT o.id FROM entity_observations o
+            LEFT JOIN entities e ON e.id=o.entity_id
+            WHERE o.entity_id IS NOT NULL AND e.id IS NULL
+            """
+        )
+    ]
     return {
         "ok": not fk and not cycles and not no_evidence and not claim_no_evidence
-        and not broken_observations,
+        and not broken_observations and not broken_entity_observations,
         "foreign_key_errors": fk,
         "cycles": cycles,
         "entities_without_evidence": no_evidence,
         "claims_without_support": claim_no_evidence,
         "broken_claim_observations": broken_observations,
+        "broken_entity_observations": broken_entity_observations,
     }
 
 
