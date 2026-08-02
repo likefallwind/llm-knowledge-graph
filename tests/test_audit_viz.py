@@ -142,6 +142,9 @@ class AuditVizTest(unittest.TestCase):
         self.assertIn("Observation 审计", html)
         self.assertIn("缺失实体", html)
         self.assertIn("<canvas", html)
+        self.assertIn("strokeText(node.canonical_name", html)
+        self.assertIn("startSimulation()", html)
+        self.assertIn("拖拽节点", html)
         self.assertNotIn('src="http', html)
         self.assertNotIn("unpkg.com", html)
 
