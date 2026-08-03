@@ -6,7 +6,7 @@ from pathlib import Path
 
 DEFAULT_DB = Path("data/knowledge.db")
 SCHEMA = Path(__file__).with_name("schema.sql")
-SCHEMA_VERSION = "7"
+SCHEMA_VERSION = "8"
 CLAIM_OBSERVATION_BACKFILL_VERSION = "1"
 
 

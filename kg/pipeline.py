@@ -8,7 +8,15 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Iterator
 
-from . import extraction, observations, resolution, sources, store, validation
+from . import (
+    definitions,
+    extraction,
+    observations,
+    resolution,
+    sources,
+    store,
+    validation,
+)
 from .llm import JSONLLM
 from .models import (
     ClaimObservation,
@@ -34,6 +42,8 @@ def process_catalog(
     chunk_workers: int = 1,
     judge_workers: int = 1,
     stop_on_error: bool = False,
+    synthesize_definitions: bool = False,
+    definition_limit: int | None = None,
 ) -> dict[str, Any]:
     if chunk_workers < 1:
         raise ValueError("chunk_workers 必须至少为 1")
@@ -161,7 +171,28 @@ def process_catalog(
             failures.append({"source": spec.name, "error": str(exc)})
             if stop_on_error:
                 raise
-    return {"completed": completed, "failures": failures}
+    definition_synthesis: dict[str, Any] = {
+        "processed": [],
+        "skipped": [],
+        "failures": [],
+        "remaining": 0,
+    }
+    if synthesize_definitions:
+        definition_synthesis = definitions.synthesize_pending(
+            conn, llm, limit=definition_limit
+        )
+        definition_failures = [
+            {"stage": "definition_synthesis", **item}
+            for item in definition_synthesis["failures"]
+        ]
+        failures.extend(definition_failures)
+        if stop_on_error and definition_failures:
+            raise RuntimeError(definition_failures[0]["error"])
+    return {
+        "completed": completed,
+        "failures": failures,
+        "definition_synthesis": definition_synthesis,
+    }
 
 
 def process_chunk(

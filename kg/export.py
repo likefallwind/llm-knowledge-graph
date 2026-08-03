@@ -18,15 +18,36 @@ def graph_dict(conn: sqlite3.Connection) -> dict[str, Any]:
                 (row["id"],),
             )
         ]
-        entities.append(
-            {
+        synthesis = conn.execute(
+            """
+            SELECT * FROM entity_definition_syntheses
+            WHERE entity_id=? ORDER BY id DESC LIMIT 1
+            """,
+            (row["id"],),
+        ).fetchone()
+        item = {
                 "id": int(row["id"]),
                 "canonical_name": str(row["canonical_name"]),
                 "aliases": aliases,
                 "definition": str(row["definition"]),
                 "type_profile": store.type_profile(conn, int(row["id"])),
             }
-        )
+        if synthesis is not None:
+            item["definition_synthesis"] = {
+                "model": str(synthesis["synthesizer_model"]),
+                "prompt_version": str(synthesis["prompt_version"]),
+                "observation_fingerprint": str(
+                    synthesis["observation_fingerprint"]
+                ),
+                "supporting_observations": json.loads(
+                    str(synthesis["supporting_observations"])
+                ),
+                "rejected_candidates": json.loads(
+                    str(synthesis["rejected_candidates"])
+                ),
+                "limitation": str(synthesis["limitation"]),
+            }
+        entities.append(item)
     claims = []
     for row in conn.execute(
         """

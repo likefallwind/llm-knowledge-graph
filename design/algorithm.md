@@ -42,6 +42,8 @@ Read → Extract → Resolve → Merge → Repeat
 9. 不确定的实体身份不触发合并；不确定的关系不写入。
 10. 有效 ClaimObservation 不因端点未解析或语义证据不足而删除。
 11. 相同模型与提示词版本不重复裁判同一 Observation。
+12. Entity 的聚合定义只能引用当前 Entity 的 EntityObservation 及其 Passage；
+    Observation 集合变化后，旧聚合结果不再作为当前缓存。
 
 `kg check` 检查外键、无证据对象和关系循环。语义正确性仍需要语料约束和关系裁判共同保证。
 
@@ -422,6 +424,27 @@ GROUP BY observed_entity_type
 
 需要单值类型的下游场景（如导航查询）应在查询层定阈值，并明确那是可调策略而非既成事实。
 
+### 6.7 基于全部 Observation 的定义聚合
+
+Entity 初次创建时暂存第一次 Observation 的定义，使单条观察也能形成可读对象；这个
+值不是最终定义。一次 `run` 完成片段处理后，主流程选择拥有至少两条
+EntityObservation、且当前观察集合尚无同模型同版本聚合结果的 Entity，将该 Entity
+的全部 Observation 一次性提供给定义整理模型。
+
+输出定义只回答「它是什么」，使用「上位类别 + 区分性特征」；地位、流行度、影响力
+和宣传性评价即使有原文支持也不能进入定义。每条实质性陈述必须由返回的一至五个
+Observation 支持。程序确定性检查：
+
+1. Observation ID 必须属于当前 Entity；
+2. Passage ID 必须属于对应 Observation；
+3. 每条引用必须说明支持定义中的什么；
+4. 定义、引用数组和其他字段类型合法。
+
+验证通过后才更新 `entities.definition`。`entity_definition_syntheses` 保存完整观察指纹、
+模型、提示词版本、引用、未采用的弱定义和局限说明。原始 EntityObservation 永不覆盖；
+模型调用或引用校验失败时旧定义保持不变。观察指纹覆盖 Observation ID、名称、原始定义、
+真实 Source 文本和 Passage ID，因此新增观察或 Entity 合并后会自然触发重新聚合。
+
 ## 7. Claim 端点物化
 
 片段内已解析 Entity 建立：
@@ -723,6 +746,14 @@ for spec in load_catalog(catalog):
         except Exception as error:
             rollback()
             mark_failed(source_id, chunk, error)
+
+for entity in entities_with_changed_observation_fingerprint(minimum=2):
+    try:
+        synthesis = synthesize_definition_from_all_observations(entity)
+        validate_observation_and_passage_citations(synthesis)
+        save_synthesis_provenance_and_update_definition(synthesis)
+    except Exception as error:
+        keep_previous_definition_and_report_failure(entity, error)
 ```
 
 ## 14. 当前明确不做

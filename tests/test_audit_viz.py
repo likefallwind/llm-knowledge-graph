@@ -140,6 +140,7 @@ class AuditVizTest(unittest.TestCase):
         self.assertIn("原文明确定义类属关系", html)
         self.assertIn("endpoint_unresolved", html)
         self.assertIn("Observation 审计", html)
+        self.assertIn("定义聚合", html)
         self.assertIn("缺失实体", html)
         self.assertIn("<canvas", html)
         self.assertIn("strokeText(node.canonical_name", html)

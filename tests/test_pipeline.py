@@ -278,6 +278,76 @@ class PipelineTest(unittest.TestCase):
         )
         self.assertEqual(len(no_calls.calls), 0)
 
+    def test_catalog_main_flow_synthesizes_changed_entity_definitions(self):
+        catalog = self._catalog(
+            [
+                "卷积神经网络是处理图像的强大工具。",
+                "卷积神经网络是包含卷积层的一类特殊神经网络。",
+            ]
+        )
+        llm = FakeLLM(
+            {
+                "entities": [
+                    entity_payload(
+                        "卷积神经网络",
+                        "处理图像的强大工具",
+                        "卷积神经网络是处理图像的强大工具",
+                    )
+                ],
+                "claims": [],
+            },
+            {
+                "decision": "new",
+                "canonical_name": "卷积神经网络",
+                "reason": "当前语料首次定义该实体",
+            },
+            {
+                "entities": [
+                    entity_payload(
+                        "卷积神经网络",
+                        "包含卷积层的一类特殊神经网络",
+                        "卷积神经网络是包含卷积层的一类特殊神经网络",
+                    )
+                ],
+                "claims": [],
+            },
+            {
+                "definition": "卷积神经网络是包含卷积层的一类特殊神经网络。",
+                "supporting_observations": [
+                    {
+                        "observation_id": 2,
+                        "passage_ids": ["P000001"],
+                        "support": "直接给出上位类别和结构特征",
+                    }
+                ],
+                "rejected_candidates": ["强大工具只说明作用"],
+                "limitation": "",
+            },
+        )
+
+        result = pipeline.process_catalog(
+            self.conn, llm, catalog, synthesize_definitions=True
+        )
+
+        self.assertFalse(result["failures"])
+        self.assertEqual(len(result["definition_synthesis"]["processed"]), 1)
+        row = self.conn.execute(
+            "SELECT definition FROM entities WHERE canonical_name='卷积神经网络'"
+        ).fetchone()
+        self.assertEqual(
+            row["definition"],
+            "卷积神经网络是包含卷积层的一类特殊神经网络。",
+        )
+        llm.assert_finished()
+
+        no_calls = FakeLLM()
+        rerun = pipeline.process_catalog(
+            self.conn, no_calls, catalog, synthesize_definitions=True
+        )
+        self.assertFalse(rerun["failures"])
+        self.assertEqual(len(rerun["definition_synthesis"]["skipped"]), 1)
+        self.assertEqual(len(no_calls.calls), 0)
+
     def test_start_chunk_ignores_earlier_chunks_without_spending_limit(self):
         text = "\n\n".join(
             f"第 {index} 段包含足够长的测试正文。" * 12

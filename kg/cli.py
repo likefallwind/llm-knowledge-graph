@@ -5,7 +5,17 @@ import json
 import sys
 from pathlib import Path
 
-from . import audit, db, export, observations, pipeline, resolution, store, viz
+from . import (
+    audit,
+    db,
+    definitions,
+    export,
+    observations,
+    pipeline,
+    resolution,
+    store,
+    viz,
+)
 from .llm import LLMConfig, MiniMaxM3LLM
 
 
@@ -57,6 +67,25 @@ def _parser() -> argparse.ArgumentParser:
         help="并行关系裁判数；数据库写入仍保持串行（默认 1）",
     )
     run.add_argument("--stop-on-error", action="store_true")
+    run.add_argument(
+        "--skip-definition-synthesis",
+        action="store_true",
+        help="跳过基于全部 EntityObservation 的定义聚合（默认运行）",
+    )
+    run.add_argument(
+        "--definition-limit",
+        type=int,
+        help="本次最多聚合多少个待更新 Entity；默认不限",
+    )
+
+    synthesize = sub.add_parser(
+        "synthesize-definitions",
+        help="基于每个 Entity 的全部 Observation 生成可追溯定义",
+    )
+    synthesize.add_argument(
+        "--entity-id", type=int, action="append", dest="entity_ids"
+    )
+    synthesize.add_argument("--limit", type=int)
 
     reconcile = sub.add_parser(
         "reconcile", help="重新判断疑似重复实体并安全合并"
@@ -187,6 +216,17 @@ def main(argv: list[str] | None = None) -> int:
                 chunk_workers=args.chunk_workers,
                 judge_workers=args.judge_workers,
                 stop_on_error=args.stop_on_error,
+                synthesize_definitions=not args.skip_definition_synthesis,
+                definition_limit=args.definition_limit,
+            )
+            _json(result)
+            return 1 if result["failures"] else 0
+        if args.command == "synthesize-definitions":
+            result = definitions.synthesize_pending(
+                conn,
+                llm,
+                entity_ids=args.entity_ids,
+                limit=args.limit,
             )
             _json(result)
             return 1 if result["failures"] else 0

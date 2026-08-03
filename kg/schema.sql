@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS schema_meta (
     value TEXT NOT NULL
 );
 
-INSERT OR IGNORE INTO schema_meta(key, value) VALUES ('schema_version', '7');
+INSERT OR IGNORE INTO schema_meta(key, value) VALUES ('schema_version', '8');
 
 -- A row is one immutable version of one logical source.
 CREATE TABLE IF NOT EXISTS sources (
@@ -88,6 +88,27 @@ CREATE INDEX IF NOT EXISTS idx_entity_observations_entity
 ON entity_observations(entity_id, id);
 CREATE INDEX IF NOT EXISTS idx_entity_observations_reference
 ON entity_observations(reference_key, id);
+
+-- Entity.definition is a materialized summary of all observations currently
+-- resolved to the Entity.  Raw observations remain immutable; this table
+-- records exactly which observation set and model produced the current or a
+-- historical summary so it can be reproduced after new evidence or a merge.
+CREATE TABLE IF NOT EXISTS entity_definition_syntheses (
+    id                       INTEGER PRIMARY KEY,
+    entity_id                INTEGER NOT NULL REFERENCES entities(id) ON DELETE CASCADE,
+    observation_fingerprint  TEXT NOT NULL,
+    synthesizer_model        TEXT NOT NULL,
+    prompt_version           TEXT NOT NULL,
+    definition               TEXT NOT NULL,
+    supporting_observations  TEXT NOT NULL DEFAULT '[]',
+    rejected_candidates      TEXT NOT NULL DEFAULT '[]',
+    limitation               TEXT NOT NULL DEFAULT '',
+    created_at               TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(entity_id, observation_fingerprint, synthesizer_model, prompt_version)
+);
+
+CREATE INDEX IF NOT EXISTS idx_entity_definition_syntheses_entity
+ON entity_definition_syntheses(entity_id, id);
 
 CREATE TABLE IF NOT EXISTS claims (
     id         INTEGER PRIMARY KEY,

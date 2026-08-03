@@ -22,6 +22,9 @@ Read → Extract → Resolve → Merge → Repeat
 - Evidence 记录文档版本、位置、模型和提示词版本，为未来 LLM/人类校准保留可能性；当前不实现校准队列。
 - 相同 `(subject, relation, object)` 只保存一个 Claim，不同 Source 的 Evidence 自动累计。
 - 实体对齐只有 `same / new / uncertain`。`uncertain` 会保留独立实体，之后可用 `reconcile` 重新判断。
+- `Entity.definition` 不由第一次抽取永久决定。主流程结束时，同一 Entity 的全部
+  EntityObservation 会作为唯一语料聚合出规范定义，并保存所引用的 Observation、
+  Passage、模型和提示词版本；原始观察不覆盖。
 - `is_a` 和 `prerequisite_of` 写入前检查循环；孤立 Entity 合法。
 
 旧项目数据位于被忽略的 `data/kg.db`。它使用旧版复杂 schema，本项目不会修改它；新数据库默认是 `data/knowledge.db`。
@@ -99,6 +102,19 @@ python -m kg --db data/knowledge.db run sources/catalog.json \
 顺序消费结果；`--judge-workers` 并行同一片段内彼此独立的关系证据裁判。
 Entity 对齐、Claim 物化和全部 SQLite 写入仍保持串行，避免改变图谱合并语义。
 两者默认均为 1；小批次建议先使用 `--chunk-workers 2 --judge-workers 2`。
+
+`kg run` 默认在片段处理结束后，为拥有至少两条 EntityObservation 且观察集合发生
+变化的 Entity 聚合定义。定义必须引用当前 Entity 的真实 Observation ID 和 Passage
+ID；无效引用或模型失败不会覆盖旧定义。相同观察指纹、模型和提示词版本会直接跳过。
+长实验可用 `--definition-limit N` 限制本轮数量，之后继续运行即可断点续做；仅在明确
+需要跳过该阶段时使用 `--skip-definition-synthesis`。
+
+也可以单独聚合全部待更新定义，或只处理指定 Entity：
+
+```bash
+python -m kg --db data/knowledge.db synthesize-definitions
+python -m kg --db data/knowledge.db synthesize-definitions --entity-id 38
+```
 
 随着 Evidence 增加，重新判断相似但尚未合并的 Entity：
 
