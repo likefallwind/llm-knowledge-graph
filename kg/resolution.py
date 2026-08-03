@@ -103,8 +103,7 @@ resource，不能删去章节编号或载体限定后变成同名知识内容；
   "reason": "简短理由"
 }
 
-entity_type 含义：
-%s
+type_labels 是开放类别词。以下旧标签仅用于解释历史观察，不是白名单：%s
 
 新观察：
 %s
@@ -117,7 +116,8 @@ entity_type 含义：
                 {
                     "name": observation.name,
                     "definition": observation.definition,
-                    "entity_type": observation.entity_type,
+                    "type_labels": observation.type_labels
+                    or ((observation.entity_type,) if observation.entity_type else ()),
                     "model_quote": observation.model_quote,
                     "source_text": observation.source_text,
                     "passage_ids": observation.passage_ids,

@@ -13,7 +13,7 @@ import json_repair
 
 
 DEFAULT_MINIMAX_BASE_URL = "https://api.minimaxi.com/v1"
-DEFAULT_MINIMAX_MODEL = "MiniMax-M3"
+DEFAULT_MINIMAX_MODEL = "MiniMax-M2.7"
 
 
 class JSONLLM(Protocol):
@@ -64,8 +64,8 @@ class LLMConfig:
         return cls(base_url=base_url, api_key=api_key, model=model)
 
 
-class MiniMaxM3LLM:
-    """MiniMax M3 client, with explicit OpenAI-compatible URL overrides."""
+class ChatCompletionsJSONLLM:
+    """Small configurable JSON client for MiniMax and compatible endpoints."""
 
     def __init__(self, config: LLMConfig):
         self.config = config
@@ -122,8 +122,9 @@ class MiniMaxM3LLM:
         raise AssertionError("unreachable")
 
 
-# Compatibility alias for callers created before MiniMax M3 became the default.
-OpenAICompatibleLLM = MiniMaxM3LLM
+# Compatibility aliases for existing callers.
+MiniMaxM3LLM = ChatCompletionsJSONLLM
+OpenAICompatibleLLM = ChatCompletionsJSONLLM
 
 
 def _normalize_api_key(value: str) -> str:

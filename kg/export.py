@@ -51,10 +51,12 @@ def graph_dict(conn: sqlite3.Connection) -> dict[str, Any]:
     claims = []
     for row in conn.execute(
         """
-        SELECT c.id,c.subject_id,c.relation,c.object_id,
+        SELECT c.id,c.subject_id,c.relation_type_id,c.relation,c.object_id,
+               r.relation_kind,r.description AS relation_description,
                s.canonical_name AS subject_name,
                o.canonical_name AS object_name
         FROM claims c
+        JOIN relation_types r ON r.id=c.relation_type_id
         JOIN entities s ON s.id=c.subject_id
         JOIN entities o ON o.id=c.object_id
         ORDER BY c.id
@@ -66,6 +68,9 @@ def graph_dict(conn: sqlite3.Connection) -> dict[str, Any]:
                 "subject_id": int(row["subject_id"]),
                 "subject": str(row["subject_name"]),
                 "relation": str(row["relation"]),
+                "relation_type_id": int(row["relation_type_id"]),
+                "relation_kind": str(row["relation_kind"]),
+                "relation_description": str(row["relation_description"]),
                 "object_id": int(row["object_id"]),
                 "object": str(row["object_name"]),
             }
@@ -133,6 +138,7 @@ def graph_dict(conn: sqlite3.Connection) -> dict[str, Any]:
             "name": str(row["name"]),
             "definition": str(row["definition"]),
             "observed_entity_type": str(row["observed_entity_type"]),
+            "raw_type_labels": json.loads(str(row["raw_type_labels"])),
             "aliases": json.loads(str(row["aliases"])),
             "source_id": int(row["source_id"]),
             "source_name": str(row["source_name"]),
@@ -160,12 +166,47 @@ def graph_dict(conn: sqlite3.Connection) -> dict[str, Any]:
             """
         )
     ]
+    relation_types = [
+        {
+            "id": int(row["id"]),
+            "canonical_name": str(row["canonical_name"]),
+            "relation_kind": str(row["relation_kind"]),
+            "description": str(row["description"]),
+        }
+        for row in conn.execute("SELECT * FROM relation_types ORDER BY id")
+    ]
+    sections = [
+        {
+            "id": int(row["id"]),
+            "source_id": int(row["source_id"]),
+            "parent_id": int(row["parent_id"]) if row["parent_id"] is not None else None,
+            "title": str(row["title"]),
+            "depth": int(row["depth"]),
+            "ordinal": int(row["ordinal"]),
+            "path": json.loads(str(row["path_json"])),
+            "summary": str(row["summary"] or ""),
+            "entity_ids": json.loads(str(row["entity_ids"] or "[]")),
+        }
+        for row in conn.execute(
+            """SELECT s.*,
+                      (SELECT summary FROM section_summaries x
+                       WHERE x.section_id=s.id ORDER BY x.id DESC LIMIT 1) AS summary,
+                      (SELECT json_group_array(entity_id) FROM (
+                         SELECT DISTINCT entity_id FROM entity_observations o
+                         WHERE o.section_id=s.id AND entity_id IS NOT NULL
+                         ORDER BY entity_id
+                       )) AS entity_ids
+               FROM source_sections s ORDER BY source_id,depth,ordinal,id"""
+        )
+    ]
     return {
         "sources": sources,
         "entities": entities,
         "claims": claims,
         "evidence": evidence,
         "entity_observations": entity_observations,
+        "relation_types": relation_types,
+        "sections": sections,
     }
 
 

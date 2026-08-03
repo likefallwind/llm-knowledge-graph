@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -195,32 +196,21 @@ class MigrationFromSchema3Test(unittest.TestCase):
         conn.commit()
         conn.close()
 
-    def test_drops_the_indexed_type_column_and_keeps_data(self):
+    def test_vnext_refuses_schema3_without_modifying_it(self):
         self._build_schema3()
-        conn = db.connect(self.path)
-        self.addCleanup(conn.close)
+        with self.assertRaisesRegex(RuntimeError, "全新数据库"):
+            db.connect(self.path)
+        raw = sqlite3.connect(self.path)
+        self.addCleanup(raw.close)
+        columns = {row[1] for row in raw.execute("PRAGMA table_info(entities)")}
+        self.assertIn("entity_type", columns)
+        self.assertEqual(raw.execute("SELECT COUNT(*) FROM entities").fetchone()[0], 1)
 
-        columns = {row["name"] for row in conn.execute("PRAGMA table_info(entities)")}
-        self.assertNotIn("entity_type", columns)
-        self.assertEqual(
-            conn.execute("SELECT value FROM schema_meta WHERE key='schema_version'")
-            .fetchone()[0],
-            "8",
-        )
-        self.assertEqual(
-            int(conn.execute("SELECT COUNT(*) FROM entities").fetchone()[0]), 1
-        )
-        # 历史 Evidence 不回填，因此 profile 为空而不是编造出一个 solution。
-        self.assertEqual(store.type_profile(conn, 1), [])
-
-    def test_migration_is_idempotent(self):
+    def test_repeated_vnext_open_still_refuses_schema3(self):
         self._build_schema3()
-        db.connect(self.path).close()
-        conn = db.connect(self.path)
-        self.addCleanup(conn.close)
-        self.assertEqual(
-            int(conn.execute("SELECT COUNT(*) FROM entities").fetchone()[0]), 1
-        )
+        for _ in range(2):
+            with self.assertRaises(RuntimeError):
+                db.connect(self.path)
 
 
 if __name__ == "__main__":

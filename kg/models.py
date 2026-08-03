@@ -5,9 +5,15 @@ from pathlib import Path
 from typing import Any
 
 
-ENTITY_TYPES = frozenset(
+LEGACY_ENTITY_TYPES = frozenset(
     {"resource", "criterion", "data", "task", "solution", "concept"}
 )
+CORE_RELATION_KINDS = frozenset(
+    {"is_a", "part_of", "prerequisite_of", "other"}
+)
+# Compatibility exports for the old ontology documentation and callers.  The
+# vNext extractors no longer use either set as an acceptance whitelist.
+ENTITY_TYPES = LEGACY_ENTITY_TYPES
 RELATIONS = frozenset({"is_a", "part_of", "prerequisite_of"})
 POLARITIES = frozenset({"support", "oppose"})
 
@@ -62,6 +68,7 @@ class EntityObservation:
     passage_ids: tuple[str, ...]
     location: str
     aliases: tuple[str, ...] = ()
+    type_labels: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -74,6 +81,9 @@ class ClaimObservation:
     passage_ids: tuple[str, ...]
     location: str
     polarity: str = "support"
+    raw_relation: str = ""
+    relation_kind: str = "other"
+    relation_type_id: int | None = None
 
 
 @dataclass(frozen=True)

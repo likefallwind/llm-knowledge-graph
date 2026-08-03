@@ -8,15 +8,15 @@ from tests.helpers import FakeLLM
 
 
 class ExtractionTest(unittest.TestCase):
-    def test_prompt_preserves_claims_with_pending_entity_endpoints(self):
+    def test_entity_prompt_is_open_and_relation_free(self):
         passages = segment_text("批量梯度下降法是梯度下降法的一种。")
         llm = FakeLLM({"entities": [], "claims": []})
 
         extract(llm, "测试片段", passages=passages)
 
         prompt = llm.calls[0][1]
-        self.assertIn("待定 Entity 引用永久保留", prompt)
-        self.assertIn("若端点满足 Entity 标准", prompt)
+        self.assertIn("类型标签是开放的", prompt)
+        self.assertIn("这一阶段不要输出关系", prompt)
         self.assertIn("最多输出 50 个实体", prompt)
 
     def test_entity_cap_does_not_discard_claim_observation(self):
@@ -151,7 +151,7 @@ class ExtractionTest(unittest.TestCase):
         self.assertFalse(batch.entities)
         self.assertIn("不能重复", batch.rejected[0])
 
-    def test_only_six_types_and_three_relations_are_accepted(self):
+    def test_open_types_and_relations_are_accepted(self):
         text = "A 是 B 的一种。"
         passages = segment_text(text)
         batch = parse_payload(
@@ -181,8 +181,8 @@ class ExtractionTest(unittest.TestCase):
             },
             passages,
         )
-        self.assertFalse(batch.entities)
-        self.assertFalse(batch.claims)
+        self.assertEqual(batch.entities[0].type_labels, ("model",))
+        self.assertEqual(batch.claims[0].raw_relation, "related_to")
 
 
 if __name__ == "__main__":

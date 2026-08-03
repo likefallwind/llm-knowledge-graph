@@ -15,7 +15,14 @@ def visualization_dict(conn: sqlite3.Connection) -> dict:
     return payload
 
 
-def write_html(conn: sqlite3.Connection, path: str | Path) -> Path:
+def write_html(
+    conn: sqlite3.Connection,
+    path: str | Path,
+    *,
+    view: str = "mixed",
+) -> Path:
+    if view not in {"semantic", "document", "mixed"}:
+        raise ValueError(f"未知可视化视图: {view}")
     output = Path(path)
     output.parent.mkdir(parents=True, exist_ok=True)
     data = json.dumps(
@@ -23,7 +30,19 @@ def write_html(conn: sqlite3.Connection, path: str | Path) -> Path:
         ensure_ascii=False,
         separators=(",", ":"),
     ).replace("</", "<\\/")
-    html = _HTML.replace("__GRAPH_DATA__", data)
+    if view == "document":
+        html = _DOCUMENT_HTML.replace("__GRAPH_DATA__", data)
+    else:
+        document_section = (
+            '<section class="audit-section"><h2>教材目录结构</h2>'
+            '<div id="document-tree" class="obs-list"></div></section>'
+            if view == "mixed"
+            else ""
+        )
+        html = (
+            _HTML.replace("__GRAPH_DATA__", data)
+            .replace("__DOCUMENT_SECTION__", document_section)
+        )
     output.write_text(html, encoding="utf-8")
     return output
 
@@ -75,6 +94,7 @@ h2{font-size:14px;margin:15px 0 8px;color:#d9e8fb}pre{white-space:pre-wrap;word-
     <label><input class="rel" type="checkbox" value="is_a" checked>is_a</label>
     <label><input class="rel" type="checkbox" value="part_of" checked>part_of</label>
     <label><input class="rel" type="checkbox" value="prerequisite_of" checked>prerequisite</label>
+    <label><input class="rel" type="checkbox" value="__other__" checked>开放关系</label>
     <button id="reset">核心节点</button>
   </div>
 </header>
@@ -113,6 +133,7 @@ h2{font-size:14px;margin:15px 0 8px;color:#d9e8fb}pre{white-space:pre-wrap;word-
       <div id="obs-count" class="empty"></div>
       <div id="obs-list" class="obs-list"></div>
     </section>
+    __DOCUMENT_SECTION__
     <section class="audit-section">
       <h2>历史拒绝审计</h2>
       <div id="reject-summary"></div>
@@ -131,13 +152,13 @@ const entityObservationsByEntity=new Map();
 for(const o of data.entity_observations||[]){if(o.entity_id==null)continue;if(!entityObservationsByEntity.has(o.entity_id))entityObservationsByEntity.set(o.entity_id,[]);entityObservationsByEntity.get(o.entity_id).push(o)}
 const degree=new Map(data.entities.map(x=>[x.id,0]));
 for(const e of data.claims){degree.set(e.subject_id,(degree.get(e.subject_id)||0)+1);degree.set(e.object_id,(degree.get(e.object_id)||0)+1)}
-const colors={is_a:"#5cc8ff",part_of:"#ffc857",prerequisite_of:"#ff6b89"};
+const colors=new Proxy({is_a:"#5cc8ff",part_of:"#ffc857",prerequisite_of:"#ff6b89"},{get:(x,k)=>x[k]||"#b995ff"});
 const typeColors={resource:"#b995ff",criterion:"#ff9f9f",data:"#70d7e5",task:"#ffc857",solution:"#5cc8ff",concept:"#a7e37d"};
 let root=[...degree.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0]||data.entities[0]?.id;
 let view={nodes:[],edges:[],positions:new Map()},selected=null,hovered=null,alpha=0,frame=0;
 let transform={x:0,y:0,scale:1},drag=null,nodeDrag=null;
 const canvas=document.getElementById("graph"),ctx=canvas.getContext("2d");
-function activeRelations(){return new Set([...document.querySelectorAll(".rel:checked")].map(x=>x.value))}
+function activeRelations(){const selected=new Set([...document.querySelectorAll(".rel:checked")].map(x=>x.value));if(selected.has("__other__"))for(const e of data.claims)selected.add(e.relation);return selected}
 function primaryType(entity){return entity.type_profile?.[0]?.entity_type||"concept"}
 function build(){
  const allowed=activeRelations(),adj=new Map(data.entities.map(x=>[x.id,[]]));
@@ -214,6 +235,7 @@ function renderObservationAudit(){
  for(const candidate of oa.promotion_candidates){const button=document.createElement("button");button.className="obs-item status-pending_endpoint";button.textContent=`晋升候选：${candidate.name} · ${candidate.passage_count} passages / ${candidate.source_count} sources`;button.onclick=()=>{document.getElementById("details").textContent=[`Entity 晋升候选：${candidate.name}`,`变体: ${candidate.names.join(" / ")}`,`${candidate.passage_count} 个独立 Passage · ${candidate.source_count} 个 Source`,...candidate.evidence.map((x,i)=>`\\n证据 ${i+1} · Source #${x.source_id} · ${x.passage_ids.join(", ")}\\n${x.source_text}`)].join("\\n")};candidateBox.appendChild(button)}
  renderObservations();
 }
+function renderDocumentTree(){const box=document.getElementById("document-tree");if(!box)return;box.replaceChildren();const names=new Map(data.entities.map(x=>[x.id,x.canonical_name]));for(const section of data.sections||[]){const item=document.createElement("button");item.className="obs-item";item.style.marginLeft=`${Math.max(0,section.depth-1)*10}px`;const title=document.createElement("span");title.textContent=section.path.join(" › ");const meta=document.createElement("small");meta.textContent=`${(section.entity_ids||[]).length} entities · ${section.summary||"尚无摘要"}`;item.append(title,meta);item.onclick=()=>{document.getElementById("selection-kind").textContent="Section";document.getElementById("details").textContent=[section.path.join(" > "),section.summary||"尚无摘要",`Entities: ${(section.entity_ids||[]).map(id=>names.get(id)||id).join(" / ")||"无"}`].join("\n\n")};box.appendChild(item)}}
 canvas.addEventListener("click",e=>{if(drag?.moved||nodeDrag?.moved)return;const n=nodeAt(e.offsetX,e.offsetY);if(n){showNode(n);return}const edge=edgeAt(e.offsetX,e.offsetY);if(edge){showEdge(edge);return}selected=null;document.getElementById("selection-kind").textContent="未选择";draw()});
 canvas.addEventListener("mousedown",e=>{const n=nodeAt(e.offsetX,e.offsetY);if(n){const p=view.positions.get(n.id);p.fixed=true;nodeDrag={node:n,x:e.clientX,y:e.clientY,moved:false};canvas.style.cursor="grabbing"}else{drag={x:e.clientX,y:e.clientY,ox:transform.x,oy:transform.y,moved:false};canvas.style.cursor="grabbing"}});
 addEventListener("mousemove",e=>{if(nodeDrag){const p=view.positions.get(nodeDrag.node.id),rect=canvas.getBoundingClientRect();nodeDrag.moved=nodeDrag.moved||Math.abs(e.clientX-nodeDrag.x)+Math.abs(e.clientY-nodeDrag.y)>3;p.x=(e.clientX-rect.left-transform.x)/transform.scale;p.y=(e.clientY-rect.top-transform.y)/transform.scale;p.vx=p.vy=0;draw();return}if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.moved=Math.abs(dx)+Math.abs(dy)>3;transform.x=drag.ox+dx;transform.y=drag.oy+dy;draw()});
@@ -231,8 +253,19 @@ document.getElementById("obs-status").addEventListener("change",renderObservatio
 const ga=data.graph_audit,ra=data.rejection_audit;
 document.getElementById("reject-summary").innerHTML=`<span class="badge">总计 ${ra.total}</span><span class="badge">算法损失 ${ra.algorithmic_loss}</span><span class="badge">语义拒绝 ${ra.semantic_rejection}</span>`+Object.entries(ra.categories).map(([k,v])=>`<span class="badge">${k}: ${v}</span>`).join("");
 const sampleBox=document.getElementById("reject-samples");for(const [category,items] of Object.entries(ra.samples)){const title=document.createElement("h2");title.textContent=category;sampleBox.appendChild(title);for(const item of items.slice(0,5)){const div=document.createElement("div");div.className="sample";div.textContent=`Chunk ${item.chunk}: ${item.message}`;sampleBox.appendChild(div)}}
-addEventListener("resize",resize);resize();build();renderObservationAudit();
+addEventListener("resize",resize);resize();build();renderObservationAudit();renderDocumentTree();
 </script>
 </body>
 </html>
 """
+
+
+_DOCUMENT_HTML = """<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>教材目录知识视图</title><style>
+body{margin:0;background:#09111d;color:#edf4ff;font:14px/1.6 system-ui;padding:28px}h1{margin:0 0 6px}.sub{color:#91a1b8;margin-bottom:24px}.source{max-width:1100px;margin:0 auto 28px;padding:20px;background:#101b2b;border:1px solid #283b56;border-radius:14px}.section{margin:8px 0;padding:12px 14px;border-left:3px solid #5cc8ff;background:#0b1523;border-radius:8px}.path{font-weight:700}.summary{color:#b9c9dc;margin:5px 0}.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{border:1px solid #334b6b;background:#172840;border-radius:999px;padding:2px 8px;color:#dcecff}.empty{color:#72839a}
+</style></head><body><div style="max-width:1100px;margin:auto"><h1>教材目录知识视图</h1><div class="sub">目录表示文档结构；Entity 来自原文 Observation，目录本身不作为语义关系证据。</div><div id="tree"></div></div>
+<script id="graph-data" type="application/json">__GRAPH_DATA__</script><script>
+const data=JSON.parse(document.getElementById("graph-data").textContent),names=new Map(data.entities.map(x=>[x.id,x.canonical_name])),root=document.getElementById("tree");
+for(const source of data.sources){const card=document.createElement("section");card.className="source";const h=document.createElement("h2");h.textContent=source.name;card.appendChild(h);const sections=(data.sections||[]).filter(x=>x.source_id===source.id);for(const s of sections){const row=document.createElement("div");row.className="section";row.style.marginLeft=`${Math.max(0,s.depth-1)*22}px`;const p=document.createElement("div");p.className="path";p.textContent=s.path.join(" › ");const summary=document.createElement("div");summary.className="summary";summary.textContent=s.summary||"尚无摘要";const chips=document.createElement("div");chips.className="chips";for(const id of s.entity_ids||[]){const chip=document.createElement("span");chip.className="chip";chip.textContent=names.get(id)||`Entity #${id}`;chips.appendChild(chip)}row.append(p,summary,chips);card.appendChild(row)}if(!sections.length){const e=document.createElement("div");e.className="empty";e.textContent="该 Source 尚无结构化目录";card.appendChild(e)}root.appendChild(card)}
+</script></body></html>"""

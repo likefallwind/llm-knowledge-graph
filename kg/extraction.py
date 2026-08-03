@@ -6,9 +6,7 @@ from typing import Any
 from . import ontology
 from .llm import JSONLLM
 from .models import (
-    ENTITY_TYPES,
     POLARITIES,
-    RELATIONS,
     ClaimObservation,
     EntityObservation,
     ExtractionBatch,
@@ -16,34 +14,29 @@ from .models import (
 )
 
 
-EXTRACTION_PROMPT_VERSION = "grounded-extract-ontology-6"
+ENTITY_PROMPT_VERSION = "open-entities-section-1"
+RELATION_PROMPT_VERSION = "open-relations-section-1"
+EXTRACTION_PROMPT_VERSION = (
+    f"{ENTITY_PROMPT_VERSION}+{RELATION_PROMPT_VERSION}"
+)
 PASSAGE_VERSION = "source-passages-2"
 
 SYSTEM_PROMPT = """你是语料约束的知识抽取器。
 你只能理解用户给出的原文，禁止用模型参数记忆补充原文没有表达的知识。
 没有有效原文段落依据的对象或关系必须省略。只输出 JSON 对象。"""
 
-EXTRACTION_PROMPT = """从下面的单个语料片段抽取 Entity、Claim 和 Evidence。
+ENTITY_PROMPT = """从下面的语料片段抽取 EntityObservation。
 
 Entity 必须是在本片段中有稳定名称、可复指，并有实质性定义或知识含义的对象。
-
-六种 entity_type。根据原文给出的 definition 判断，不按名称字面猜测，concept 兜底：
-{entity_types}
-
-只允许三种 relation。先做判定测试，再逐条核对排除项；两者冲突时以排除项为准：
-{relations}
+类型标签是开放的：使用原文语境中简洁、可复用的类别词，可为空，不得为了满足
+预设词表而扭曲实体。每个实体最多给出 3 个 type_labels。
 
 规则：
 1. evidence.passage_ids 必须选择片段中真实存在的段落 ID，最多 3 个。
 2. evidence.quote 是你认为最关键的引文。应尽量忠实引用，但允许轻微省略或改写。
 3. aliases 只列出本片段表达过的别名。
-4. Claim 的两个端点都必须使用本片段表达的完整名称，不得截短限定词。
-   若端点满足 Entity 标准且原文给出实质定义，应同时输出 Entity；否则仍可
-   输出有关系证据的 Claim，系统会将该端点作为待定 Entity 引用永久保留。
-5. 判不准关系属于哪一种，或命题只是常识为真而原文没有陈述时，不要输出该 Claim。
-   宁可漏，不要猜。
-6. stance 是 support 或 oppose；不确定的关系不要输出。
-7. 最多输出 {max_entities} 个实体和 {max_claims} 个 Claim。
+4. 这一阶段不要输出关系。
+5. 最多输出 {max_entities} 个实体。
 
 输出：
 {{
@@ -51,29 +44,44 @@ Entity 必须是在本片段中有稳定名称、可复指，并有实质性定�
     {{
       "name": "原文中的名称",
       "definition": "仅依据原文的定义或知识含义",
-      "entity_type": "六种类型之一",
+      "type_labels": ["原文语境中的开放类别词"],
       "aliases": ["原文中实际出现的别名"],
       "evidence": {{
         "passage_ids": ["P000001"],
         "quote": "最关键的原文引文，可轻微省略"
       }}
     }}
-  ],
-  "claims": [
-    {{
-      "subject": "完整名称",
-      "relation": "三种关系之一",
-      "object": "完整名称",
-      "stance": "support",
-      "evidence": {{
-        "passage_ids": ["P000002"],
-        "quote": "最关键的关系引文，可轻微省略"
-      }}
-    }}
   ]
 }}
 
 语料片段位置：{location}
+---
+{text}
+---"""
+
+RELATION_PROMPT = """从下面的原始语料中抽取开放式 subject-predicate-object 关系。
+
+实体已经由上一阶段识别。subject 和 object 必须使用实体清单中的完整名称；不要重新
+抽实体。predicate 使用原文关系的简洁、可复用表达，不受预设关系词表限制。
+
+规则：
+1. 只能依据原始 Passage，目录和摘要只提供定位上下文，不能单独证明关系。
+2. evidence.passage_ids 必须来自下面真实存在的 Passage，最多 3 个。
+3. 共现、章节相邻、主题相似或模型常识不能构成关系。
+4. 不确定时省略；最多输出 {max_claims} 条。
+
+输出：
+{{"relations":[{{
+  "subject":"实体清单中的完整名称",
+  "predicate":"开放关系谓词",
+  "object":"实体清单中的完整名称",
+  "stance":"support|oppose",
+  "evidence":{{"passage_ids":["P000001"],"quote":"关键引文"}}
+}}]}}
+
+目录上下文：{section_context}
+实体清单：{entities}
+原始语料：
 ---
 {text}
 ---"""
@@ -88,20 +96,103 @@ def extract(
     max_entities: int = 50,
     max_claims: int = 30,
 ) -> ExtractionBatch:
+    # The vNext contract is two-pass.  Accepting relations accidentally returned
+    # by an older one-pass prompt keeps interrupted/test runs replayable without
+    # changing the normal production path.
     payload = llm.complete_json(
         SYSTEM_PROMPT,
-        EXTRACTION_PROMPT.format(
+        ENTITY_PROMPT.format(
+            text=text, location=location, max_entities=max_entities
+        ),
+    )
+    first = parse_payload(
+        payload,
+        passages,
+        max_entities=max_entities,
+        max_claims=max_claims,
+    )
+    entities, entity_rejected = first.entities, first.rejected
+    if "claims" in payload or "relations" in payload:
+        allowed = {_compact(item.name) for item in entities}
+        claims = tuple(
+            claim
+            for claim in first.claims
+            if _compact(claim.subject) in allowed
+            and _compact(claim.object) in allowed
+        )
+        return ExtractionBatch(
+            entities=entities,
+            claims=claims,
+            rejected=entity_rejected,
+        )
+    claims, claim_rejected = extract_relations(
+        llm,
+        text,
+        passages=passages,
+        entities=entities,
+        section_context=location,
+        max_claims=max_claims,
+    )
+    return ExtractionBatch(
+        entities=entities,
+        claims=claims,
+        rejected=entity_rejected + claim_rejected,
+    )
+
+
+def extract_entities(
+    llm: JSONLLM,
+    text: str,
+    *,
+    passages: tuple[SourcePassage, ...],
+    location: str = "",
+    max_entities: int = 50,
+) -> tuple[tuple[EntityObservation, ...], tuple[str, ...]]:
+    payload = llm.complete_json(
+        SYSTEM_PROMPT,
+        ENTITY_PROMPT.format(
             text=text,
             location=location,
             max_entities=max_entities,
-            max_claims=max_claims,
-            entity_types=ontology.entity_type_block(),
-            relations=ontology.relation_block(),
         ),
     )
-    return parse_payload(
-        payload, passages, max_entities=max_entities, max_claims=max_claims
+    batch = parse_payload(payload, passages, max_entities=max_entities, max_claims=0)
+    return batch.entities, batch.rejected
+
+
+def extract_relations(
+    llm: JSONLLM,
+    text: str,
+    *,
+    passages: tuple[SourcePassage, ...],
+    entities: tuple[EntityObservation, ...],
+    section_context: str = "",
+    max_claims: int = 30,
+) -> tuple[tuple[ClaimObservation, ...], tuple[str, ...]]:
+    entity_names = list(dict.fromkeys(item.name for item in entities))
+    if not entity_names:
+        return (), ()
+    payload = llm.complete_json(
+        SYSTEM_PROMPT,
+        RELATION_PROMPT.format(
+            text=text,
+            entities=entity_names,
+            section_context=section_context,
+            max_claims=max_claims,
+        ),
     )
+    if "claims" not in payload and "relations" in payload:
+        payload = {"entities": [], "claims": payload.get("relations", [])}
+    batch = parse_payload(payload, passages, max_entities=0, max_claims=max_claims)
+    allowed = {_compact(name) for name in entity_names}
+    claims: list[ClaimObservation] = []
+    rejected = list(batch.rejected)
+    for index, claim in enumerate(batch.claims):
+        if _compact(claim.subject) not in allowed or _compact(claim.object) not in allowed:
+            rejected.append(f"claim[{index}] 端点不在实体清单")
+            continue
+        claims.append(claim)
+    return tuple(claims), tuple(rejected)
 
 
 def _compact(value: str) -> str:
@@ -140,12 +231,24 @@ def parse_payload(
             continue
         name = _string(raw, "name")
         definition = _string(raw, "definition")
-        entity_type = _string(raw, "entity_type")
+        raw_labels = raw.get("type_labels", raw.get("entity_types", []))
+        if isinstance(raw_labels, str):
+            raw_labels = [raw_labels]
+        if not isinstance(raw_labels, list):
+            raw_labels = []
+        labels = tuple(
+            dict.fromkeys(
+                value.strip()
+                for value in raw_labels
+                if isinstance(value, str) and value.strip()
+            )
+        )[:3]
+        legacy_type = _string(raw, "entity_type")
+        if legacy_type and legacy_type not in labels:
+            labels = (legacy_type, *labels)[:3]
+        entity_type = labels[0] if labels else ""
         if not name or len(definition) < 4:
             rejected.append(f"entity[{index}] 缺少名称或实质性 definition")
-            continue
-        if entity_type not in ENTITY_TYPES:
-            rejected.append(f"entity[{index}] 非法 entity_type: {entity_type!r}")
             continue
         grounded = _resolve_evidence(raw.get("evidence"), passage_by_id)
         if isinstance(grounded, str):
@@ -173,6 +276,7 @@ def parse_payload(
                 passage_ids=passage_ids,
                 location=source_location,
                 aliases=tuple(dict.fromkeys(aliases)),
+                type_labels=labels,
             )
         )
 
@@ -181,11 +285,11 @@ def parse_payload(
             rejected.append(f"claim[{index}] 不是对象")
             continue
         subject = _string(raw, "subject")
-        relation = _string(raw, "relation")
+        relation = _string(raw, "predicate") or _string(raw, "relation")
         object_ = _string(raw, "object")
         polarity = _string(raw, "stance") or "support"
-        if relation not in RELATIONS:
-            rejected.append(f"claim[{index}] 非法 relation: {relation!r}")
+        if not relation or len(relation) > 120:
+            rejected.append(f"claim[{index}] 缺少或过长 relation")
             continue
         if polarity not in POLARITIES:
             rejected.append(f"claim[{index}] 非法 stance: {polarity!r}")
@@ -208,6 +312,7 @@ def parse_payload(
                 passage_ids=passage_ids,
                 location=source_location,
                 polarity=polarity,
+                raw_relation=relation,
             )
         )
     if len(raw_entities) > max_entities:

@@ -2,17 +2,18 @@
 
 这是 `plan.md` 的可运行实现。系统只把语料作为知识来源，LLM 只负责抽取、实体身份判断和关系证据裁决。
 
-核心闭环：
+vNext 把 KGGen 的开放抽取与 Tree-KG 的教材结构先验合并到同一条、仍然可审计的闭环中：
 
 ```text
-Read → Extract → Resolve → Merge → Repeat
+Read → Structure → Extract Entities → Extract Relations → Normalize → Verify → Merge
 ```
 
 ## 设计边界
 
-- 只有四类知识对象：`Source`、`Entity`、`Claim`、`Evidence`。
-- 类型只有 `resource / criterion / data / task / solution / concept` 六种。类型是每次观察的判断，记在 Evidence 上；Entity 层汇总为 type profile，允许一个实体同时属于多个类型。
-- Claim 只有 `is_a / part_of / prerequisite_of` 三种关系。
+- 正式图仍只有四类知识对象：`Source`、`Entity`、`Claim`、`Evidence`；Section、Observation 和开放词表是结构/审计数据。
+- 实体类型和关系类型均开放抽取并全局归一。旧六类实体类型和三个核心关系只作为种子，不是白名单。
+- `relation_kind` 保留 `is_a / part_of / prerequisite_of / other` 四种导航类别；`other` 下可以保存任意有原文证据的开放谓词。
+- 教材目录持久化为 Section 树，自底向上生成仅由 Passage 支持的摘要。目录用于上下文、候选召回和展示，不自动生成 Claim。
 - Entity 和 Claim 没有 `proposed / published / shadow` 状态机。通过 Passage
   校验的 EntityObservation 和 ClaimObservation 都会先永久保存；实体身份判断
   和 Claim 端点暂时不确定都不会丢失原始观察。
@@ -27,7 +28,7 @@ Read → Extract → Resolve → Merge → Repeat
   Passage、模型和提示词版本；原始观察不覆盖。
 - `is_a` 和 `prerequisite_of` 写入前检查循环；孤立 Entity 合法。
 
-旧项目数据位于被忽略的 `data/kg.db`。它使用旧版复杂 schema，本项目不会修改它；新数据库默认是 `data/knowledge.db`。
+旧项目数据位于被忽略的 `data/kg.db`，schema 8 试验数据也采用了不同的抽取语义。vNext 不迁移或修改旧库；新数据库默认是 `data/knowledge-vnext.db`。
 
 ## 环境
 
@@ -39,7 +40,7 @@ PDF 读取优先使用系统的 `pdftotext`。没有该命令时可安装可选�
 python -m pip install -e '.[pdf,yaml]'
 ```
 
-LLM 默认直接使用 MiniMax M3。只需配置 MiniMax API key：
+LLM 默认直接使用 MiniMax M2.7。客户端仍可通过环境变量替换为兼容服务：
 
 ```bash
 export MINIMAX_API_KEY='...'
@@ -49,7 +50,7 @@ export MINIMAX_API_KEY='...'
 
 ```text
 endpoint: https://api.minimaxi.com/v1/text/chatcompletion_v2
-model: MiniMax-M3
+model: MiniMax-M2.7
 ```
 
 如需临时经过兼容网关，可显式设置 `KG_LLM_BASE_URL`；如需临时覆盖模型，可设置 `KG_LLM_MODEL`。API key 也兼容旧变量 `MINIMAX_API` 和 `minimax_api`。
@@ -59,27 +60,27 @@ model: MiniMax-M3
 初始化并查看状态：
 
 ```bash
-python -m kg --db data/knowledge.db init
-python -m kg --db data/knowledge.db status
+python -m kg init
+python -m kg status
 ```
 
 处理人工维护的语料目录：
 
 ```bash
-python -m kg --db data/knowledge.db run examples/sources.json
+python -m kg run examples/sources.json
 ```
 
 仓库同时提供了针对现有 `data/docs/*.pdf` 教材语料的目录。建议第一次只跑一个片段：
 
 ```bash
-python -m kg --db data/knowledge.db run sources/catalog.json \
+python -m kg run sources/catalog.json \
   --source-limit 1 --max-chunks 1
 ```
 
 长批次可以用 `--source-limit` 和 `--max-chunks` 控制本轮规模；已完成的相同版本片段会自动跳过：
 
 ```bash
-python -m kg --db data/knowledge.db run sources.json \
+python -m kg run sources.json \
   --source-limit 2 --max-chunks 20 \
   --chunk-workers 2 --judge-workers 2
 ```
@@ -93,7 +94,7 @@ python -m kg --db data/knowledge.db run sources.json \
 过滤，不会消耗 `--max-chunks` 的处理额度：
 
 ```bash
-python -m kg --db data/knowledge.db run sources/catalog.json \
+python -m kg run sources/catalog.json \
   --source-limit 1 --start-chunk 120 --max-chunks 17 \
   --max-entities 50 --judge-workers 4
 ```
@@ -112,14 +113,14 @@ ID；无效引用或模型失败不会覆盖旧定义。相同观察指纹、模
 也可以单独聚合全部待更新定义，或只处理指定 Entity：
 
 ```bash
-python -m kg --db data/knowledge.db synthesize-definitions
-python -m kg --db data/knowledge.db synthesize-definitions --entity-id 38
+python -m kg synthesize-definitions
+python -m kg synthesize-definitions --entity-id 38
 ```
 
 随着 Evidence 增加，重新判断相似但尚未合并的 Entity：
 
 ```bash
-python -m kg --db data/knowledge.db reconcile --limit 20
+python -m kg reconcile --limit 20
 ```
 
 使用已保存的 Observation 重放待定端点，不重新抽取 Source。默认同一端点在
@@ -127,7 +128,7 @@ python -m kg --db data/knowledge.db reconcile --limit 20
 定义时才创建 Entity，字符串相似仅用于召回候选：
 
 ```bash
-python -m kg --db data/knowledge.db replay-pending \
+python -m kg replay-pending \
   --promote-threshold 3
 ```
 
@@ -137,22 +138,25 @@ python -m kg --db data/knowledge.db replay-pending \
 检查硬约束并导出：
 
 ```bash
-python -m kg --db data/knowledge.db check
-python -m kg --db data/knowledge.db export --out out/graph.json
+python -m kg expand-relations --limit 50
+python -m kg check
+python -m kg export --out out/graph.json
 ```
 
 查看图结构、拒绝原因，并生成不依赖外部 JavaScript 的交互式审计页面：
 
 ```bash
-python -m kg --db data/knowledge.db audit
-python -m kg --db data/knowledge.db viz --out out/graph.html
+python -m kg audit
+python -m kg viz --view mixed --out out/graph.html
+python -m kg viz --view document --out out/document.html
+python -m kg viz --view semantic --out out/semantic.html
 ```
 
 `status` 和 `audit` 同时报告 EntityObservation 的身份解析分布，以及
 ClaimObservation 总数、待定端点、未裁判记录、已落实记录、被语义裁判拒绝的
 记录和三次以上的 Entity 晋升候选。
 
-HTML 默认展示高连接实体的局部子图，可搜索实体、切换关系、调整邻域层数，
+混合 HTML 默认展示高连接实体的局部子图和教材目录，可搜索实体、切换核心或开放关系、调整邻域层数，
 并点击节点或边查看 Source、Passage、真实原文和模型裁判理由。右侧
 Observation 审计可按待定端点、待裁判、支持但未落实、物化阻塞和语义裁判
 结果筛选，点击记录可查看原始端点、解析 Entity、证据和模型/提示词版本；

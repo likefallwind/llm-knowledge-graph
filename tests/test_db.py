@@ -99,7 +99,7 @@ class ClaimObservationBackfillTest(unittest.TestCase):
             0,
         )
 
-    def test_existing_claim_evidence_is_backfilled_once(self):
+    def test_existing_claim_evidence_is_not_reinterpreted_as_observation(self):
         self._current_claim()
         conn = db.connect(self.path)
         conn.execute("DELETE FROM claim_observations")
@@ -116,67 +116,23 @@ class ClaimObservationBackfillTest(unittest.TestCase):
         rows = conn.execute(
             "SELECT observation_key,claim_id FROM claim_observations"
         ).fetchall()
-        self.assertEqual(len(rows), 1)
-        self.assertTrue(str(rows[0]["observation_key"]).startswith(
-            "legacy-claim-evidence:"
-        ))
-        self.assertIsNotNone(rows[0]["claim_id"])
+        self.assertEqual(rows, [])
 
-    def test_schema5_duplicate_is_removed_on_upgrade(self):
+    def test_old_schema_marker_is_refused_without_mutation(self):
         self._current_claim()
         conn = db.connect(self.path)
+        before = conn.execute("SELECT COUNT(*) FROM claims").fetchone()[0]
         conn.execute(
-            "DELETE FROM schema_meta WHERE key='claim_observation_backfill_version'"
-        )
-        db._migrate_claim_observations(conn)
-        conn.commit()
-        self.assertEqual(
-            conn.execute("SELECT COUNT(*) FROM claim_observations").fetchone()[0],
-            1,
-        )
-        # Recreate the exact schema-5 failure shape to exercise the cleanup,
-        # rather than relying on the corrected backfill to generate bad data.
-        row = conn.execute(
-            "SELECT * FROM claim_observations WHERE claim_id IS NOT NULL"
-        ).fetchone()
-        evidence_id = conn.execute(
-            "SELECT id FROM evidence WHERE claim_id=?", (int(row["claim_id"]),)
-        ).fetchone()[0]
-        conn.execute(
-            """
-            INSERT INTO claim_observations
-            (observation_key,source_id,chunk_index,subject_name,
-             subject_reference_key,subject_entity_id,relation,object_name,
-             object_reference_key,object_entity_id,polarity,source_text,
-             model_quote,passage_ids,passage_version,location,
-             extraction_model,extraction_prompt_version,claim_id)
-            SELECT ?,source_id,-1,subject_name,subject_reference_key,
-                   subject_entity_id,relation,object_name,object_reference_key,
-                   object_entity_id,polarity,source_text,model_quote,passage_ids,
-                   passage_version,location,extraction_model,
-                   extraction_prompt_version,claim_id
-            FROM claim_observations WHERE id=?
-            """,
-            (f"legacy-claim-evidence:{evidence_id}", int(row["id"])),
+            "UPDATE schema_meta SET value='5' WHERE key='schema_version'"
         )
         conn.commit()
         conn.close()
-
-        conn = db.connect(self.path)
-        self.addCleanup(conn.close)
-        self.assertEqual(
-            conn.execute("SELECT COUNT(*) FROM claim_observations").fetchone()[0],
-            1,
-        )
-        self.assertEqual(
-            conn.execute(
-                """
-                SELECT value FROM schema_meta
-                WHERE key='claim_observation_backfill_version'
-                """
-            ).fetchone()[0],
-            db.CLAIM_OBSERVATION_BACKFILL_VERSION,
-        )
+        with self.assertRaisesRegex(RuntimeError, "旧抽取模式"):
+            db.connect(self.path)
+        import sqlite3
+        raw = sqlite3.connect(self.path)
+        self.addCleanup(raw.close)
+        self.assertEqual(raw.execute("SELECT COUNT(*) FROM claims").fetchone()[0], before)
 
 
 if __name__ == "__main__":

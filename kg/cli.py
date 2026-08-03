@@ -9,6 +9,7 @@ from . import (
     audit,
     db,
     definitions,
+    expansion,
     export,
     observations,
     pipeline,
@@ -48,6 +49,16 @@ def _parser() -> argparse.ArgumentParser:
         type=int,
         default=0,
         help="从该 Chunk index 开始处理（默认 0）",
+    )
+    run.add_argument(
+        "--skip-section-summaries",
+        action="store_true",
+        help="跳过目录树自底向上的语料摘要（默认运行）",
+    )
+    run.add_argument(
+        "--summary-limit",
+        type=int,
+        help="本次最多生成多少个 Section 摘要；默认不限",
     )
     run.add_argument("--max-chunks", type=int)
     run.add_argument("--chunk-chars", type=int, default=8000)
@@ -99,10 +110,22 @@ def _parser() -> argparse.ArgumentParser:
     replay.add_argument("--limit", type=int)
     replay.add_argument("--promote-threshold", type=int, default=3)
 
+    expand = sub.add_parser(
+        "expand-relations",
+        help="以同节/兄弟节为候选，补抽有 Passage 明证的开放关系",
+    )
+    expand.add_argument("--limit", type=int, default=50)
+
     dump = sub.add_parser("export", help="导出不含 Source 正文的 JSON 图谱")
     dump.add_argument("--out", default="out/graph.json")
     visualize = sub.add_parser("viz", help="生成可搜索、可追溯证据的交互式 HTML")
     visualize.add_argument("--out", default="out/graph.html")
+    visualize.add_argument(
+        "--view",
+        choices=("semantic", "document", "mixed"),
+        default="mixed",
+        help="语义图、教材目录或混合视图（默认 mixed）",
+    )
     return parser
 
 
@@ -123,14 +146,15 @@ def _status(conn) -> dict:
         }
         for row in conn.execute(
             """
-            SELECT observed_entity_type AS entity_type,
-                   COUNT(DISTINCT entity_id) AS entities,
+            SELECT t.canonical_name AS entity_type,
+                   COUNT(DISTINCT o.entity_id) AS entities,
                    COUNT(*) AS observations,
-                   COUNT(DISTINCT source_id) AS sources
-            FROM evidence
-            WHERE entity_id IS NOT NULL AND polarity='support'
-              AND observed_entity_type<>''
-            GROUP BY observed_entity_type ORDER BY observed_entity_type
+                   COUNT(DISTINCT o.source_id) AS sources
+            FROM entity_observation_types ot
+            JOIN entity_observations o ON o.id=ot.observation_id
+            JOIN entity_type_vocab t ON t.id=ot.type_id
+            WHERE o.entity_id IS NOT NULL
+            GROUP BY t.id,t.canonical_name ORDER BY t.canonical_name
             """
         )
     }
@@ -138,20 +162,24 @@ def _status(conn) -> dict:
         conn.execute(
             """
             SELECT COUNT(*) FROM (
-              SELECT entity_id FROM evidence
-              WHERE entity_id IS NOT NULL AND polarity='support'
-                AND observed_entity_type<>''
-              GROUP BY entity_id HAVING COUNT(DISTINCT observed_entity_type) > 1
+              SELECT o.entity_id FROM entity_observation_types ot
+              JOIN entity_observations o ON o.id=ot.observation_id
+              WHERE o.entity_id IS NOT NULL
+              GROUP BY o.entity_id HAVING COUNT(DISTINCT ot.type_id) > 1
             )
             """
         ).fetchone()[0]
     )
     relations = {
-        str(row["relation"]): int(row["count"])
+        str(row["relation"]): {
+            "claims": int(row["count"]),
+            "kind": str(row["relation_kind"]),
+        }
         for row in conn.execute(
             """
-            SELECT relation,COUNT(*) AS count
-            FROM claims GROUP BY relation ORDER BY relation
+            SELECT c.relation,r.relation_kind,COUNT(*) AS count
+            FROM claims c JOIN relation_types r ON r.id=c.relation_type_id
+            GROUP BY c.relation,r.relation_kind ORDER BY c.relation
             """
         )
     }
@@ -196,8 +224,8 @@ def main(argv: list[str] | None = None) -> int:
             _json({"output": str(output), "counts": store.counts(conn)})
             return 0
         if args.command == "viz":
-            output = viz.write_html(conn, args.out)
-            _json({"output": str(output), "counts": store.counts(conn)})
+            output = viz.write_html(conn, args.out, view=args.view)
+            _json({"output": str(output), "view": args.view, "counts": store.counts(conn)})
             return 0
 
         llm = MiniMaxM3LLM(LLMConfig.from_env())
@@ -218,6 +246,8 @@ def main(argv: list[str] | None = None) -> int:
                 stop_on_error=args.stop_on_error,
                 synthesize_definitions=not args.skip_definition_synthesis,
                 definition_limit=args.definition_limit,
+                summarize_sections=not args.skip_section_summaries,
+                summary_limit=args.summary_limit,
             )
             _json(result)
             return 1 if result["failures"] else 0
@@ -242,6 +272,9 @@ def main(argv: list[str] | None = None) -> int:
                     promote_threshold=args.promote_threshold,
                 )
             )
+            return 0
+        if args.command == "expand-relations":
+            _json(expansion.expand_relations(conn, llm, limit=args.limit))
             return 0
     except (OSError, RuntimeError, ValueError) as exc:
         print(f"错误: {exc}", file=sys.stderr)

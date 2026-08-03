@@ -6,9 +6,9 @@ import sqlite3
 from collections import defaultdict
 from typing import Any, Iterable
 
-from . import extraction, ontology, resolution, store, validation
+from . import extraction, ontology, resolution, store, structure, validation
 from .llm import JSONLLM
-from .models import ClaimObservation, ENTITY_TYPES, EntityObservation, Resolution
+from .models import ClaimObservation, EntityObservation, Resolution
 
 
 PROMOTION_REVIEW_VERSION = "endpoint-promotion-1"
@@ -31,6 +31,7 @@ def entity_observation_key(
         store.reference_key(observation.name),
         observation.definition,
         observation.entity_type,
+        list(observation.type_labels),
         list(observation.aliases),
         observation.source_text,
         observation.model_quote,
@@ -65,19 +66,23 @@ def add_entity_observation(
     cursor = conn.execute(
         """
         INSERT OR IGNORE INTO entity_observations
-        (observation_key,source_id,chunk_index,name,reference_key,definition,
-         observed_entity_type,aliases,source_text,model_quote,passage_ids,
+        (observation_key,source_id,section_id,chunk_index,name,reference_key,definition,
+         observed_entity_type,raw_type_labels,aliases,source_text,model_quote,passage_ids,
          passage_version,location,extraction_model,extraction_prompt_version)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """,
         (
             key,
             source_id,
+            structure.section_id_for_passages(
+                conn, source_id, observation.passage_ids
+            ),
             chunk_index,
             observation.name,
             store.reference_key(observation.name),
             observation.definition,
             observation.entity_type,
+            json.dumps(list(observation.type_labels), ensure_ascii=False),
             json.dumps(list(observation.aliases), ensure_ascii=False),
             observation.source_text,
             observation.model_quote,
@@ -137,6 +142,8 @@ def observation_key(
         chunk_index,
         store.reference_key(claim.subject),
         claim.relation,
+        claim.raw_relation,
+        claim.relation_kind,
         store.reference_key(claim.object),
         claim.polarity,
         claim.source_text,
@@ -161,6 +168,19 @@ def add_claim_observation(
     extraction_model: str,
     extraction_prompt_version: str = extraction.EXTRACTION_PROMPT_VERSION,
 ) -> tuple[int, bool]:
+    relation_type_id = claim.relation_type_id
+    relation_kind = claim.relation_kind
+    relation_name = claim.relation
+    if relation_type_id is None:
+        relation_row = conn.execute(
+            """SELECT id,canonical_name,relation_kind FROM relation_types
+               WHERE normalized_name=?""",
+            (store.normalize_name(claim.relation),),
+        ).fetchone()
+        if relation_row:
+            relation_type_id = int(relation_row["id"])
+            relation_name = str(relation_row["canonical_name"])
+            relation_kind = str(relation_row["relation_kind"])
     key = observation_key(
         source_id=source_id,
         chunk_index=chunk_index,
@@ -171,19 +191,24 @@ def add_claim_observation(
     cursor = conn.execute(
         """
         INSERT OR IGNORE INTO claim_observations
-        (observation_key,source_id,chunk_index,subject_name,
-         subject_reference_key,relation,object_name,object_reference_key,
+        (observation_key,source_id,section_id,chunk_index,subject_name,
+         subject_reference_key,raw_relation,relation,relation_type_id,relation_kind,
+         object_name,object_reference_key,
          polarity,source_text,model_quote,passage_ids,passage_version,location,
          extraction_model,extraction_prompt_version)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """,
         (
             key,
             source_id,
+            structure.section_id_for_passages(conn, source_id, claim.passage_ids),
             chunk_index,
             claim.subject,
             store.reference_key(claim.subject),
-            claim.relation,
+            claim.raw_relation or claim.relation,
+            relation_name,
+            relation_type_id,
+            relation_kind,
             claim.object,
             store.reference_key(claim.object),
             claim.polarity,
@@ -222,6 +247,13 @@ def as_claim(row: sqlite3.Row) -> ClaimObservation:
         passage_ids=tuple(json.loads(str(row["passage_ids"]))),
         location=str(row["location"]),
         polarity=str(row["polarity"]),
+        raw_relation=str(row["raw_relation"]),
+        relation_kind=str(row["relation_kind"]),
+        relation_type_id=(
+            int(row["relation_type_id"])
+            if row["relation_type_id"] is not None
+            else None
+        ),
     )
 
 
@@ -362,8 +394,36 @@ def materialize(
     if subject_id is None or object_id is None:
         return {"outcome": "pending_endpoint"}
 
+    relation_type_id = row["relation_type_id"]
+    relation_name = str(row["relation"])
+    relation_kind = str(row["relation_kind"])
+    if relation_type_id is None:
+        relation_row = conn.execute(
+            """SELECT id,canonical_name,relation_kind FROM relation_types
+               WHERE normalized_name=?""",
+            (store.normalize_name(str(row["relation"])),),
+        ).fetchone()
+        if not relation_row:
+            return {"outcome": "pending_relation"}
+        relation_type_id = int(relation_row["id"])
+        relation_name = str(relation_row["canonical_name"])
+        relation_kind = str(relation_row["relation_kind"])
+        conn.execute(
+            """UPDATE claim_observations
+               SET relation_type_id=?,relation=?,relation_kind=? WHERE id=?""",
+            (
+                relation_type_id,
+                str(relation_row["canonical_name"]),
+                str(relation_row["relation_kind"]),
+                observation_id,
+            ),
+        )
     existing = store.find_claim(
-        conn, int(subject_id), str(row["relation"]), int(object_id)
+        conn,
+        int(subject_id),
+        relation_name,
+        int(object_id),
+        relation_type_id=int(relation_type_id),
     )
     if row["polarity"] == "oppose" and existing is None:
         error = "反对证据对应的 Claim 尚不存在"
@@ -371,7 +431,12 @@ def materialize(
         return {"outcome": "blocked", "error": error}
     if existing is None:
         claim_id, created, error = store.upsert_claim(
-            conn, int(subject_id), str(row["relation"]), int(object_id)
+            conn,
+            int(subject_id),
+            relation_name,
+            int(object_id),
+            relation_type_id=int(relation_type_id),
+            relation_kind=relation_kind,
         )
         if claim_id is None:
             _save_materialization(conn, observation_id, claim_id=None, error=error)
@@ -603,14 +668,13 @@ def promote_candidates(
   "candidate_id": "仅 same 时填写候选 id，否则 null",
   "canonical_name": "规范名称",
   "definition": "仅依据原文的定义",
-  "entity_type": "六种类型之一",
+  "type_labels": ["1-3 个开放类别词，可为空"],
   "aliases": ["原文支持的别名"],
   "evidence_refs": [{"source_id": 1, "passage_id": "P000001"}],
   "reason": "简短理由"
 }
 
-entity_type：
-%s
+类型标签开放抽取。以下旧标签只是示例，不是白名单：%s
 
 待定名称：%s
 候选 Entity：%s
@@ -689,13 +753,25 @@ def _apply_promotion_decision(
 
     canonical = str(payload.get("canonical_name", "")).strip()
     definition = str(payload.get("definition", "")).strip()
-    entity_type = str(payload.get("entity_type", "")).strip()
+    raw_labels = payload.get("type_labels", [])
+    if isinstance(raw_labels, str):
+        raw_labels = [raw_labels]
+    type_labels = tuple(
+        dict.fromkeys(
+            str(item).strip()
+            for item in raw_labels
+            if isinstance(item, str) and item.strip()
+        )
+    )[:3] if isinstance(raw_labels, list) else ()
+    legacy_type = str(payload.get("entity_type", "")).strip()
+    if legacy_type and legacy_type not in type_labels:
+        type_labels = (legacy_type, *type_labels)[:3]
+    entity_type = type_labels[0] if type_labels else ""
     aliases_raw = payload.get("aliases", [])
     selected_refs_raw = payload.get("evidence_refs", [])
     if (
         not canonical
         or len(definition) < 4
-        or entity_type not in ENTITY_TYPES
         or not isinstance(selected_refs_raw, list)
         or not 1 <= len(selected_refs_raw) <= 3
     ):
@@ -742,6 +818,7 @@ def _apply_promotion_decision(
         name=str(candidate["name"]),
         definition=definition,
         entity_type=entity_type,
+        type_labels=type_labels,
         model_quote=str(first["model_quote"]),
         source_text=str(first["source_text"]),
         passage_ids=tuple(json.loads(str(first["passage_ids"]))),

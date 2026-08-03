@@ -5,6 +5,7 @@ import json
 import sqlite3
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, Iterator
 
@@ -15,7 +16,9 @@ from . import (
     resolution,
     sources,
     store,
+    structure,
     validation,
+    vocabulary,
 )
 from .llm import JSONLLM
 from .models import (
@@ -44,6 +47,8 @@ def process_catalog(
     stop_on_error: bool = False,
     synthesize_definitions: bool = False,
     definition_limit: int | None = None,
+    summarize_sections: bool = True,
+    summary_limit: int | None = None,
 ) -> dict[str, Any]:
     if chunk_workers < 1:
         raise ValueError("chunk_workers 必须至少为 1")
@@ -66,6 +71,27 @@ def process_catalog(
                 max_chars=chunk_chars,
                 overlap_chars=overlap_chars,
             )
+            all_passages = {
+                passage.passage_id: passage
+                for chunk in chunks
+                for passage in chunk.passages
+            }
+            structure.sync_source_structure(
+                conn, source_id, all_passages.values()
+            )
+            summary_result = {
+                "processed": 0,
+                "skipped": 0,
+                "failed": 0,
+            }
+            if summarize_sections:
+                summary_result = structure.summarize_source(
+                    conn,
+                    llm,
+                    source_id,
+                    model=_model_name(llm),
+                    limit=summary_limit,
+                )
             source_result = {
                 "source": spec.name,
                 "source_id": source_id,
@@ -80,6 +106,7 @@ def process_catalog(
                 "claim_observations": 0,
                 "entity_cap_hit_chunks": [],
                 "rejected": [],
+                "section_summaries": summary_result,
             }
             work_items: list[tuple[TextChunk, str]] = []
             for chunk in chunks:
@@ -101,7 +128,19 @@ def process_catalog(
                     continue
                 if remaining_chunks is not None:
                     remaining_chunks -= 1
-                work_items.append((chunk, processing_hash))
+                section_id = structure.section_id_for_passages(
+                    conn,
+                    source_id,
+                    (item.passage_id for item in chunk.passages),
+                )
+                context = structure.context_for_section(conn, section_id)
+                contextual_chunk = replace(
+                    chunk,
+                    location=(
+                        f"{chunk.location}\n{context}" if context else chunk.location
+                    ),
+                )
+                work_items.append((contextual_chunk, processing_hash))
 
             for chunk, processing_hash, batch, extraction_error in (
                 _extract_chunks_ordered(
@@ -251,6 +290,27 @@ def process_chunk(
     # Grounded observations survive later identity, validation, or model failures.
     conn.commit()
 
+    for observation_id, claim in zip(observation_ids, batch.claims):
+        relation_result = vocabulary.resolve_relation(conn, llm, claim)
+        conn.execute(
+            """UPDATE claim_observations
+               SET relation=?,relation_type_id=?,relation_kind=?,
+                   updated_at=CURRENT_TIMESTAMP WHERE id=?""",
+            (
+                relation_result.canonical_name,
+                relation_result.relation_type_id,
+                relation_result.relation_kind,
+                observation_id,
+            ),
+        )
+        vocabulary.save_relation_resolution(
+            conn,
+            observation_id,
+            claim.raw_relation or claim.relation,
+            relation_result,
+            model=extraction_model,
+        )
+
     for observation_id, observation in zip(
         entity_observation_ids, batch.entities
     ):
@@ -260,6 +320,13 @@ def process_chunk(
             observation_id,
             resolved,
             resolver_model=extraction_model,
+        )
+        vocabulary.resolve_observation_types(
+            conn,
+            llm,
+            observation_id,
+            observation,
+            model=extraction_model,
         )
         entity_id = resolved.entity_id
         keys = (observation.name, *observation.aliases)
@@ -443,6 +510,11 @@ def _processing_hash(
         "chunk_hash": chunk_hash,
         "passage_version": extraction.PASSAGE_VERSION,
         "extraction_prompt_version": extraction.EXTRACTION_PROMPT_VERSION,
+        "entity_prompt_version": extraction.ENTITY_PROMPT_VERSION,
+        "relation_prompt_version": extraction.RELATION_PROMPT_VERSION,
+        "section_summary_prompt_version": structure.SUMMARY_PROMPT_VERSION,
+        "relation_normalizer_version": vocabulary.RELATION_NORMALIZER_VERSION,
+        "type_normalizer_version": vocabulary.TYPE_NORMALIZER_VERSION,
         "resolution_prompt_version": resolution.RESOLUTION_PROMPT_VERSION,
         "validator_prompt_version": validation.VALIDATION_PROMPT_VERSION,
         "model": model,

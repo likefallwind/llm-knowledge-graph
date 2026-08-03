@@ -25,22 +25,11 @@ class DefinitionsReachThePromptsTest(unittest.TestCase):
     """定义必须真的送到 LLM。曾经最强的 part_of 措辞只存在于文档里，
     抽取和裁判看到的都是剥掉排除项的弱版本，因此需要这组回归。"""
 
-    def _extraction_prompt(self) -> str:
-        return extraction.EXTRACTION_PROMPT.format(
-            text="[P000001] 正文",
-            location="loc",
-            max_entities=20,
-            max_claims=30,
-            entity_types=ontology.entity_type_block(),
-            relations=ontology.relation_block(),
-        )
-
-    def test_extraction_prompt_carries_every_exclusion(self):
-        prompt = self._extraction_prompt()
-        for item in (*ontology.ENTITY_TYPE_DEFS, *ontology.RELATION_DEFS):
-            for text in item.excludes:
-                with self.subTest(name=item.name, exclude=text[:20]):
-                    self.assertIn(text, prompt)
+    def test_two_pass_prompts_keep_open_vocab_and_evidence_boundary(self):
+        self.assertIn("类型标签是开放的", extraction.ENTITY_PROMPT)
+        self.assertIn("不受预设关系词表限制", extraction.RELATION_PROMPT)
+        self.assertIn("目录和摘要只提供定位上下文", extraction.RELATION_PROMPT)
+        self.assertIn("不能单独证明关系", extraction.RELATION_PROMPT)
 
     def test_judge_prompt_carries_the_relation_exclusions(self):
         for relation in sorted(RELATIONS):
@@ -135,14 +124,9 @@ class PromptVersionsAreBumpedTest(unittest.TestCase):
             resolution.RESOLUTION_PROMPT_VERSION,
             "entity-identity-ontology-3",
         )
-        self.assertEqual(
-            extraction.EXTRACTION_PROMPT_VERSION,
-            "grounded-extract-ontology-6",
-        )
-        self.assertEqual(
-            validation.VALIDATION_PROMPT_VERSION,
-            "relation-judge-ontology-4",
-        )
+        self.assertEqual(extraction.ENTITY_PROMPT_VERSION, "open-entities-section-1")
+        self.assertEqual(extraction.RELATION_PROMPT_VERSION, "open-relations-section-1")
+        self.assertEqual(validation.VALIDATION_PROMPT_VERSION, "open-relation-judge-1")
 
 
 if __name__ == "__main__":

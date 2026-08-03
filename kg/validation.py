@@ -7,7 +7,7 @@ from .llm import JSONLLM
 from .models import ClaimObservation
 
 
-VALIDATION_PROMPT_VERSION = "relation-judge-ontology-4"
+VALIDATION_PROMPT_VERSION = "open-relation-judge-1"
 
 VALIDATION_SYSTEM = """你是关系证据裁判，不是知识来源。
 只根据程序从 Source 取得的 source_text 判断关系；禁止使用外部知识补足省略信息。
@@ -17,6 +17,18 @@ model_quote 只是上一步模型指出的关注重点，可能有轻微改写�
 
 
 def judge_claim(llm: JSONLLM, claim: ClaimObservation) -> tuple[str, str]:
+    relation_kind = claim.relation_kind
+    if relation_kind == "other" and claim.relation in {
+        "is_a", "part_of", "prerequisite_of"
+    }:
+        relation_kind = claim.relation
+    if relation_kind in {"is_a", "part_of", "prerequisite_of"}:
+        relation_definition = ontology.relation_detail(relation_kind)
+    else:
+        relation_definition = (
+            "这是开放关系。source_text 必须明确表达 subject 通过该谓词指向 "
+            "object；仅共现、主题相近、目录相邻、模型常识或可能的推断均不成立。"
+        )
     payload = llm.complete_json(
         VALIDATION_SYSTEM,
         """判断 source_text 相对于 Claim 的含义。
@@ -40,7 +52,7 @@ source_text（唯一权威证据）：%s"""
                 },
                 ensure_ascii=False,
             ),
-            ontology.relation_detail(claim.relation),
+            relation_definition,
             json.dumps(claim.model_quote, ensure_ascii=False),
             json.dumps(claim.source_text, ensure_ascii=False),
         ),

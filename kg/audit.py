@@ -101,8 +101,12 @@ def graph_report(conn: sqlite3.Connection) -> dict[str, Any]:
         for row in conn.execute(
             """
             SELECT 'sources' AS name,COUNT(*) AS count FROM sources
+            UNION ALL SELECT 'source_sections',COUNT(*) FROM source_sections
             UNION ALL SELECT 'entities',COUNT(*) FROM entities
+            UNION ALL SELECT 'entity_observations',COUNT(*) FROM entity_observations
+            UNION ALL SELECT 'relation_types',COUNT(*) FROM relation_types
             UNION ALL SELECT 'claims',COUNT(*) FROM claims
+            UNION ALL SELECT 'claim_observations',COUNT(*) FROM claim_observations
             UNION ALL SELECT 'evidence',COUNT(*) FROM evidence
             """
         )
@@ -149,9 +153,42 @@ def graph_report(conn: sqlite3.Connection) -> dict[str, Any]:
             "SELECT relation,COUNT(*) AS count FROM claims GROUP BY relation"
         )
     }
+    relation_kinds = {
+        str(row["relation_kind"]): int(row["count"])
+        for row in conn.execute(
+            """SELECT r.relation_kind,COUNT(*) AS count FROM claims c
+               JOIN relation_types r ON r.id=c.relation_type_id
+               GROUP BY r.relation_kind"""
+        )
+    }
+    section_total = counts.get("source_sections", 0)
+    sections_with_entities = int(
+        conn.execute(
+            "SELECT COUNT(DISTINCT section_id) FROM entity_observations WHERE section_id IS NOT NULL"
+        ).fetchone()[0]
+    )
+    sections_with_summaries = int(
+        conn.execute("SELECT COUNT(DISTINCT section_id) FROM section_summaries").fetchone()[0]
+    )
+    entity_evidence = int(
+        conn.execute("SELECT COUNT(*) FROM evidence WHERE entity_id IS NOT NULL").fetchone()[0]
+    )
+    claim_evidence = int(
+        conn.execute("SELECT COUNT(*) FROM evidence WHERE claim_id IS NOT NULL").fetchone()[0]
+    )
     return {
         "counts": counts,
         "relations": relations,
+        "relation_kinds": relation_kinds,
+        "document_coverage": {
+            "sections": section_total,
+            "sections_with_entities": sections_with_entities,
+            "sections_with_summaries": sections_with_summaries,
+        },
+        "evidence_density": {
+            "per_entity": round(entity_evidence / max(1, counts.get("entities", 0)), 3),
+            "per_claim": round(claim_evidence / max(1, counts.get("claims", 0)), 3),
+        },
         "isolated_entities": sum(
             1 for entity_id in entity_ids if degree.get(entity_id, 0) == 0
         ),

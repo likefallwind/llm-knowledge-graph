@@ -8,7 +8,7 @@ import unicodedata
 from collections import defaultdict
 from typing import Any, Iterable
 
-from .models import EntityObservation, LoadedSource, RELATIONS
+from .models import EntityObservation, LoadedSource
 
 
 def normalize_name(value: str) -> str:
@@ -122,7 +122,7 @@ def type_profile(conn: sqlite3.Connection, entity_id: int) -> list[dict[str, Any
     这一点。observations 反映语料分布，sources 反映有多少独立来源这样判，
     两者含义不同，因此都给出。
     """
-    return [
+    normalized = [
         {
             "entity_type": str(row["entity_type"]),
             "observations": int(row["observations"]),
@@ -130,14 +130,36 @@ def type_profile(conn: sqlite3.Connection, entity_id: int) -> list[dict[str, Any
         }
         for row in conn.execute(
             """
-            SELECT observed_entity_type AS entity_type,
+            SELECT t.canonical_name AS entity_type,
                    COUNT(*) AS observations,
-                   COUNT(DISTINCT source_id) AS sources
-            FROM evidence
-            WHERE entity_id=? AND polarity='support' AND observed_entity_type<>''
-            GROUP BY observed_entity_type
-            ORDER BY sources DESC, observations DESC, observed_entity_type
+                   COUNT(DISTINCT o.source_id) AS sources
+            FROM entity_observation_types ot
+            JOIN entity_observations o ON o.id=ot.observation_id
+            JOIN entity_type_vocab t ON t.id=ot.type_id
+            WHERE o.entity_id=?
+            GROUP BY t.id,t.canonical_name
+            ORDER BY sources DESC, observations DESC, t.canonical_name
             """,
+            (entity_id,),
+        )
+    ]
+    if normalized:
+        return normalized
+    # Compatibility for callers that add Evidence directly.  vNext pipeline
+    # uses entity_observation_types above as the canonical open-type profile.
+    return [
+        {
+            "entity_type": str(row["entity_type"]),
+            "observations": int(row["observations"]),
+            "sources": int(row["sources"]),
+        }
+        for row in conn.execute(
+            """SELECT observed_entity_type AS entity_type,
+                      COUNT(*) AS observations,COUNT(DISTINCT source_id) AS sources
+               FROM evidence
+               WHERE entity_id=? AND polarity='support' AND observed_entity_type<>''
+               GROUP BY observed_entity_type
+               ORDER BY sources DESC,observations DESC,observed_entity_type""",
             (entity_id,),
         )
     ]
@@ -251,8 +273,18 @@ def add_evidence(
 
 
 def find_claim(
-    conn: sqlite3.Connection, subject_id: int, relation: str, object_id: int
+    conn: sqlite3.Connection,
+    subject_id: int,
+    relation: str,
+    object_id: int,
+    *,
+    relation_type_id: int | None = None,
 ) -> sqlite3.Row | None:
+    if relation_type_id is not None:
+        return conn.execute(
+            "SELECT * FROM claims WHERE subject_id=? AND relation_type_id=? AND object_id=?",
+            (subject_id, relation_type_id, object_id),
+        ).fetchone()
     return conn.execute(
         "SELECT * FROM claims WHERE subject_id=? AND relation=? AND object_id=?",
         (subject_id, relation, object_id),
@@ -260,11 +292,14 @@ def find_claim(
 
 
 def _path_exists(
-    conn: sqlite3.Connection, start_id: int, target_id: int, relation: str
+    conn: sqlite3.Connection, start_id: int, target_id: int, relation_kind: str
 ) -> bool:
     adjacency: dict[int, set[int]] = defaultdict(set)
     for row in conn.execute(
-        "SELECT subject_id,object_id FROM claims WHERE relation=?", (relation,)
+        """SELECT c.subject_id,c.object_id FROM claims c
+           JOIN relation_types r ON r.id=c.relation_type_id
+           WHERE r.relation_kind=?""",
+        (relation_kind,),
     ):
         adjacency[int(row["subject_id"])].add(int(row["object_id"]))
     pending = [start_id]
@@ -281,22 +316,46 @@ def _path_exists(
 
 
 def upsert_claim(
-    conn: sqlite3.Connection, subject_id: int, relation: str, object_id: int
+    conn: sqlite3.Connection,
+    subject_id: int,
+    relation: str,
+    object_id: int,
+    *,
+    relation_type_id: int | None = None,
+    relation_kind: str | None = None,
 ) -> tuple[int | None, bool, str]:
-    if relation not in RELATIONS:
-        return None, False, f"不支持的关系: {relation}"
+    if relation_type_id is None:
+        row = conn.execute(
+            "SELECT id,relation_kind FROM relation_types WHERE normalized_name=?",
+            (normalize_name(relation),),
+        ).fetchone()
+        if not row:
+            return None, False, f"关系尚未归一化: {relation}"
+        relation_type_id = int(row["id"])
+        relation_kind = str(row["relation_kind"])
+    elif relation_kind is None:
+        row = conn.execute(
+            "SELECT relation_kind FROM relation_types WHERE id=?",
+            (relation_type_id,),
+        ).fetchone()
+        if not row:
+            return None, False, f"关系类型不存在: {relation_type_id}"
+        relation_kind = str(row["relation_kind"])
     if subject_id == object_id:
         return None, False, "不允许自环"
-    existing = find_claim(conn, subject_id, relation, object_id)
+    existing = find_claim(
+        conn, subject_id, relation, object_id, relation_type_id=relation_type_id
+    )
     if existing:
         return int(existing["id"]), False, ""
-    if relation in {"is_a", "prerequisite_of"} and _path_exists(
-        conn, object_id, subject_id, relation
+    if relation_kind in {"is_a", "prerequisite_of"} and _path_exists(
+        conn, object_id, subject_id, relation_kind
     ):
-        return None, False, f"{relation} 会形成循环"
+        return None, False, f"{relation_kind} 会形成循环"
     cursor = conn.execute(
-        "INSERT INTO claims(subject_id,relation,object_id) VALUES (?,?,?)",
-        (subject_id, relation, object_id),
+        """INSERT INTO claims(subject_id,relation_type_id,relation,object_id)
+           VALUES (?,?,?,?)""",
+        (subject_id, relation_type_id, relation, object_id),
     )
     return int(cursor.lastrowid), True, ""
 
@@ -417,7 +476,11 @@ def merge_entities(
             if new_subject == new_object:
                 continue
             new_claim_id, _, _ = upsert_claim(
-                conn, new_subject, str(row["relation"]), new_object
+                conn,
+                new_subject,
+                str(row["relation"]),
+                new_object,
+                relation_type_id=int(row["relation_type_id"]),
             )
             if new_claim_id is None:
                 continue
@@ -485,7 +548,10 @@ def integrity_report(conn: sqlite3.Connection) -> dict:
     for relation in ("is_a", "prerequisite_of"):
         bad: list[int] = []
         for row in conn.execute(
-            "SELECT id,subject_id,object_id FROM claims WHERE relation=?", (relation,)
+            """SELECT c.id,c.subject_id,c.object_id FROM claims c
+               JOIN relation_types r ON r.id=c.relation_type_id
+               WHERE r.relation_kind=?""",
+            (relation,),
         ):
             if _path_exists(
                 conn, int(row["object_id"]), int(row["subject_id"]), relation
@@ -550,7 +616,16 @@ def integrity_report(conn: sqlite3.Connection) -> dict:
 
 
 def counts(conn: sqlite3.Connection) -> dict[str, int]:
-    names = ("sources", "entities", "claims", "evidence")
+    names = (
+        "sources",
+        "source_sections",
+        "entities",
+        "entity_observations",
+        "relation_types",
+        "claims",
+        "claim_observations",
+        "evidence",
+    )
     return {
         name: int(conn.execute(f"SELECT COUNT(*) FROM {name}").fetchone()[0])
         for name in names
