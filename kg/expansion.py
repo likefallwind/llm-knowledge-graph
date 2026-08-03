@@ -23,11 +23,13 @@ def expand_relations(
     llm: JSONLLM,
     *,
     limit: int = 50,
+    simple_llm: JSONLLM | None = None,
 ) -> dict[str, Any]:
     """Try close TOC neighbours and persist only passage-supported relations."""
     if limit < 0:
         raise ValueError("limit 不能为负")
     model = _model_name(llm)
+    fast_llm = simple_llm or llm
     stats: dict[str, Any] = {
         "candidates": 0,
         "relations": 0,
@@ -38,7 +40,10 @@ def expand_relations(
         source_id, subject_id, object_id = candidate[:3]
         passages = _context_passages(conn, *candidate)
         fingerprint = hashlib.sha256(
-            json.dumps([candidate, passages], ensure_ascii=False).encode("utf-8")
+            json.dumps(
+                [candidate, passages, {"simple_model": _model_name(fast_llm)}],
+                ensure_ascii=False,
+            ).encode("utf-8")
         ).hexdigest()
         cached = conn.execute(
             """SELECT 1 FROM relation_expansion_attempts
@@ -58,7 +63,7 @@ def expand_relations(
         stats["candidates"] += 1
         try:
             outcome, observation_id, reason = _attempt(
-                conn, llm, candidate, passages, model=model
+                conn, llm, candidate, passages, model=model, simple_llm=fast_llm
             )
             conn.execute(
                 """INSERT INTO relation_expansion_attempts
@@ -188,6 +193,7 @@ def _attempt(
     passages: list[dict[str, str]],
     *,
     model: str,
+    simple_llm: JSONLLM,
 ) -> tuple[str, int | None, str]:
     source_id, left_id, right_id, _left_section, _right_section = candidate
     entities = []
@@ -243,7 +249,7 @@ inputs=%s"""
         passage_ids=cited_ids,
         location="; ".join(item["location"] for item in selected),
     )
-    normalized = vocabulary.resolve_relation(conn, llm, claim)
+    normalized = vocabulary.resolve_relation(conn, simple_llm, claim)
     claim = replace(
         claim,
         relation=normalized.canonical_name,
@@ -259,7 +265,7 @@ inputs=%s"""
         extraction_prompt_version=EXPANSION_PROMPT_VERSION,
     )
     vocabulary.save_relation_resolution(
-        conn, observation_id, predicate, normalized, model=model
+        conn, observation_id, predicate, normalized, model=_model_name(simple_llm)
     )
     conn.execute(
         """UPDATE claim_observations SET subject_entity_id=?,object_entity_id=?

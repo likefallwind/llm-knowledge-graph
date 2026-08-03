@@ -40,7 +40,9 @@ PDF 读取优先使用系统的 `pdftotext`。没有该命令时可安装可选�
 python -m pip install -e '.[pdf,yaml]'
 ```
 
-LLM 默认直接使用 MiniMax M2.7。客户端仍可通过环境变量替换为兼容服务：
+流水线按任务复杂度使用两个模型：原有的实体/关系抽取、实体消歧、关系证据裁判、
+定义聚合及关系补抽使用 MiniMax-M3；目录摘要与开放类型/关系词表归一使用
+MiniMax-M2.7。两者共用同一个兼容客户端和 API key：
 
 ```bash
 export MINIMAX_API_KEY='...'
@@ -50,10 +52,13 @@ export MINIMAX_API_KEY='...'
 
 ```text
 endpoint: https://api.minimaxi.com/v1/text/chatcompletion_v2
-model: MiniMax-M2.7
+complex model: MiniMax-M3
+simple model: MiniMax-M2.7
 ```
 
-如需临时经过兼容网关，可显式设置 `KG_LLM_BASE_URL`；如需临时覆盖模型，可设置 `KG_LLM_MODEL`。API key 也兼容旧变量 `MINIMAX_API` 和 `minimax_api`。
+如需临时经过兼容网关，可设置 `KG_LLM_BASE_URL`。`KG_COMPLEX_LLM_MODEL` 和
+`KG_SIMPLE_LLM_MODEL` 可分别覆盖两个角色；`KG_LLM_MODEL` 会同时覆盖两者，适合
+临时只使用一个模型。API key 也兼容旧变量 `MINIMAX_API` 和 `minimax_api`。
 
 ## 运行
 

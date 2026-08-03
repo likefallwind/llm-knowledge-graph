@@ -13,7 +13,10 @@ import json_repair
 
 
 DEFAULT_MINIMAX_BASE_URL = "https://api.minimaxi.com/v1"
-DEFAULT_MINIMAX_MODEL = "MiniMax-M2.7"
+DEFAULT_COMPLEX_MODEL = "MiniMax-M3"
+DEFAULT_SIMPLE_MODEL = "MiniMax-M2.7"
+# Compatibility: the primary/complex pipeline remains the default client.
+DEFAULT_MINIMAX_MODEL = DEFAULT_COMPLEX_MODEL
 
 
 class JSONLLM(Protocol):
@@ -41,7 +44,9 @@ class LLMConfig:
         return base + "/chat/completions"
 
     @classmethod
-    def from_env(cls) -> "LLMConfig":
+    def from_env(cls, *, role: str = "complex") -> "LLMConfig":
+        if role not in {"complex", "simple"}:
+            raise ValueError(f"未知 LLM role: {role}")
         base_url = (
             os.environ.get("KG_LLM_BASE_URL")
             or DEFAULT_MINIMAX_BASE_URL
@@ -53,9 +58,13 @@ class LLMConfig:
             or os.environ.get("KG_LLM_API_KEY")
             or ""
         )
-        model = (
-            os.environ.get("KG_LLM_MODEL")
-            or DEFAULT_MINIMAX_MODEL
+        role_model = (
+            os.environ.get("KG_COMPLEX_LLM_MODEL")
+            if role == "complex"
+            else os.environ.get("KG_SIMPLE_LLM_MODEL")
+        )
+        model = role_model or os.environ.get("KG_LLM_MODEL") or (
+            DEFAULT_COMPLEX_MODEL if role == "complex" else DEFAULT_SIMPLE_MODEL
         )
         if not api_key:
             raise RuntimeError(

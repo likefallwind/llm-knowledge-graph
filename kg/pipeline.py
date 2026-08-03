@@ -49,11 +49,13 @@ def process_catalog(
     definition_limit: int | None = None,
     summarize_sections: bool = True,
     summary_limit: int | None = None,
+    simple_llm: JSONLLM | None = None,
 ) -> dict[str, Any]:
     if chunk_workers < 1:
         raise ValueError("chunk_workers 必须至少为 1")
     if max_entities < 1 or max_claims < 1:
         raise ValueError("max_entities 和 max_claims 必须至少为 1")
+    fast_llm = simple_llm or llm
     specs = sources.load_catalog(catalog_path)
     if source_limit is not None:
         specs = specs[: max(0, source_limit)]
@@ -87,9 +89,9 @@ def process_catalog(
             if summarize_sections:
                 summary_result = structure.summarize_source(
                     conn,
-                    llm,
+                    fast_llm,
                     source_id,
-                    model=_model_name(llm),
+                    model=_model_name(fast_llm),
                     limit=summary_limit,
                 )
             source_result = {
@@ -118,6 +120,7 @@ def process_catalog(
                 processing_hash = _processing_hash(
                     chunk.content_hash,
                     model=_model_name(llm),
+                    simple_model=_model_name(fast_llm),
                     max_entities=max_entities,
                     max_claims=max_claims,
                 )
@@ -166,6 +169,7 @@ def process_catalog(
                         max_claims=max_claims,
                         judge_workers=judge_workers,
                         batch=batch,
+                        simple_llm=fast_llm,
                     )
                     store.save_progress(
                         conn,
@@ -247,7 +251,9 @@ def process_chunk(
     max_claims: int = 30,
     judge_workers: int = 1,
     batch: ExtractionBatch | None = None,
+    simple_llm: JSONLLM | None = None,
 ) -> ChunkResult:
+    fast_llm = simple_llm or llm
     if batch is None:
         batch = extraction.extract(
             llm,
@@ -291,7 +297,7 @@ def process_chunk(
     conn.commit()
 
     for observation_id, claim in zip(observation_ids, batch.claims):
-        relation_result = vocabulary.resolve_relation(conn, llm, claim)
+        relation_result = vocabulary.resolve_relation(conn, fast_llm, claim)
         conn.execute(
             """UPDATE claim_observations
                SET relation=?,relation_type_id=?,relation_kind=?,
@@ -308,7 +314,7 @@ def process_chunk(
             observation_id,
             claim.raw_relation or claim.relation,
             relation_result,
-            model=extraction_model,
+            model=_model_name(fast_llm),
         )
 
     for observation_id, observation in zip(
@@ -323,10 +329,10 @@ def process_chunk(
         )
         vocabulary.resolve_observation_types(
             conn,
-            llm,
+            fast_llm,
             observation_id,
             observation,
-            model=extraction_model,
+            model=_model_name(fast_llm),
         )
         entity_id = resolved.entity_id
         keys = (observation.name, *observation.aliases)
@@ -503,6 +509,7 @@ def _processing_hash(
     chunk_hash: str,
     *,
     model: str,
+    simple_model: str,
     max_entities: int,
     max_claims: int,
 ) -> str:
@@ -518,6 +525,7 @@ def _processing_hash(
         "resolution_prompt_version": resolution.RESOLUTION_PROMPT_VERSION,
         "validator_prompt_version": validation.VALIDATION_PROMPT_VERSION,
         "model": model,
+        "simple_model": simple_model,
         "max_entities": max_entities,
         "max_claims": max_claims,
     }

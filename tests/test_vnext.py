@@ -87,9 +87,11 @@ class VNextTest(unittest.TestCase):
             "A", "改进自", "B", "A 改进自 B", passage.text,
             (passage.passage_id,), passage.location, raw_relation="改进自"
         )
-        llm = FakeLLM(
+        simple_llm = FakeLLM(
             {"decision": "new", "canonical_name": "改进自", "relation_kind": "other",
              "description": "主语是在宾语基础上的改进", "reason": "不同于种子关系"},
+        )
+        llm = FakeLLM(
             {"decision": "new", "canonical_name": "A", "reason": "首次出现"},
             {"decision": "new", "canonical_name": "B", "reason": "首次出现"},
             {"verdict": "supports", "reason": "原文明示"},
@@ -102,7 +104,10 @@ class VNextTest(unittest.TestCase):
             passages=(passage,),
             location=passage.location,
             batch=ExtractionBatch(entities, (claim,)),
+            simple_llm=simple_llm,
         )
+        self.assertEqual(len(simple_llm.calls), 1)
+        self.assertEqual(len(llm.calls), 3)
         self.assertEqual(result.claims, 1)
         row = self.conn.execute(
             """SELECT c.relation,r.relation_kind FROM claims c

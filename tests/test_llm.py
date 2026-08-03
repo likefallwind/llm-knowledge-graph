@@ -6,8 +6,10 @@ import unittest
 from unittest import mock
 
 from kg.llm import (
+    DEFAULT_COMPLEX_MODEL,
     DEFAULT_MINIMAX_BASE_URL,
     DEFAULT_MINIMAX_MODEL,
+    DEFAULT_SIMPLE_MODEL,
     LLMConfig,
     MiniMaxM3LLM,
     parse_json_object,
@@ -66,6 +68,26 @@ class LLMTest(unittest.TestCase):
             config.endpoint,
             "https://api.minimaxi.com/v1/text/chatcompletion_v2",
         )
+
+    def test_model_roles_have_separate_defaults_and_overrides(self):
+        with mock.patch.dict(
+            os.environ, {"MINIMAX_API_KEY": "secret"}, clear=True
+        ):
+            complex_config = LLMConfig.from_env(role="complex")
+            simple_config = LLMConfig.from_env(role="simple")
+        self.assertEqual(complex_config.model, DEFAULT_COMPLEX_MODEL)
+        self.assertEqual(simple_config.model, DEFAULT_SIMPLE_MODEL)
+        with mock.patch.dict(
+            os.environ,
+            {
+                "MINIMAX_API_KEY": "secret",
+                "KG_COMPLEX_LLM_MODEL": "complex-x",
+                "KG_SIMPLE_LLM_MODEL": "simple-y",
+            },
+            clear=True,
+        ):
+            self.assertEqual(LLMConfig.from_env(role="complex").model, "complex-x")
+            self.assertEqual(LLMConfig.from_env(role="simple").model, "simple-y")
 
     def test_explicit_compatible_gateway_is_still_supported(self):
         with mock.patch.dict(

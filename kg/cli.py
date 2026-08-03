@@ -228,7 +228,8 @@ def main(argv: list[str] | None = None) -> int:
             _json({"output": str(output), "view": args.view, "counts": store.counts(conn)})
             return 0
 
-        llm = MiniMaxM3LLM(LLMConfig.from_env())
+        llm = MiniMaxM3LLM(LLMConfig.from_env(role="complex"))
+        simple_llm = MiniMaxM3LLM(LLMConfig.from_env(role="simple"))
         if args.command == "run":
             result = pipeline.process_catalog(
                 conn,
@@ -248,6 +249,7 @@ def main(argv: list[str] | None = None) -> int:
                 definition_limit=args.definition_limit,
                 summarize_sections=not args.skip_section_summaries,
                 summary_limit=args.summary_limit,
+                simple_llm=simple_llm,
             )
             _json(result)
             return 1 if result["failures"] else 0
@@ -274,7 +276,11 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 0
         if args.command == "expand-relations":
-            _json(expansion.expand_relations(conn, llm, limit=args.limit))
+            _json(
+                expansion.expand_relations(
+                    conn, llm, limit=args.limit, simple_llm=simple_llm
+                )
+            )
             return 0
     except (OSError, RuntimeError, ValueError) as exc:
         print(f"错误: {exc}", file=sys.stderr)
