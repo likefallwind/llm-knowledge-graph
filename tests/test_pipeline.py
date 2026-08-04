@@ -84,6 +84,26 @@ class PipelineTest(unittest.TestCase):
         )
         self.assertEqual(len(thread_ids), 2)
 
+    def test_consecutive_failures_pause_after_three_and_success_resets(self):
+        pauser = pipeline._ConsecutiveFailurePauser()
+
+        with mock.patch("kg.pipeline.time.sleep") as sleep:
+            pauser.record_failure()
+            pauser.record_failure()
+            sleep.assert_not_called()
+
+            pauser.record_success()
+            pauser.record_failure()
+            pauser.record_failure()
+            sleep.assert_not_called()
+
+            with self.assertLogs("kg.pipeline", level="WARNING") as logs:
+                pauser.record_failure()
+
+        sleep.assert_called_once_with(600)
+        self.assertEqual(pauser.count, 0)
+        self.assertIn("连续 3 个 Chunk 失败，暂停 600 秒后继续", logs.output[0])
+
     def test_chunk_extraction_parallelism_preserves_serial_write_order(self):
         text = "\n\n".join(
             f"标记{index}：这一段用于验证有序并行抽取。" * 8

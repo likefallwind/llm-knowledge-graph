@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import sqlite3
+import time
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
@@ -30,6 +32,32 @@ from .models import (
 )
 
 
+logger = logging.getLogger(__name__)
+
+CONSECUTIVE_FAILURE_PAUSE_THRESHOLD = 3
+CONSECUTIVE_FAILURE_PAUSE_SECONDS = 600
+
+
+class _ConsecutiveFailurePauser:
+    def __init__(self) -> None:
+        self.count = 0
+
+    def record_success(self) -> None:
+        self.count = 0
+
+    def record_failure(self) -> None:
+        self.count += 1
+        if self.count < CONSECUTIVE_FAILURE_PAUSE_THRESHOLD:
+            return
+        logger.warning(
+            "连续 %d 个 Chunk 失败，暂停 %d 秒后继续",
+            CONSECUTIVE_FAILURE_PAUSE_THRESHOLD,
+            CONSECUTIVE_FAILURE_PAUSE_SECONDS,
+        )
+        time.sleep(CONSECUTIVE_FAILURE_PAUSE_SECONDS)
+        self.count = 0
+
+
 def process_catalog(
     conn: sqlite3.Connection,
     llm: JSONLLM,
@@ -49,6 +77,7 @@ def process_catalog(
     definition_limit: int | None = None,
     summarize_sections: bool = True,
     summary_limit: int | None = None,
+    summary_workers: int = 1,
     simple_llm: JSONLLM | None = None,
 ) -> dict[str, Any]:
     if chunk_workers < 1:
@@ -93,6 +122,7 @@ def process_catalog(
                     source_id,
                     model=_model_name(fast_llm),
                     limit=summary_limit,
+                    workers=summary_workers,
                 )
             source_result = {
                 "source": spec.name,
@@ -145,6 +175,7 @@ def process_catalog(
                 )
                 work_items.append((contextual_chunk, processing_hash))
 
+            failure_pauser = _ConsecutiveFailurePauser()
             for chunk, processing_hash, batch, extraction_error in (
                 _extract_chunks_ordered(
                     llm,
@@ -179,6 +210,7 @@ def process_catalog(
                         status="done",
                         result=result.as_dict(),
                     )
+                    failure_pauser.record_success()
                     source_result["processed_chunks"] += 1
                     for key in (
                         "entities",
@@ -209,6 +241,7 @@ def process_catalog(
                     failures.append(failure)
                     if stop_on_error:
                         raise
+                    failure_pauser.record_failure()
             completed.append(source_result)
         except Exception as exc:
             failures.append({"source": spec.name, "error": str(exc)})

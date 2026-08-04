@@ -87,7 +87,7 @@ python -m kg run sources/catalog.json \
 ```bash
 python -m kg run sources.json \
   --source-limit 2 --max-chunks 20 \
-  --chunk-workers 2 --judge-workers 2
+  --summary-workers 2 --chunk-workers 2 --judge-workers 2
 ```
 
 默认每个 Chunk 最多抽取 50 个 Entity 和 30 个 Claim。达到 Entity 上限的 Chunk
@@ -104,9 +104,14 @@ python -m kg run sources/catalog.json \
   --max-entities 50 --judge-workers 4
 ```
 
+`--summary-workers` 在同一目录深度内并行 Section 摘要，并在进入父级前等待该层
+全部完成；LLM 请求并发执行，SQLite 仍由主线程串行写入。
+
 `--chunk-workers` 有界并行不同 Chunk 的无状态 LLM 抽取，并严格按原 Chunk
 顺序消费结果；`--judge-workers` 并行同一片段内彼此独立的关系证据裁判。
 Entity 对齐、Claim 物化和全部 SQLite 写入仍保持串行，避免改变图谱合并语义。
+若连续 3 个 Chunk 失败，主调度会暂停 10 分钟再继续；任一 Chunk 成功后连续
+失败计数清零，避免服务限额错误瞬间扩散到全部剩余 Chunk。
 两者默认均为 1；小批次建议先使用 `--chunk-workers 2 --judge-workers 2`。
 
 `kg run` 默认在片段处理结束后，为拥有至少两条 EntityObservation 且观察集合发生

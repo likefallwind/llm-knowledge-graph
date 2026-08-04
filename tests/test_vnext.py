@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import sqlite3
 import tempfile
+import threading
+import time
 import unittest
 from pathlib import Path
 
@@ -66,6 +69,89 @@ class VNextTest(unittest.TestCase):
                          [("卷积网络", 1), ("VGG", 2)])
         self.assertTrue(all(p.section_path for p in passages))
         self.assertEqual(store.counts(self.conn)["claims"], 0)
+
+    def test_section_summaries_parallelize_with_depth_barrier(self):
+        source_id, _ = self._source(
+            "# 根章节\n\n## 子节一\n\n内容一。\n\n## 子节二\n\n内容二。"
+        )
+
+        class ConcurrentSummaryLLM:
+            def __init__(self):
+                self.lock = threading.Lock()
+                self.active = 0
+                self.max_active = 0
+                self.calls: list[str] = []
+
+            def complete_json(self, system: str, user: str) -> dict:
+                with self.lock:
+                    self.active += 1
+                    self.max_active = max(self.max_active, self.active)
+                    self.calls.append(user)
+                time.sleep(0.05)
+                with self.lock:
+                    self.active -= 1
+                return {"summary": "有据摘要", "passage_ids": []}
+
+        llm = ConcurrentSummaryLLM()
+        result = structure.summarize_source(
+            self.conn, llm, source_id, model="simple", workers=2
+        )
+
+        self.assertEqual(result, {"processed": 3, "skipped": 0, "failed": 0})
+        self.assertEqual(llm.max_active, 2)
+        self.assertEqual(len(llm.calls), 3)
+        self.assertIn('"children": [{"title": "子节一", "summary": "有据摘要"}',
+                      llm.calls[-1])
+        self.assertEqual(
+            self.conn.execute("SELECT COUNT(*) FROM section_summaries").fetchone()[0],
+            3,
+        )
+
+    def test_section_summary_persists_before_slow_peer_finishes(self):
+        source_id, _ = self._source(
+            "# 根章节\n\n## 快子节\n\n内容一。\n\n## 慢子节\n\n内容二。"
+        )
+        release_slow = threading.Event()
+        observed_write = threading.Event()
+
+        class OneSlowSummaryLLM:
+            def __init__(self):
+                self.lock = threading.Lock()
+                self.call_count = 0
+
+            def complete_json(self, system: str, user: str) -> dict:
+                with self.lock:
+                    self.call_count += 1
+                    call_number = self.call_count
+                if call_number == 2:
+                    release_slow.wait(timeout=2)
+                return {"summary": "有据摘要", "passage_ids": []}
+
+        def observe_database() -> None:
+            observer = sqlite3.connect(self.root / "vnext.db")
+            try:
+                deadline = time.monotonic() + 1.5
+                while time.monotonic() < deadline:
+                    count = observer.execute(
+                        "SELECT COUNT(*) FROM section_summaries"
+                    ).fetchone()[0]
+                    if count:
+                        observed_write.set()
+                        break
+                    time.sleep(0.01)
+            finally:
+                release_slow.set()
+                observer.close()
+
+        observer = threading.Thread(target=observe_database)
+        observer.start()
+        result = structure.summarize_source(
+            self.conn, OneSlowSummaryLLM(), source_id, model="simple", workers=2
+        )
+        observer.join()
+
+        self.assertTrue(observed_write.is_set())
+        self.assertEqual(result["processed"], 3)
 
     def test_open_relation_normalizes_then_materializes_with_passage_evidence(self):
         source_id, passages = self._source("# 模型\n\nA 改进自 B。")

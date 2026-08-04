@@ -60,6 +60,12 @@ def _parser() -> argparse.ArgumentParser:
         type=int,
         help="本次最多生成多少个 Section 摘要；默认不限",
     )
+    run.add_argument(
+        "--summary-workers",
+        type=int,
+        default=1,
+        help="同一目录深度的摘要并发数；深度之间保持自底向上屏障（默认 1）",
+    )
     run.add_argument("--max-chunks", type=int)
     run.add_argument("--chunk-chars", type=int, default=8000)
     run.add_argument("--overlap-chars", type=int, default=500)
@@ -249,6 +255,7 @@ def main(argv: list[str] | None = None) -> int:
                 definition_limit=args.definition_limit,
                 summarize_sections=not args.skip_section_summaries,
                 summary_limit=args.summary_limit,
+                summary_workers=args.summary_workers,
                 simple_llm=simple_llm,
             )
             _json(result)

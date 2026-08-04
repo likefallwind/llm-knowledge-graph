@@ -4,6 +4,7 @@ import hashlib
 import json
 import sqlite3
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Iterable
 
 from .llm import JSONLLM
@@ -139,8 +140,16 @@ def summarize_source(
     *,
     model: str,
     limit: int | None = None,
+    workers: int = 1,
 ) -> dict[str, int]:
-    """Bottom-up summaries used only as extraction context."""
+    """Bottom-up summaries used only as extraction context.
+
+    Sections at the same depth are independent and may call the LLM in
+    parallel.  Each depth is fully persisted before its parents are prepared,
+    and all SQLite access remains in the caller thread.
+    """
+    if workers < 1:
+        raise ValueError("summary_workers 必须至少为 1")
     rows = conn.execute(
         "SELECT * FROM source_sections WHERE source_id=? ORDER BY depth DESC,id",
         (source_id,),
@@ -148,71 +157,142 @@ def summarize_source(
     processed = skipped = failed = 0
     source = conn.execute("SELECT content FROM sources WHERE id=?", (source_id,)).fetchone()
     content = str(source["content"])
+    rows_by_depth: defaultdict[int, list[sqlite3.Row]] = defaultdict(list)
     for row in rows:
-        if limit is not None and processed >= limit:
-            break
-        section_id = int(row["id"])
-        passage_rows = conn.execute(
-            "SELECT * FROM source_passages WHERE section_id=? ORDER BY passage_id",
-            (section_id,),
-        ).fetchall()
-        child_rows = conn.execute(
-            "SELECT id,title FROM source_sections WHERE parent_id=? ORDER BY ordinal,id",
-            (section_id,),
-        ).fetchall()
-        raw = [
-            {
-                "passage_id": str(item["passage_id"]),
-                "text": content[int(item["start_offset"]):int(item["end_offset"])],
-            }
-            for item in passage_rows
-        ]
-        children = [
-            {"title": str(item["title"]), "summary": latest_summary(conn, int(item["id"]))}
-            for item in child_rows
-            if latest_summary(conn, int(item["id"]))
-        ]
-        fingerprint = hashlib.sha256(
-            json.dumps([raw, children], ensure_ascii=False, sort_keys=True).encode()
-        ).hexdigest()
-        exists = conn.execute(
-            """SELECT 1 FROM section_summaries
-               WHERE section_id=? AND input_fingerprint=?
-                 AND summarizer_model=? AND prompt_version=?""",
-            (section_id, fingerprint, model, SUMMARY_PROMPT_VERSION),
-        ).fetchone()
-        if exists:
-            skipped += 1
-            continue
-        if not raw and not children:
-            skipped += 1
-            continue
+        rows_by_depth[int(row["depth"])].append(row)
+
+    def persist(
+        task: dict[str, object], result: tuple[str, list[str]] | Exception
+    ) -> None:
+        nonlocal processed, failed
+        if isinstance(result, Exception):
+            failed += 1
+            return
+        summary, cited = result
         try:
-            payload = llm.complete_json(
-                SUMMARY_SYSTEM,
-                """生成简洁摘要，说明本节实际讲了什么以及出现的关键术语。
-摘要只能来自 inputs。返回 {"summary":"...","passage_ids":["P..."]}；
-passage_ids 只能引用 inputs.passages，父级摘要可以不引用新的 Passage。
-inputs=%s""" % json.dumps({"passages": raw, "children": children}, ensure_ascii=False),
-            )
-            summary = str(payload.get("summary", "")).strip()
-            cited = payload.get("passage_ids", [])
-            allowed = {item["passage_id"] for item in raw}
-            if not isinstance(cited, list):
-                cited = []
-            cited = [str(item) for item in cited if str(item) in allowed]
-            if not summary:
-                raise ValueError("摘要为空")
             conn.execute(
                 """INSERT INTO section_summaries
-                   (section_id,input_fingerprint,summarizer_model,prompt_version,
-                    summary,supporting_passage_ids) VALUES (?,?,?,?,?,?)""",
-                (section_id, fingerprint, model, SUMMARY_PROMPT_VERSION, summary,
-                 json.dumps(cited, ensure_ascii=False)),
+                   (section_id,input_fingerprint,summarizer_model,
+                    prompt_version,summary,supporting_passage_ids)
+                   VALUES (?,?,?,?,?,?)""",
+                (
+                    task["section_id"],
+                    task["fingerprint"],
+                    model,
+                    SUMMARY_PROMPT_VERSION,
+                    summary,
+                    json.dumps(cited, ensure_ascii=False),
+                ),
             )
             conn.commit()
             processed += 1
         except Exception:
             conn.rollback()
             failed += 1
+
+    for depth in sorted(rows_by_depth, reverse=True):
+        if limit is not None and processed >= limit:
+            break
+        tasks: list[dict[str, object]] = []
+        for row in rows_by_depth[depth]:
+            section_id = int(row["id"])
+            passage_rows = conn.execute(
+                "SELECT * FROM source_passages WHERE section_id=? ORDER BY passage_id",
+                (section_id,),
+            ).fetchall()
+            child_rows = conn.execute(
+                "SELECT id,title FROM source_sections WHERE parent_id=? ORDER BY ordinal,id",
+                (section_id,),
+            ).fetchall()
+            raw = [
+                {
+                    "passage_id": str(item["passage_id"]),
+                    "text": content[
+                        int(item["start_offset"]):int(item["end_offset"])
+                    ],
+                }
+                for item in passage_rows
+            ]
+            children = []
+            for item in child_rows:
+                child_summary = latest_summary(conn, int(item["id"]))
+                if child_summary:
+                    children.append(
+                        {"title": str(item["title"]), "summary": child_summary}
+                    )
+            fingerprint = hashlib.sha256(
+                json.dumps(
+                    [raw, children], ensure_ascii=False, sort_keys=True
+                ).encode()
+            ).hexdigest()
+            exists = conn.execute(
+                """SELECT 1 FROM section_summaries
+                   WHERE section_id=? AND input_fingerprint=?
+                     AND summarizer_model=? AND prompt_version=?""",
+                (section_id, fingerprint, model, SUMMARY_PROMPT_VERSION),
+            ).fetchone()
+            if exists or (not raw and not children):
+                skipped += 1
+                continue
+            tasks.append(
+                {
+                    "section_id": section_id,
+                    "fingerprint": fingerprint,
+                    "raw": raw,
+                    "children": children,
+                }
+            )
+
+        task_offset = 0
+        while task_offset < len(tasks):
+            if limit is not None and processed >= limit:
+                break
+            batch_size = len(tasks) - task_offset
+            if limit is not None:
+                batch_size = min(batch_size, limit - processed)
+            batch = tasks[task_offset:task_offset + batch_size]
+            task_offset += batch_size
+            if workers == 1:
+                for task in batch:
+                    persist(task, _generate_summary(llm, task))
+            else:
+                with ThreadPoolExecutor(
+                    max_workers=min(workers, len(batch))
+                ) as executor:
+                    future_tasks = {
+                        executor.submit(_generate_summary, llm, task): task
+                        for task in batch
+                    }
+                    for future in as_completed(future_tasks):
+                        persist(future_tasks[future], future.result())
     return {"processed": processed, "skipped": skipped, "failed": failed}
+
+
+def _generate_summary(
+    llm: JSONLLM, task: dict[str, object]
+) -> tuple[str, list[str]] | Exception:
+    """Call the LLM without touching SQLite so this is safe in a worker."""
+    raw = task["raw"]
+    children = task["children"]
+    try:
+        payload = llm.complete_json(
+            SUMMARY_SYSTEM,
+            """生成简洁摘要，说明本节实际讲了什么以及出现的关键术语。
+摘要只能来自 inputs。返回 {"summary":"...","passage_ids":["P..."]}；
+passage_ids 只能引用 inputs.passages，父级摘要可以不引用新的 Passage。
+inputs=%s"""
+            % json.dumps(
+                {"passages": raw, "children": children}, ensure_ascii=False
+            ),
+        )
+        summary = str(payload.get("summary", "")).strip()
+        cited = payload.get("passage_ids", [])
+        allowed = {str(item["passage_id"]) for item in raw}  # type: ignore[index]
+        if not isinstance(cited, list):
+            cited = []
+        valid_citations = [str(item) for item in cited if str(item) in allowed]
+        if not summary:
+            raise ValueError("摘要为空")
+        return summary, valid_citations
+    except Exception as exc:
+        return exc
