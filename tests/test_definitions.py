@@ -69,6 +69,45 @@ class DefinitionSynthesisTest(unittest.TestCase):
         self.conn.commit()
         return entity_id, ids
 
+    def test_regenerates_once_when_first_payload_fails_validation(self):
+        entity_id, observation_ids = self._entity_with_two_observations()
+        citation = {
+            "observation_id": observation_ids[1],
+            "passage_ids": ["P000002"],
+            "support": "直接给出上位类别和结构特征",
+        }
+        llm = FakeLLM(
+            {
+                "definition": "卷积神经网络是包含卷积层的一类特殊神经网络。",
+                "supporting_observations": [citation],
+                # 真实见过的坏输出：区间写进字符串时把数组结构写漏了。
+                "rejected_candidates": ["裁剪到 [0", 1],
+                "limitation": "",
+            },
+            {
+                "definition": "卷积神经网络是包含卷积层的一类特殊神经网络。",
+                "supporting_observations": [citation],
+                "rejected_candidates": ["强大工具只说明作用"],
+                "limitation": "",
+            },
+        )
+
+        result = definitions.synthesize_pending(
+            self.conn, llm, entity_ids=[entity_id]
+        )
+
+        self.assertFalse(result["failures"])
+        self.assertEqual(len(result["processed"]), 1)
+        self.assertEqual(len(llm.calls), 2)
+        synthesis = self.conn.execute(
+            "SELECT * FROM entity_definition_syntheses WHERE entity_id=?",
+            (entity_id,),
+        ).fetchone()
+        self.assertEqual(
+            json.loads(synthesis["rejected_candidates"]), ["强大工具只说明作用"]
+        )
+        llm.assert_finished()
+
     def test_synthesizes_from_all_observations_and_caches_fingerprint(self):
         entity_id, observation_ids = self._entity_with_two_observations()
         llm = FakeLLM(

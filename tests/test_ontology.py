@@ -74,9 +74,9 @@ class DefinitionsReachThePromptsTest(unittest.TestCase):
         prompt_seen: list[str] = []
 
         class RecordingLLM(FakeLLM):
-            def complete_json(self, system: str, user: str):
+            def complete_json(self, system: str, user: str, **kwargs):
                 prompt_seen.append(user)
-                return super().complete_json(system, user)
+                return super().complete_json(system, user, **kwargs)
 
         conn = db.connect(":memory:")
         self.addCleanup(conn.close)

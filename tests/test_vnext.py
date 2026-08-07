@@ -82,7 +82,7 @@ class VNextTest(unittest.TestCase):
                 self.max_active = 0
                 self.calls: list[str] = []
 
-            def complete_json(self, system: str, user: str) -> dict:
+            def complete_json(self, system: str, user: str, **kwargs) -> dict:
                 with self.lock:
                     self.active += 1
                     self.max_active = max(self.max_active, self.active)
@@ -119,7 +119,7 @@ class VNextTest(unittest.TestCase):
                 self.lock = threading.Lock()
                 self.call_count = 0
 
-            def complete_json(self, system: str, user: str) -> dict:
+            def complete_json(self, system: str, user: str, **kwargs) -> dict:
                 with self.lock:
                     self.call_count += 1
                     call_number = self.call_count

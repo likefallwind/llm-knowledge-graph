@@ -137,14 +137,14 @@ def synthesize_entity_definition(
             "cached": True,
         }
 
-    payload = llm.complete_json(
+    result = llm.complete_json(
         SYSTEM_PROMPT,
         USER_PROMPT.format(
             entity=json.dumps(dict(entity), ensure_ascii=False),
             observations=json.dumps(items, ensure_ascii=False),
         ),
+        validate=lambda payload: _validate_payload(payload, items),
     )
-    result = _validate_payload(payload, items)
     with conn:
         conn.execute(
             """
