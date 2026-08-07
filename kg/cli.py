@@ -17,7 +17,12 @@ from . import (
     store,
     viz,
 )
-from .llm import LLMConfig, MiniMaxM3LLM
+from .llm import (
+    DEFAULT_MAX_CONCURRENCY,
+    LLMConcurrencyLimiter,
+    LLMConfig,
+    MiniMaxM3LLM,
+)
 
 
 def _json(value: object) -> None:
@@ -82,6 +87,15 @@ def _parser() -> argparse.ArgumentParser:
         type=int,
         default=1,
         help="并行关系裁判数；数据库写入仍保持串行（默认 1）",
+    )
+    run.add_argument(
+        "--llm-max-concurrency",
+        type=int,
+        default=DEFAULT_MAX_CONCURRENCY,
+        help=(
+            "复杂/简单模型和所有处理阶段共享的请求总并发上限；"
+            f"超过后等待（默认 {DEFAULT_MAX_CONCURRENCY}）"
+        ),
     )
     run.add_argument("--stop-on-error", action="store_true")
     run.add_argument(
@@ -234,8 +248,15 @@ def main(argv: list[str] | None = None) -> int:
             _json({"output": str(output), "view": args.view, "counts": store.counts(conn)})
             return 0
 
-        llm = MiniMaxM3LLM(LLMConfig.from_env(role="complex"))
-        simple_llm = MiniMaxM3LLM(LLMConfig.from_env(role="simple"))
+        limiter = LLMConcurrencyLimiter(
+            getattr(args, "llm_max_concurrency", DEFAULT_MAX_CONCURRENCY)
+        )
+        llm = MiniMaxM3LLM(
+            LLMConfig.from_env(role="complex"), limiter=limiter
+        )
+        simple_llm = MiniMaxM3LLM(
+            LLMConfig.from_env(role="simple"), limiter=limiter
+        )
         if args.command == "run":
             result = pipeline.process_catalog(
                 conn,
