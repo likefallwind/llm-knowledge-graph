@@ -1,13 +1,144 @@
 # TODO 与探索记录
 
-最后更新：2026-08-07
+最后更新：2026-08-08
 
-当前状态：《动手学深度学习》(D2L) 单本书已跑完，数据在 `data/knowledge-vnext.db`
+正式库状态：《动手学深度学习》(D2L) 单本书已跑完，数据仍在 `data/knowledge-vnext.db`
 （schema v9，3817 实体 / 6901 Claim / 17297 Evidence / 1105 片段全部 done，`kg check` 通过）。
-2026-08-07 花了一天做**关系归并**的探索，结论见下。探索期间 `kg/` 未做任何改动。
+2026-08-08 的修改和重跑全部位于实验分支 `experiment/assertion-layer-pilot` 和 `tmp/`
+下的独立 schema v10 数据库，**没有修改或迁移正式库**。
 
 > 注意：`data/knowledge.db`（默认路径）仍是 6 个实体的旧库。跑 CLI 记得带
 > `--db data/knowledge-vnext.db`。
+
+---
+
+## 2026-08-08：人工质量审计、Assertion 层与抽取实验
+
+### 1. 人工审计得到的问题
+
+建立并人工标注了 `audit/quality_audit_50.csv`（Windows 下编辑，GBK 编码）。主要问题：
+
+1. 一批代码局部符号、辅助类、API、UI 操作词不应成为 Entity，例如 `train_ch6`、
+   `fancy_func`、`d2l.Timer`、`d2l.Animator`、`Stopping` 等。
+2. Claim 经常只保留结论，忽略凸性、学习率、实现版本、时间或适用范围等必要条件。
+3. 部分 Claim 虽然能在原文找到依据，但只是当前代码如何调用辅助工具、练习题中的提问
+   或界面操作步骤，并不是希望进入图谱的可复用教学知识。
+4. 只审计已经生成的 Entity/Claim 会漏掉“正常知识被过滤”的召回问题；后续必须增加
+   从原始 chunk 反向检查遗漏的审计。
+
+人工审计中的典型问题已定位回 D2L chunk：
+
+| Chunk | 典型问题 |
+| ---: | --- |
+| 80 | `numerical_lim` 等局部示例符号 |
+| 290 | 围棋/国际象棋与强化学习关系的语义泛化 |
+| 388 | `train_ch6`、`d2l.*` 等代码实现对象 |
+| 593 | 练习题及参数 `w` |
+| 675 | SGD 收敛结论遗漏凸问题、学习率等必要条件 |
+| 736 | `fancy_func` 等局部函数 |
+| 891 | 当前实现语境被泛化 |
+| 1082 | EC2 界面操作和示例对象 |
+
+### 2. 当前确定的数据模型
+
+保留 Claim 的三元组图结构，同时增加一层轻量 Assertion：
+
+```text
+Claim = (canonical subject, canonical relation, canonical object)
+  └─ Assertion = 可独立判断真假的完整命题 + 限制语境 + polarity
+       └─ Evidence = 原始 Source Passage、模型引文、裁判结果与版本信息
+```
+
+- Claim 仍是图上的边和关系合并单元，不把全部语境塞进边键。
+- Assertion 是同一 Claim 下带条件的完整命题；多个 Assertion 可能是不同条件、不同粒度，
+  也可能是重复表述。
+- `statement` 是忠于原文、经过端点规范化的完整关系表述，不是原句全文，也不是脱离
+  原文的自由改写。
+- `scope_text` 保存会限制命题成立范围的条件；`scope_is_restrictive` 标记删除该条件是否
+  会使命题变假或明显扩大适用范围。
+- 当前只按最终规范化命题做精确去重，尚未做 LLM 语义级 Assertion 合并。
+- 最终裁判必须在 Entity 与 relation 都规范化之后执行，旧端点上的判断不能复用。
+
+### 3. 实验分支实现
+
+分支：`experiment/assertion-layer-pilot`
+
+主要修改：
+
+- schema 升至 v10，新增 `assertions` 表；`claim_observations` 保存 statement、scope、
+  fingerprint、最终 Claim/Assertion ID；Evidence 可指向 Assertion，同时保留 Claim ID
+  以兼容 Claim 级聚合。
+- Entity 提示词加入教学知识准入、代码/练习/UI 排除和叙述正文端点召回保护。
+- Relation 提示词要求完整 Assertion、必要条件、精确端点名称、关系方向和可复用知识
+  检查；代码只能补充证明正文已介绍的知识，不能单独生成关系。
+- judge 同时检查原文支持、端点语义扩大、必要条件遗漏，以及实现事实/操作步骤是否被
+  错当成一般知识。
+- 新抽取的完整否定命题仍属于原文 `support`；否定含义写入 predicate/statement，不能
+  因为出现“不收敛”等词误标成 `oppose`。
+- 修复 canonical name 包含原名称时反复替换的问题，例如
+  `随机梯度下降 -> 随机梯度下降（SGD）（SGD）`，保证 Assertion fingerprint 幂等。
+- 端点不匹配的解析拒绝现在会在日志中记录 subject、object 与 statement 摘要，方便审计。
+- audit/export/check 已适配 Assertion；`kg check` 会检查没有 Evidence 的 Assertion。
+
+验证：全套测试 `92 passed, 28 subtests passed`，`git diff --check` 通过。
+
+### 4. 三轮 5-chunk 实验
+
+三轮均使用独立数据库，测试 chunk `80、388、593、675、1082`，关闭章节摘要与定义综合，
+总 LLM 并发不超过 6。
+
+| 轮次 | Entity obs | Claim obs | 物化 Assertion | 结论 |
+| --- | ---: | ---: | ---: | --- |
+| v1 | 35 | 27 | 23 | 条件保留改善，但大量代码/API/UI 内容仍进入图谱 |
+| v2 | 18 | 13 | 11 | 代码/UI 精度大幅改善，但过度过滤叙述正文，chunk 675 丢失正常关系 |
+| v3 | 24 | 17 | 16 | 恢复正常正文召回，同时继续挡住代码实现关系；当前最平衡 |
+
+v3 的关键结果：
+
+- chunk 388 只保留 `LeNet-5` Entity，0 条代码实现关系；`train_ch6`、`d2l.Timer`、
+  `d2l.Animator`、`d2l.Accumulator` 均未形成知识。
+- chunk 593 为 0 Entity / 0 Claim，练习题没有生成知识。
+- chunk 675 恢复 `梯度下降`、`深度学习` 等端点，共生成 7 条 Claim，全部通过 judge；
+  恢复了“大样本时 SGD 相比梯度下降更适合”和“非凸情况下最优性保证不可用”等关系。
+- chunk 675 没有端点名称不匹配拒绝，fingerprint mismatch 为 0。
+- chunk 1082 保留了“停止实例”和“终止实例”的区别：它来自叙述正文而非点击步骤，
+  是否属于目标图谱仍是一个范围选择。
+- `matplotlib`、`d2l 包` 可能作为正文明确介绍的软件资源 Entity 出现，但没有物化关系。
+- v3 数据库 `tmp/assertion-pilot-v3-20260808.db` 的 `kg check` 通过。
+
+当前边界问题：图谱是覆盖 D2L 教材中的全部可复用知识，还是只保留深度学习概念、方法、
+模型和数据集？前者可接纳软件资源及云服务知识，后者应进一步排除。这不是简单的原文
+支持问题，需要在大样本审计后决定。
+
+### 5. 正在运行：200-chunk 扩大实验
+
+2026-08-08 22:53 启动后台任务，目前仍在运行，完成状态**尚未验证**。
+
+- tmux：`kg-assertion-sample200-v3-20260808`
+- 数据库：`tmp/assertion-sample200-v3-20260808.db`
+- 日志：`tmp/assertion-sample200-v3-20260808.log`
+- 成功标记：`tmp/assertion-sample200-v3-20260808.finished`
+- 退出标记：`tmp/assertion-sample200-v3-20260808.exit`
+- `chunk-workers=3`，`judge-workers=3`，共享 `llm-max-concurrency=6`
+- 关闭 section summaries 与 definition synthesis，只测试核心抽取质量
+- 单个 chunk 失败会记录并继续，避免整夜任务被一个样本中断
+
+抽样为 10 个分散窗口，每个连续 20 个 chunk，共 200 个新 chunk：
+
+```text
+20–39, 130–149, 240–259, 350–369, 460–479,
+570–589, 680–699, 790–809, 900–919, 1020–1039
+```
+
+### 6. 200-chunk 完成后的检查清单
+
+- [ ] 检查 `.finished`、`.exit`、目标 200 个 `source_progress` 和 `kg check`，不能只看 tmux
+- [ ] 汇总 Entity / Claim / Assertion / Evidence 数量、失败与解析拒绝原因
+- [ ] 从生成结果抽约 50 个 Entity/Assertion 做精度审计
+- [ ] 从 10–15 个原始 chunk 反向检查重要 Entity/Assertion 是否漏抽
+- [ ] 专门检查代码、练习题、UI/云服务操作、软件资源四类边界样本
+- [ ] 检查同一 Claim 下多个 Assertion 是重复、不同条件，还是需要语义合并
+- [ ] 大样本通过后再考虑跑完整 D2L；暂不迁移或覆盖正式 schema v9 数据库
 
 ---
 
