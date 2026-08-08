@@ -126,11 +126,11 @@ class PromptVersionsAreBumpedTest(unittest.TestCase):
         )
         self.assertEqual(
             extraction.ENTITY_PROMPT_VERSION,
-            "open-entities-section-3-knowledge-admission",
+            "open-entities-section-4-recall-protection",
         )
         self.assertEqual(
             extraction.RELATION_PROMPT_VERSION,
-            "open-relations-assertion-3-knowledge-admission",
+            "open-relations-assertion-4-recall-protection",
         )
         self.assertEqual(
             validation.VALIDATION_PROMPT_VERSION,

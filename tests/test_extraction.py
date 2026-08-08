@@ -22,6 +22,8 @@ class ExtractionTest(unittest.TestCase):
         self.assertIn("证据来源测试", prompt)
         self.assertIn("不能单独产生 Entity", prompt)
         self.assertIn("d2l.Timer", prompt)
+        self.assertIn("召回保护", prompt)
+        self.assertIn("随机梯度下降与梯度下降", prompt)
 
     def test_negative_statement_is_support_not_opposing_evidence(self):
         passages = segment_text("在非凸问题中，SGD 通常不收敛到全局最优解。")
@@ -106,6 +108,35 @@ class ExtractionTest(unittest.TestCase):
 
         self.assertEqual(batch.claims, ())
         self.assertIn("缺少完整 statement", batch.rejected[0])
+
+    def test_endpoint_mismatch_rejection_keeps_inspectable_payload(self):
+        passages = segment_text("在非凸情况下，SGD 的保证通常不可用。")
+        batch = parse_payload(
+            {
+                "entities": [],
+                "claims": [
+                    {
+                        "subject": "随机梯度下降",
+                        "relation": "保证不可用",
+                        "object": "非凸问题",
+                        "statement": "在非凸情况下，SGD 的保证通常不可用。",
+                        "scope": "非凸情况下",
+                        "scope_is_restrictive": True,
+                        "evidence": {
+                            "passage_ids": ["P000001"],
+                            "quote": "SGD 的保证通常不可用",
+                        },
+                    }
+                ],
+            },
+            passages,
+        )
+
+        self.assertEqual(batch.claims, ())
+        reason = batch.rejected[0]
+        self.assertIn("subject='随机梯度下降'", reason)
+        self.assertIn("object='非凸问题'", reason)
+        self.assertIn("statement='在非凸情况下", reason)
 
     def test_entity_cap_does_not_discard_claim_observation(self):
         passages = segment_text("A、B、C 都有定义，B 是 C 的一种。")

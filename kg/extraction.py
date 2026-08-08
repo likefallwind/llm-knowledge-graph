@@ -14,8 +14,8 @@ from .models import (
 )
 
 
-ENTITY_PROMPT_VERSION = "open-entities-section-3-knowledge-admission"
-RELATION_PROMPT_VERSION = "open-relations-assertion-3-knowledge-admission"
+ENTITY_PROMPT_VERSION = "open-entities-section-4-recall-protection"
+RELATION_PROMPT_VERSION = "open-relations-assertion-4-recall-protection"
 EXTRACTION_PROMPT_VERSION = (
     f"{ENTITY_PROMPT_VERSION}+{RELATION_PROMPT_VERSION}"
 )
@@ -46,6 +46,12 @@ Entity 必须是在本片段中有稳定名称、可复指，并有实质性定�
   不能单独产生 Entity。
 - 例如 LeNet-5、随机梯度下降可在正文有实质介绍时准入；train_ch6、d2l.Timer、
   d2l.Animator、d2l.Accumulator、Stopping 按钮、Image→Create 操作不得仅凭示例准入。
+- 召回保护：叙述正文明确陈述定义、性质、比较、因果、组成、适用条件或限制时，构成
+  这些知识陈述所需的全部具名领域对象都应抽取。某对象在当前段落没有被重新完整定义，
+  但正文明确陈述了它的性质或它与其他对象的比较，也已经具有实质性知识含义，不得
+  因此省略。例如正文比较随机梯度下降与梯度下降时，两者都应准入。
+- 上一条召回保护只适用于陈述事实的叙述正文，不适用于代码块、练习题、问句和界面
+  操作步骤；不得借召回保护重新引入实现辅助对象。
 
 规则：
 1. evidence.passage_ids 必须选择片段中真实存在的段落 ID，最多 3 个。
@@ -95,11 +101,16 @@ RELATION_PROMPT = """从下面的原始语料中抽取开放式关系及其完�
    关系？如果不能，必须省略。不得仅根据代码反推“模型使用某工具/API”。
 8. 正文明确讲授的模型、算法、机制、适用条件之间的关系可以保留；代码只能作为补充
    证据，不能成为关系的唯一来源。
-9. stance 表示原文是否支持这条完整 statement，不表示 statement 内部是否含否定。
+9. 召回检查：逐句检查叙述正文中的定义、性质、比较、因果、组成、适用条件和限制，
+   只要两个端点都在实体清单中，就不要因端点未在本段重新定义而漏掉关系。
+10. subject 和 object 必须逐字复制实体清单中的完整名称；statement 中也必须逐字包含
+   这两个完整名称。即使原文使用简称、代词或“非凸情况下”等语法变形，也要在忠于
+   原意的前提下把实体清单中的完整名称写入 statement。
+11. stance 表示原文是否支持这条完整 statement，不表示 statement 内部是否含否定。
    本任务抽取的是原文实际陈述的命题，因此始终输出 support；否定事实应写进 statement
    和 predicate，不得因“并非如此”“不收敛”等否定词输出 oppose。
-10. predicate 的方向必须与 statement 完全一致，并在输出前核对主客体方向。
-11. 不确定时省略；最多输出 {max_claims} 条。
+12. predicate 的方向必须与 statement 完全一致，并在输出前核对主客体方向。
+13. 不确定时省略；最多输出 {max_claims} 条。
 
 输出：
 {{"relations":[{{
@@ -348,7 +359,11 @@ def parse_payload(
             _compact(subject) not in compact_statement
             or _compact(object_) not in compact_statement
         ):
-            rejected.append(f"claim[{index}] statement 未完整包含两个端点")
+            rejected.append(
+                f"claim[{index}] statement 未完整包含两个端点: "
+                f"subject={subject!r}, object={object_!r}, "
+                f"statement={statement_text[:240]!r}"
+            )
             continue
         if not isinstance(scope_is_restrictive, bool):
             rejected.append(f"claim[{index}] scope_is_restrictive 不是布尔值")
