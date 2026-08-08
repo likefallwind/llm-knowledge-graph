@@ -18,6 +18,94 @@ class ExtractionTest(unittest.TestCase):
         self.assertIn("类型标签是开放的", prompt)
         self.assertIn("这一阶段不要输出关系", prompt)
         self.assertIn("最多输出 50 个实体", prompt)
+        self.assertIn("train_ch6", prompt)
+        self.assertIn("证据来源测试", prompt)
+        self.assertIn("不能单独产生 Entity", prompt)
+        self.assertIn("d2l.Timer", prompt)
+
+    def test_negative_statement_is_support_not_opposing_evidence(self):
+        passages = segment_text("在非凸问题中，SGD 通常不收敛到全局最优解。")
+        batch = parse_payload(
+            {
+                "entities": [],
+                "claims": [
+                    {
+                        "subject": "SGD",
+                        "relation": "通常不收敛到",
+                        "object": "全局最优解",
+                        "statement": "在非凸问题中，SGD 通常不收敛到全局最优解。",
+                        "scope": "在非凸问题中",
+                        "scope_is_restrictive": True,
+                        "stance": "oppose",
+                        "evidence": {
+                            "passage_ids": ["P000001"],
+                            "quote": "SGD 通常不收敛到全局最优解",
+                        },
+                    }
+                ],
+            },
+            passages,
+        )
+
+        self.assertEqual(len(batch.claims), 1)
+        self.assertEqual(batch.claims[0].polarity, "support")
+
+    def test_complete_assertion_preserves_restrictive_scope(self):
+        passages = segment_text(
+            "对于凸问题，当学习率选择适当时，随机梯度下降收敛到全局最优解。"
+        )
+        batch = parse_payload(
+            {
+                "entities": [],
+                "claims": [
+                    {
+                        "subject": "随机梯度下降",
+                        "relation": "收敛到",
+                        "object": "全局最优解",
+                        "statement": (
+                            "对于凸问题，当学习率选择适当时，"
+                            "随机梯度下降收敛到全局最优解"
+                        ),
+                        "scope": "对于凸问题，当学习率选择适当时",
+                        "scope_is_restrictive": True,
+                        "evidence": {
+                            "passage_ids": ["P000001"],
+                            "quote": "对于凸问题，当学习率选择适当时",
+                        },
+                    }
+                ],
+            },
+            passages,
+        )
+
+        self.assertEqual(len(batch.claims), 1)
+        claim = batch.claims[0]
+        self.assertTrue(claim.scope_is_restrictive)
+        self.assertIn("凸问题", claim.scope_text)
+        self.assertIn("学习率", claim.statement_text)
+
+    def test_relation_without_complete_statement_is_rejected(self):
+        passages = segment_text("A 是 B 的一种。")
+        batch = parse_payload(
+            {
+                "entities": [],
+                "claims": [
+                    {
+                        "subject": "A",
+                        "relation": "is_a",
+                        "object": "B",
+                        "evidence": {
+                            "passage_ids": ["P000001"],
+                            "quote": "A 是 B 的一种",
+                        },
+                    }
+                ],
+            },
+            passages,
+        )
+
+        self.assertEqual(batch.claims, ())
+        self.assertIn("缺少完整 statement", batch.rejected[0])
 
     def test_entity_cap_does_not_discard_claim_observation(self):
         passages = segment_text("A、B、C 都有定义，B 是 C 的一种。")
@@ -39,6 +127,9 @@ class ExtractionTest(unittest.TestCase):
                     "subject": "B",
                     "relation": "is_a",
                     "object": "C",
+                    "statement": "B 是 C 的一种",
+                    "scope": "",
+                    "scope_is_restrictive": False,
                     "stance": "support",
                     "evidence": {
                         "passage_ids": ["P000001"],
@@ -115,6 +206,9 @@ class ExtractionTest(unittest.TestCase):
                         "subject": "梯度下降法",
                         "relation": "is_a",
                         "object": "优化算法",
+                        "statement": "梯度下降法是一种优化算法",
+                        "scope": "",
+                        "scope_is_restrictive": False,
                         "stance": "support",
                         "evidence": {
                             "passage_ids": ["P999999"],
@@ -172,6 +266,9 @@ class ExtractionTest(unittest.TestCase):
                         "subject": "A",
                         "relation": "related_to",
                         "object": "B",
+                        "statement": "A 与 B 相关",
+                        "scope": "",
+                        "scope_is_restrictive": False,
                         "evidence": {
                             "passage_ids": ["P000001"],
                             "quote": "A 是 B 的一种",

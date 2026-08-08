@@ -135,6 +135,7 @@ class PipelineTest(unittest.TestCase):
                             source_text=passage.text,
                             passage_ids=(passage.passage_id,),
                             location=location,
+                            statement_text=f"主体{marker} 是 整体{marker} 的一部分",
                         ),
                     ),
                 )
@@ -203,6 +204,9 @@ class PipelineTest(unittest.TestCase):
                     "subject": "批量梯度下降法",
                     "relation": "is_a",
                     "object": "梯度下降法",
+                    "statement": "批量梯度下降法是梯度下降法的一种",
+                    "scope": "",
+                    "scope_is_restrictive": False,
                     "stance": "support",
                     "evidence": {
                         "passage_ids": ["P000001"],
@@ -229,6 +233,9 @@ class PipelineTest(unittest.TestCase):
                     "subject": "批量梯度下降法",
                     "relation": "is_a",
                     "object": "梯度下降法",
+                    "statement": "批量梯度下降法是梯度下降法的一种",
+                    "scope": "",
+                    "scope_is_restrictive": False,
                     "stance": "support",
                     "evidence": {
                         "passage_ids": ["P000001"],
@@ -258,6 +265,7 @@ class PipelineTest(unittest.TestCase):
         self.assertEqual(store.counts(self.conn)["sources"], 2)
         self.assertEqual(store.counts(self.conn)["entities"], 2)
         self.assertEqual(store.counts(self.conn)["claims"], 1)
+        self.assertEqual(store.counts(self.conn)["assertions"], 1)
         entity_observations = self.conn.execute(
             "SELECT * FROM entity_observations ORDER BY id"
         ).fetchall()
@@ -507,6 +515,9 @@ class PipelineTest(unittest.TestCase):
                         "subject": "实体甲",
                         "relation": "is_a",
                         "object": "实体乙",
+                        "statement": "实体甲是实体乙的一种",
+                        "scope": "",
+                        "scope_is_restrictive": False,
                         "stance": "support",
                         "evidence": {
                             "passage_ids": ["P000001"],
@@ -774,6 +785,9 @@ class PipelineTest(unittest.TestCase):
                         "subject": "梯度下降法",
                         "relation": "part_of",
                         "object": "机器学习",
+                        "statement": "梯度下降法是机器学习的一部分",
+                        "scope": "",
+                        "scope_is_restrictive": False,
                         "stance": "support",
                         "evidence": {
                             "passage_ids": ["P000001"],

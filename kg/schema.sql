@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS schema_meta (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
 );
-INSERT OR IGNORE INTO schema_meta(key,value) VALUES ('schema_version','9');
+INSERT OR IGNORE INTO schema_meta(key,value) VALUES ('schema_version','10');
 
 CREATE TABLE IF NOT EXISTS sources (
     id INTEGER PRIMARY KEY,
@@ -203,6 +203,24 @@ ON claims(subject_id,relation_type_id);
 CREATE INDEX IF NOT EXISTS idx_claims_object
 ON claims(object_id,relation_type_id);
 
+-- Truth-bearing propositions.  Claim remains the compact graph edge keyed by
+-- (subject, relation, object); Assertions preserve the conditions under which
+-- that projection is actually supported.
+CREATE TABLE IF NOT EXISTS assertions (
+    id INTEGER PRIMARY KEY,
+    claim_id INTEGER NOT NULL REFERENCES claims(id) ON DELETE CASCADE,
+    assertion_key TEXT NOT NULL,
+    normalized_text TEXT NOT NULL,
+    scope_text TEXT NOT NULL DEFAULT '',
+    scope_is_restrictive INTEGER NOT NULL DEFAULT 0 CHECK(scope_is_restrictive IN (0,1)),
+    polarity TEXT NOT NULL DEFAULT 'support' CHECK(polarity IN ('support','oppose')),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(claim_id,assertion_key)
+);
+CREATE INDEX IF NOT EXISTS idx_assertions_claim
+ON assertions(claim_id,id);
+
 CREATE TABLE IF NOT EXISTS claim_observations (
     id INTEGER PRIMARY KEY,
     observation_key TEXT NOT NULL UNIQUE,
@@ -222,6 +240,11 @@ CREATE TABLE IF NOT EXISTS claim_observations (
     object_reference_key TEXT NOT NULL,
     object_entity_id INTEGER REFERENCES entities(id) ON DELETE SET NULL,
     polarity TEXT NOT NULL CHECK(polarity IN ('support','oppose')),
+    statement_text TEXT NOT NULL,
+    scope_text TEXT NOT NULL DEFAULT '',
+    scope_is_restrictive INTEGER NOT NULL DEFAULT 0 CHECK(scope_is_restrictive IN (0,1)),
+    normalized_statement TEXT NOT NULL DEFAULT '',
+    assertion_fingerprint TEXT NOT NULL DEFAULT '',
     source_text TEXT NOT NULL,
     model_quote TEXT NOT NULL DEFAULT '',
     passage_ids TEXT NOT NULL DEFAULT '[]',
@@ -230,6 +253,7 @@ CREATE TABLE IF NOT EXISTS claim_observations (
     extraction_model TEXT NOT NULL DEFAULT '',
     extraction_prompt_version TEXT NOT NULL DEFAULT '',
     claim_id INTEGER REFERENCES claims(id) ON DELETE SET NULL,
+    assertion_id INTEGER REFERENCES assertions(id) ON DELETE SET NULL,
     materialization_error TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -260,10 +284,11 @@ CREATE TABLE IF NOT EXISTS claim_observation_judgments (
     observation_id INTEGER NOT NULL REFERENCES claim_observations(id) ON DELETE CASCADE,
     validator_model TEXT NOT NULL,
     validator_prompt_version TEXT NOT NULL,
+    assertion_fingerprint TEXT NOT NULL,
     verdict TEXT NOT NULL CHECK(verdict IN ('supports','contradicts','insufficient')),
     reason TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(observation_id,validator_model,validator_prompt_version)
+    UNIQUE(observation_id,validator_model,validator_prompt_version,assertion_fingerprint)
 );
 
 CREATE TABLE IF NOT EXISTS relation_expansion_attempts (
@@ -299,6 +324,7 @@ CREATE TABLE IF NOT EXISTS evidence (
     target_key TEXT NOT NULL,
     entity_id INTEGER REFERENCES entities(id) ON DELETE CASCADE,
     claim_id INTEGER REFERENCES claims(id) ON DELETE CASCADE,
+    assertion_id INTEGER REFERENCES assertions(id) ON DELETE CASCADE,
     source_id INTEGER NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
     excerpt TEXT NOT NULL,
     model_quote TEXT NOT NULL DEFAULT '',
@@ -315,12 +341,13 @@ CREATE TABLE IF NOT EXISTS evidence (
     location TEXT NOT NULL DEFAULT '',
     polarity TEXT NOT NULL CHECK(polarity IN ('support','oppose')),
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CHECK((entity_id IS NOT NULL AND claim_id IS NULL)
+    CHECK((entity_id IS NOT NULL AND claim_id IS NULL AND assertion_id IS NULL)
        OR (entity_id IS NULL AND claim_id IS NOT NULL)),
     UNIQUE(target_key,source_id,excerpt_hash,polarity)
 );
 CREATE INDEX IF NOT EXISTS idx_evidence_entity ON evidence(entity_id);
 CREATE INDEX IF NOT EXISTS idx_evidence_claim ON evidence(claim_id);
+CREATE INDEX IF NOT EXISTS idx_evidence_assertion ON evidence(assertion_id);
 CREATE INDEX IF NOT EXISTS idx_evidence_source ON evidence(source_id);
 
 CREATE TABLE IF NOT EXISTS source_progress (

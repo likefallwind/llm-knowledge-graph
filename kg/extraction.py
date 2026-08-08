@@ -14,8 +14,8 @@ from .models import (
 )
 
 
-ENTITY_PROMPT_VERSION = "open-entities-section-1"
-RELATION_PROMPT_VERSION = "open-relations-section-1"
+ENTITY_PROMPT_VERSION = "open-entities-section-3-knowledge-admission"
+RELATION_PROMPT_VERSION = "open-relations-assertion-3-knowledge-admission"
 EXTRACTION_PROMPT_VERSION = (
     f"{ENTITY_PROMPT_VERSION}+{RELATION_PROMPT_VERSION}"
 )
@@ -30,6 +30,22 @@ ENTITY_PROMPT = """从下面的语料片段抽取 EntityObservation。
 Entity 必须是在本片段中有稳定名称、可复指，并有实质性定义或知识含义的对象。
 类型标签是开放的：使用原文语境中简洁、可复用的类别词，可为空，不得为了满足
 预设词表而扭曲实体。每个实体最多给出 3 个 type_labels。
+
+准入边界：
+- 可以抽取正文明确介绍或解释、脱离当前示例后仍有独立教学意义的概念、方法、模型、
+  数据集。库、框架或 API 只有在正文把它本身作为教学对象解释时才可准入，不能因为
+  它在代码中被导入、实例化或调用就准入。
+- 不要抽取只在当前代码示例中存在的局部变量、临时函数、演示类、占位符、文件名、
+  图片名、图表编号、公式片段、辅助计时/绘图/累计工具、界面按钮、操作菜单或命令输出。
+- 仅仅“在代码中出现”不是 Entity；代码符号必须指向一个脱离该示例仍可独立理解、
+  稳定复用的对象。教材临时定义的 train_ch6、fancy_func 一类名字通常不准入。
+- 不要把练习题中的假设对象、提问本身或某次演示操作当作 Entity。
+- definition 必须描述对象本身，不能只描述它在当前示例中的一次操作或某个固定数值。
+- 证据来源测试：假设删掉代码块、练习题和界面操作步骤，读者是否仍能仅根据叙述正文
+  识别并解释该对象？如果不能，必须省略。代码只能作为正文已介绍概念的补充证据，
+  不能单独产生 Entity。
+- 例如 LeNet-5、随机梯度下降可在正文有实质介绍时准入；train_ch6、d2l.Timer、
+  d2l.Animator、d2l.Accumulator、Stopping 按钮、Image→Create 操作不得仅凭示例准入。
 
 规则：
 1. evidence.passage_ids 必须选择片段中真实存在的段落 ID，最多 3 个。
@@ -59,7 +75,7 @@ Entity 必须是在本片段中有稳定名称、可复指，并有实质性定�
 {text}
 ---"""
 
-RELATION_PROMPT = """从下面的原始语料中抽取开放式 subject-predicate-object 关系。
+RELATION_PROMPT = """从下面的原始语料中抽取开放式关系及其完整 Assertion。
 
 实体已经由上一阶段识别。subject 和 object 必须使用实体清单中的完整名称；不要重新
 抽实体。predicate 使用原文关系的简洁、可复用表达，不受预设关系词表限制。
@@ -68,14 +84,32 @@ RELATION_PROMPT = """从下面的原始语料中抽取开放式 subject-predicat
 1. 只能依据原始 Passage，目录和摘要只提供定位上下文，不能单独证明关系。
 2. evidence.passage_ids 必须来自下面真实存在的 Passage，最多 3 个。
 3. 共现、章节相邻、主题相似或模型常识不能构成关系。
-4. 不确定时省略；最多输出 {max_claims} 条。
+4. statement 必须是一条可独立判断真假的完整陈述，必须出现 subject 和 object 的完整
+   名称，并保留原文中的条件、适用范围、时间、否定、可能性和数量限制。不能把
+   “在某条件下成立”改写成无条件成立。
+5. scope 摘出会限制关系成立范围的前提或语境；没有则为空字符串。去掉 scope 会使
+   statement 变假或明显扩大适用范围时，scope_is_restrictive 必须为 true。
+6. 只抽取可复用的教学知识。仅描述当前代码调用了哪个辅助函数、计时器、绘图器、
+   累计器、损失类或配置项的实现事实，以及界面点击顺序、云资源操作步骤，不形成关系。
+7. 证据来源测试：假设删掉代码块、练习题和界面操作步骤，叙述正文是否仍明确表达该
+   关系？如果不能，必须省略。不得仅根据代码反推“模型使用某工具/API”。
+8. 正文明确讲授的模型、算法、机制、适用条件之间的关系可以保留；代码只能作为补充
+   证据，不能成为关系的唯一来源。
+9. stance 表示原文是否支持这条完整 statement，不表示 statement 内部是否含否定。
+   本任务抽取的是原文实际陈述的命题，因此始终输出 support；否定事实应写进 statement
+   和 predicate，不得因“并非如此”“不收敛”等否定词输出 oppose。
+10. predicate 的方向必须与 statement 完全一致，并在输出前核对主客体方向。
+11. 不确定时省略；最多输出 {max_claims} 条。
 
 输出：
 {{"relations":[{{
   "subject":"实体清单中的完整名称",
   "predicate":"开放关系谓词",
   "object":"实体清单中的完整名称",
-  "stance":"support|oppose",
+  "statement":"包含全部必要条件的完整关系表述",
+  "scope":"限制成立范围的条件或语境；没有则为空字符串",
+  "scope_is_restrictive":true,
+  "stance":"support",
   "evidence":{{"passage_ids":["P000001"],"quote":"关键引文"}}
 }}]}}
 
@@ -287,6 +321,9 @@ def parse_payload(
         subject = _string(raw, "subject")
         relation = _string(raw, "predicate") or _string(raw, "relation")
         object_ = _string(raw, "object")
+        statement_text = _string(raw, "statement")
+        scope_text = _string(raw, "scope")
+        scope_is_restrictive = raw.get("scope_is_restrictive", False)
         polarity = _string(raw, "stance") or "support"
         if not relation or len(relation) > 120:
             rejected.append(f"claim[{index}] 缺少或过长 relation")
@@ -294,8 +331,30 @@ def parse_payload(
         if polarity not in POLARITIES:
             rejected.append(f"claim[{index}] 非法 stance: {polarity!r}")
             continue
+        # A freshly extracted complete statement is, by contract, the
+        # proposition asserted by its cited source.  Logical negation belongs
+        # in the statement/predicate; it is not opposing evidence for itself.
+        # Keep ``oppose`` in the storage model for later/manual evidence, while
+        # normalizing model confusion at the extraction boundary.
+        polarity = "support"
         if not subject or not object_ or _compact(subject) == _compact(object_):
             rejected.append(f"claim[{index}] 端点为空或自环")
+            continue
+        if not statement_text:
+            rejected.append(f"claim[{index}] 缺少完整 statement")
+            continue
+        compact_statement = _compact(statement_text)
+        if (
+            _compact(subject) not in compact_statement
+            or _compact(object_) not in compact_statement
+        ):
+            rejected.append(f"claim[{index}] statement 未完整包含两个端点")
+            continue
+        if not isinstance(scope_is_restrictive, bool):
+            rejected.append(f"claim[{index}] scope_is_restrictive 不是布尔值")
+            continue
+        if scope_is_restrictive and not scope_text:
+            rejected.append(f"claim[{index}] 限制性 scope 不能为空")
             continue
         grounded = _resolve_evidence(raw.get("evidence"), passage_by_id)
         if isinstance(grounded, str):
@@ -313,6 +372,9 @@ def parse_payload(
                 location=source_location,
                 polarity=polarity,
                 raw_relation=relation,
+                statement_text=statement_text,
+                scope_text=scope_text,
+                scope_is_restrictive=scope_is_restrictive,
             )
         )
     if len(raw_entities) > max_entities:

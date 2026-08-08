@@ -55,6 +55,7 @@ class ClaimObservationBackfillTest(unittest.TestCase):
             source_text="卷积层是卷积神经网络的组成部分。",
             passage_ids=("P000001",),
             location="P000001",
+            statement_text="卷积层是卷积神经网络的组成部分",
         )
         observation_id, _ = observations.add_claim_observation(
             conn,
@@ -71,6 +72,14 @@ class ClaimObservationBackfillTest(unittest.TestCase):
             reason="原文明示组成关系",
         )
         observations.resolve_endpoint_ids(conn, [observation_id])
+        observations.prepare_assertions(conn, [observation_id])
+        observations.save_judgment(
+            conn,
+            observation_id,
+            validator_model="FakeLLM",
+            verdict="supports",
+            reason="规范化后的完整 Assertion 仍由原文支持",
+        )
         result = observations.materialize(
             conn, observation_id, validator_model="FakeLLM"
         )

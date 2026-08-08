@@ -84,6 +84,10 @@ class ClaimObservation:
     raw_relation: str = ""
     relation_kind: str = "other"
     relation_type_id: int | None = None
+    statement_text: str = ""
+    scope_text: str = ""
+    scope_is_restrictive: bool = False
+    normalized_statement: str = ""
 
 
 @dataclass(frozen=True)
@@ -105,6 +109,7 @@ class Resolution:
 class ChunkResult:
     entities: int = 0
     claims: int = 0
+    assertions: int = 0
     evidence: int = 0
     entity_observations: int = 0
     claim_observations: int = 0
@@ -118,6 +123,7 @@ class ChunkResult:
         return {
             "entities": self.entities,
             "claims": self.claims,
+            "assertions": self.assertions,
             "evidence": self.evidence,
             "entity_observations": self.entity_observations,
             "claim_observations": self.claim_observations,

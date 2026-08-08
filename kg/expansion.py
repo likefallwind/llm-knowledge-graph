@@ -12,7 +12,7 @@ from .llm import JSONLLM
 from .models import ClaimObservation
 
 
-EXPANSION_PROMPT_VERSION = "toc-relation-expansion-1"
+EXPANSION_PROMPT_VERSION = "toc-relation-expansion-2"
 SYSTEM = """你是教材关系补全器，不是知识来源。
 目录距离只能用来筛选候选，不能证明关系。只有给出的原始 Passage 明确表达了两个
 实体之间的有向关系时才能返回 relation；否则必须返回 null。只输出 JSON 对象。"""
@@ -205,10 +205,13 @@ def _attempt(
         )
     payload = llm.complete_json(
         SYSTEM,
-        """判断候选实体之间是否存在原文明确表达的关系，方向可任选。
+        """判断候选实体之间是否存在原文明确表达的可复用知识关系，方向可任选。
 返回 {"relation":null,"subject_id":null,"object_id":null,"predicate":"",
+"statement":"","scope":"","scope_is_restrictive":false,
 "passage_ids":[],"quote":"","reason":""}。relation 有证据时写 true，否则 null；
-predicate 是开放谓词。passage_ids 必须从 inputs 中选 1-3 个。
+predicate 是开放谓词。statement 必须包含两个实体名称并保留所有必要条件；scope 摘出
+限制成立范围的语境。练习问句、局部代码行为和界面操作不是可复用关系。
+passage_ids 必须从 inputs 中选 1-3 个。
 entities=%s
 inputs=%s"""
         % (json.dumps(entities, ensure_ascii=False), json.dumps(passages, ensure_ascii=False)),
@@ -223,12 +226,18 @@ inputs=%s"""
     if {subject_id, object_id} != {left_id, right_id}:
         return "none", None, "端点不属于候选对"
     predicate = str(payload.get("predicate", "")).strip()
+    statement = str(payload.get("statement", "")).strip()
+    scope = str(payload.get("scope", "")).strip()
+    scope_is_restrictive = payload.get("scope_is_restrictive", False)
     quote = str(payload.get("quote", "")).strip()
     cited = payload.get("passage_ids", [])
     by_id = {item["passage_id"]: item for item in passages}
     if (
         not predicate
+        or not statement
         or not quote
+        or not isinstance(scope_is_restrictive, bool)
+        or (scope_is_restrictive and not scope)
         or not isinstance(cited, list)
         or not 1 <= len(cited) <= 3
         or any(str(item) not in by_id for item in cited)
@@ -238,6 +247,8 @@ inputs=%s"""
     if not 1 <= len(cited_ids) <= 3:
         return "none", None, "Passage 引用重复"
     names = {item["id"]: item["name"] for item in entities}
+    if names[subject_id] not in statement or names[object_id] not in statement:
+        return "none", None, "完整 statement 未包含两个端点"
     selected = [by_id[item] for item in cited_ids]
     claim = ClaimObservation(
         subject=names[subject_id],
@@ -248,6 +259,9 @@ inputs=%s"""
         source_text="\n\n".join(item["text"] for item in selected),
         passage_ids=cited_ids,
         location="; ".join(item["location"] for item in selected),
+        statement_text=statement,
+        scope_text=scope,
+        scope_is_restrictive=scope_is_restrictive,
     )
     normalized = vocabulary.resolve_relation(conn, simple_llm, claim)
     claim = replace(
@@ -272,7 +286,11 @@ inputs=%s"""
            WHERE id=?""",
         (subject_id, object_id, observation_id),
     )
-    verdict, reason = validation.judge_claim(llm, claim)
+    observations.prepare_assertions(conn, [observation_id])
+    row = observations.get_observation(conn, observation_id)
+    verdict, reason = validation.judge_claim(
+        llm, observations.as_claim(conn, row)
+    )
     observations.save_judgment(
         conn, observation_id, validator_model=model, verdict=verdict, reason=reason
     )

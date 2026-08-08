@@ -124,9 +124,18 @@ class PromptVersionsAreBumpedTest(unittest.TestCase):
             resolution.RESOLUTION_PROMPT_VERSION,
             "entity-identity-ontology-3",
         )
-        self.assertEqual(extraction.ENTITY_PROMPT_VERSION, "open-entities-section-1")
-        self.assertEqual(extraction.RELATION_PROMPT_VERSION, "open-relations-section-1")
-        self.assertEqual(validation.VALIDATION_PROMPT_VERSION, "open-relation-judge-1")
+        self.assertEqual(
+            extraction.ENTITY_PROMPT_VERSION,
+            "open-entities-section-3-knowledge-admission",
+        )
+        self.assertEqual(
+            extraction.RELATION_PROMPT_VERSION,
+            "open-relations-assertion-3-knowledge-admission",
+        )
+        self.assertEqual(
+            validation.VALIDATION_PROMPT_VERSION,
+            "canonical-assertion-judge-3-knowledge-admission",
+        )
 
 
 if __name__ == "__main__":

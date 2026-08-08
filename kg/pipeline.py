@@ -133,6 +133,7 @@ def process_catalog(
                 "before_start_chunks": 0,
                 "entities": 0,
                 "claims": 0,
+                "assertions": 0,
                 "evidence": 0,
                 "entity_observations": 0,
                 "claim_observations": 0,
@@ -215,6 +216,7 @@ def process_catalog(
                     for key in (
                         "entities",
                         "claims",
+                        "assertions",
                         "evidence",
                         "entity_observations",
                         "claim_observations",
@@ -396,6 +398,7 @@ def process_chunk(
         if len(entity_ids) == 1
     }
     observations.resolve_endpoint_ids(conn, observation_ids, local=local)
+    observations.prepare_assertions(conn, observation_ids)
     rows = [
         observations.get_observation(conn, observation_id)
         for observation_id in observation_ids
@@ -404,6 +407,7 @@ def process_chunk(
         row
         for row in rows
         if row is not None
+        and str(row["assertion_fingerprint"])
         and observations.current_judgment(
             conn, int(row["id"]), validator_model=extraction_model
         )
@@ -411,7 +415,7 @@ def process_chunk(
     ]
     judgments = _judge_claims(
         llm,
-        [observations.as_claim(row) for row in missing],
+        [observations.as_claim(conn, row) for row in missing],
         workers=judge_workers,
     )
     for row, (verdict, reason) in zip(missing, judgments):
@@ -432,6 +436,7 @@ def process_chunk(
         outcome = materialized["outcome"]
         if outcome == "materialized":
             result.claims += int(materialized["claim_created"])
+            result.assertions += int(materialized["assertion_created"])
             result.evidence += int(materialized["evidence_created"])
         elif outcome == "pending_endpoint":
             row = observations.get_observation(conn, observation_id)

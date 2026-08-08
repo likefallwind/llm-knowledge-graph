@@ -52,6 +52,8 @@ class VNextTest(unittest.TestCase):
                 ]
             },
             {"relations": [{"subject": "A", "predicate": "改进自", "object": "B",
+                             "statement": "A 改进自 B", "scope": "",
+                             "scope_is_restrictive": False,
                              "evidence": {"passage_ids": ["P000001"], "quote": "A 改进自 B"}}]},
         )
         batch = extraction.extract(llm, "A 改进自 B。", passages=passages)
@@ -171,7 +173,8 @@ class VNextTest(unittest.TestCase):
         )
         claim = ClaimObservation(
             "A", "改进自", "B", "A 改进自 B", passage.text,
-            (passage.passage_id,), passage.location, raw_relation="改进自"
+            (passage.passage_id,), passage.location, raw_relation="改进自",
+            statement_text="A 改进自 B",
         )
         simple_llm = FakeLLM(
             {"decision": "new", "canonical_name": "改进自", "relation_kind": "other",
