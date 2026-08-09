@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from kg import db, pipeline, resolution, store
+from kg import db, llm as llm_module, pipeline, resolution, store
 from kg.models import ClaimObservation, EntityObservation, ExtractionBatch
 from tests.helpers import FakeLLM
 
@@ -103,6 +103,44 @@ class PipelineTest(unittest.TestCase):
         sleep.assert_called_once_with(600)
         self.assertEqual(pauser.count, 0)
         self.assertIn("连续 3 个 Chunk 失败，暂停 600 秒后继续", logs.output[0])
+
+    def test_quota_exhausted_pauses_on_the_first_failure(self):
+        pauser = pipeline._ConsecutiveFailurePauser()
+
+        with mock.patch("kg.pipeline.time.sleep") as sleep:
+            with self.assertLogs("kg.pipeline", level="WARNING") as logs:
+                pauser.record_failure(immediate=True)
+
+        sleep.assert_called_once_with(600)
+        self.assertEqual(pauser.count, 0)
+        self.assertIn("额度耗尽，暂停 600 秒后继续", logs.output[0])
+
+    def test_quota_exhausted_is_detected_through_a_wrapped_exception(self):
+        quota = llm_module.LLMResponseError(
+            {"status_code": 2067, "status_msg": "当前已达到 Token Plan 用量上限。"}
+        )
+        balance = llm_module.LLMResponseError({"status_code": 1008})
+        rate_limited = llm_module.LLMResponseError({"status_code": 2062})
+
+        self.assertTrue(llm_module.is_quota_exhausted(quota))
+        self.assertTrue(llm_module.is_quota_exhausted(balance))
+        # 限流和普通失败必须继续走"连续 3 次"这条路，不能一次就停 10 分钟。
+        self.assertFalse(llm_module.is_quota_exhausted(rate_limited))
+        self.assertFalse(llm_module.is_quota_exhausted(RuntimeError("boom")))
+        self.assertFalse(llm_module.is_quota_exhausted(None))
+
+        # 真实路径：异常在抽取深处抛出，被逐层包裹后才到 pipeline。
+        try:
+            try:
+                raise quota
+            except llm_module.LLMResponseError as exc:
+                raise RuntimeError("chunk 130 抽取失败") from exc
+        except RuntimeError as wrapped:
+            self.assertTrue(llm_module.is_quota_exhausted(wrapped))
+
+        # 额度耗尽不该再浪费本层的秒级重试。
+        self.assertFalse(quota.retryable)
+        self.assertTrue(rate_limited.retryable)
 
     def test_chunk_extraction_parallelism_preserves_serial_write_order(self):
         text = "\n\n".join(

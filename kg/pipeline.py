@@ -22,7 +22,7 @@ from . import (
     validation,
     vocabulary,
 )
-from .llm import JSONLLM
+from .llm import JSONLLM, is_quota_exhausted
 from .models import (
     ClaimObservation,
     ChunkResult,
@@ -45,13 +45,24 @@ class _ConsecutiveFailurePauser:
     def record_success(self) -> None:
         self.count = 0
 
-    def record_failure(self) -> None:
+    def record_failure(self, *, immediate: bool = False) -> None:
+        """Count one failed Chunk, pausing once failures look like an outage.
+
+        ``immediate`` is for failures that are already conclusive on their own —
+        an exhausted quota needs no corroboration from two more dead Chunks.
+        """
+
         self.count += 1
-        if self.count < CONSECUTIVE_FAILURE_PAUSE_THRESHOLD:
+        if not immediate and self.count < CONSECUTIVE_FAILURE_PAUSE_THRESHOLD:
             return
+        reason = (
+            "额度耗尽"
+            if immediate
+            else f"连续 {CONSECUTIVE_FAILURE_PAUSE_THRESHOLD} 个 Chunk 失败"
+        )
         logger.warning(
-            "连续 %d 个 Chunk 失败，暂停 %d 秒后继续",
-            CONSECUTIVE_FAILURE_PAUSE_THRESHOLD,
+            "%s，暂停 %d 秒后继续",
+            reason,
             CONSECUTIVE_FAILURE_PAUSE_SECONDS,
         )
         time.sleep(CONSECUTIVE_FAILURE_PAUSE_SECONDS)
@@ -243,7 +254,9 @@ def process_catalog(
                     failures.append(failure)
                     if stop_on_error:
                         raise
-                    failure_pauser.record_failure()
+                    failure_pauser.record_failure(
+                        immediate=is_quota_exhausted(exc)
+                    )
             completed.append(source_result)
         except Exception as exc:
             failures.append({"source": spec.name, "error": str(exc)})

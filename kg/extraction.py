@@ -14,7 +14,7 @@ from .models import (
 )
 
 
-ENTITY_PROMPT_VERSION = "open-entities-section-4-recall-protection"
+ENTITY_PROMPT_VERSION = "open-entities-section-5-tool-layers"
 RELATION_PROMPT_VERSION = "open-relations-assertion-4-recall-protection"
 EXTRACTION_PROMPT_VERSION = (
     f"{ENTITY_PROMPT_VERSION}+{RELATION_PROMPT_VERSION}"
@@ -33,19 +33,28 @@ Entity 必须是在本片段中有稳定名称、可复指，并有实质性定�
 
 准入边界：
 - 可以抽取正文明确介绍或解释、脱离当前示例后仍有独立教学意义的概念、方法、模型、
-  数据集。库、框架或 API 只有在正文把它本身作为教学对象解释时才可准入，不能因为
-  它在代码中被导入、实例化或调用就准入。
+  数据集。
 - 不要抽取只在当前代码示例中存在的局部变量、临时函数、演示类、占位符、文件名、
   图片名、图表编号、公式片段、辅助计时/绘图/累计工具、界面按钮、操作菜单或命令输出。
-- 仅仅“在代码中出现”不是 Entity；代码符号必须指向一个脱离该示例仍可独立理解、
-  稳定复用的对象。教材临时定义的 train_ch6、fancy_func 一类名字通常不准入。
 - 不要把练习题中的假设对象、提问本身或某次演示操作当作 Entity。
 - definition 必须描述对象本身，不能只描述它在当前示例中的一次操作或某个固定数值。
 - 证据来源测试：假设删掉代码块、练习题和界面操作步骤，读者是否仍能仅根据叙述正文
   识别并解释该对象？如果不能，必须省略。代码只能作为正文已介绍概念的补充证据，
-  不能单独产生 Entity。
-- 例如 LeNet-5、随机梯度下降可在正文有实质介绍时准入；train_ch6、d2l.Timer、
-  d2l.Animator、d2l.Accumulator、Stopping 按钮、Image→Create 操作不得仅凭示例准入。
+  不能单独产生 Entity。这条测试用于概念类对象；工具与代码对象改用下面三层判定。
+
+工具与代码对象的三层判定（只看对象本身指代什么，不看正文语气是否像在讲授）：
+1. 工具系统本身准入，作为独立 Entity。判定：它是否是一个有独立名称、可脱离本书
+   指称的框架、库或平台。例如 PyTorch、TensorFlow、MXNet、Gluon、Keras 准入。
+2. 概念的代码写法准入，作为独立 Entity，**不要写进某个概念的 aliases**。判定：这个
+   名字与正文讲过的某一个概念是否一对一指代同一个对象。例如 MSELoss 之于均方误差、
+   Dense 与 nn.Linear 之于全连接层，都是一对一，准入。
+3. 工具的内部组织单位、容器，以及教材为讲解临时定义的辅助物，一律不准入。判定：
+   它是否只对应一组对象，或不对应任何概念。例如 nn 模块装着很多层、optim 模块装着
+   很多优化器、Sequential 是容器、data 模块无对应概念，均不准入；train_ch6、
+   fancy_func、d2l.Timer、d2l.Animator、d2l.Accumulator、Stopping 按钮、
+   Image→Create 操作同样不准入。
+第 2 层与第 3 层的分界只有一条：一对一指代同一个对象才准入，一对多或无对应即省略。
+
 - 召回保护：叙述正文明确陈述定义、性质、比较、因果、组成、适用条件或限制时，构成
   这些知识陈述所需的全部具名领域对象都应抽取。某对象在当前段落没有被重新完整定义，
   但正文明确陈述了它的性质或它与其他对象的比较，也已经具有实质性知识含义，不得
@@ -56,7 +65,9 @@ Entity 必须是在本片段中有稳定名称、可复指，并有实质性定�
 规则：
 1. evidence.passage_ids 必须选择片段中真实存在的段落 ID，最多 3 个。
 2. evidence.quote 是你认为最关键的引文。应尽量忠实引用，但允许轻微省略或改写。
-3. aliases 只列出本片段表达过的别名。
+3. aliases 只列出本片段表达过的别名。英文术语、缩写、数学记号和中文变体仍然是别名，
+   例如 SGD、CNN、$\\mathbf{{w}}$、突触权重。框架 API 名不是别名，按准入边界第 2 层
+   单独作为 Entity 输出。
 4. 这一阶段不要输出关系。
 5. 最多输出 {max_entities} 个实体。
 

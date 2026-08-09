@@ -126,7 +126,7 @@ class PromptVersionsAreBumpedTest(unittest.TestCase):
         )
         self.assertEqual(
             extraction.ENTITY_PROMPT_VERSION,
-            "open-entities-section-4-recall-protection",
+            "open-entities-section-5-tool-layers",
         )
         self.assertEqual(
             extraction.RELATION_PROMPT_VERSION,
