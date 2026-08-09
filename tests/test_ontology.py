@@ -103,6 +103,17 @@ class DefinitionsReachThePromptsTest(unittest.TestCase):
             ),
         )
         self.assertTrue(prompt_seen, "身份裁决应当调用了 LLM")
+        self.assertIn("这是 identity 判断，不是相关性", prompt_seen[0])
+        self.assertIn("合并反事实", prompt_seen[0])
+        self.assertIn("aliases 都只是上游模型提供的待判断线索", prompt_seen[0])
+        self.assertIn("不得以“候选已有此 alias”为理由循环证明 same", prompt_seen[0])
+        self.assertIn("括号解释、教学类比、角色映射", prompt_seen[0])
+        self.assertIn("不能提升为\n全局 alias", prompt_seen[0])
+        self.assertIn("decision 必须与上述分析一致", prompt_seen[0])
+        self.assertIn("基础概念/算法族名称与带有限定词的变体名称", prompt_seen[0])
+        self.assertIn("值（感官输入）", prompt_seen[0])
+        self.assertIn("随机梯度下降", prompt_seen[0])
+        self.assertIn("小批量随机梯度下降", prompt_seen[0])
         for item in ontology.ENTITY_TYPE_DEFS:
             with self.subTest(name=item.name):
                 self.assertIn(item.name, prompt_seen[0])
@@ -122,7 +133,7 @@ class PromptVersionsAreBumpedTest(unittest.TestCase):
         self.assertNotIn("relation-judge-passages-1", versions)
         self.assertEqual(
             resolution.RESOLUTION_PROMPT_VERSION,
-            "entity-identity-ontology-3",
+            "entity-identity-ontology-4-strict-identity",
         )
         self.assertEqual(
             extraction.ENTITY_PROMPT_VERSION,

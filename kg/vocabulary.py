@@ -10,7 +10,7 @@ from .llm import JSONLLM
 from .models import CORE_RELATION_KINDS, ClaimObservation, EntityObservation
 
 
-RELATION_NORMALIZER_VERSION = "open-relation-normalizer-1"
+RELATION_NORMALIZER_VERSION = "open-relation-normalizer-2-null-safe"
 TYPE_NORMALIZER_VERSION = "open-type-normalizer-1"
 SYSTEM = """你是开放知识词表的归一裁判，不是知识来源。
 只能根据给出的原始标签、Source 证据和已有词表判断是否同义。相近但不相同必须
@@ -19,7 +19,7 @@ new 或 uncertain；宁可保留重复，也不要错误合并。只输出 JSON 
 
 @dataclass(frozen=True)
 class RelationResolution:
-    relation_type_id: int
+    relation_type_id: int | None
     canonical_name: str
     relation_kind: str
     outcome: str
@@ -88,9 +88,10 @@ relation_kind 只能是 is_a、part_of、prerequisite_of、other；它只是导�
             ),
             json.dumps(candidates, ensure_ascii=False),
         ),
+        validate=_validate_relation_payload,
     )
-    decision = str(payload.get("decision", "uncertain")).strip().lower()
-    reason = str(payload.get("reason", "")).strip()
+    decision = _text(payload.get("decision")).lower()
+    reason = _text(payload.get("reason"))
     candidate_ids = tuple(int(item["id"]) for item in candidates)
     if decision == "same":
         try:
@@ -109,10 +110,15 @@ relation_kind 只能是 is_a、part_of、prerequisite_of、other；它只是导�
             )
         decision = "uncertain"
         reason = reason or "same 返回非法 candidate_id"
-    if decision not in {"new", "uncertain"}:
-        decision = "uncertain"
-    canonical = str(payload.get("canonical_name", "")).strip() or raw
-    kind = str(payload.get("relation_kind", "other")).strip()
+    if decision == "uncertain":
+        # An uncertain judgment has not established a reusable predicate
+        # identity.  Keep the grounded observation pending instead of creating
+        # a global RelationType or poisoning the alias table.
+        return RelationResolution(
+            None, raw, "other", "uncertain", reason, candidate_ids
+        )
+    canonical = _text(payload.get("canonical_name"))
+    kind = _text(payload.get("relation_kind")) or "other"
     if kind not in CORE_RELATION_KINDS:
         kind = "other"
     collision = _relation_exact(conn, canonical)
@@ -127,7 +133,7 @@ relation_kind 只能是 is_a、part_of、prerequisite_of、other；它只是导�
     cursor = conn.execute(
         "INSERT INTO relation_types(canonical_name,normalized_name,relation_kind,description) VALUES (?,?,?,?)",
         (canonical, store.normalize_name(canonical), kind,
-         str(payload.get("description", "")).strip()),
+         _text(payload.get("description"))),
     )
     relation_id = int(cursor.lastrowid)
     if store.normalize_name(raw) != store.normalize_name(canonical):
@@ -148,6 +154,8 @@ def save_relation_resolution(
     *,
     model: str,
 ) -> None:
+    if result.relation_type_id is None:
+        return
     conn.execute(
         """INSERT OR IGNORE INTO relation_resolutions
            (observation_id,raw_relation,relation_type_id,outcome,
@@ -159,6 +167,29 @@ def save_relation_resolution(
             result.reason,
         ),
     )
+
+
+def _text(value: object) -> str:
+    return value.strip() if isinstance(value, str) else ""
+
+
+def _validate_relation_payload(payload: dict) -> dict:
+    decision = _text(payload.get("decision")).lower()
+    if decision not in {"same", "new", "uncertain"}:
+        raise ValueError("relation normalizer decision 非法或缺失")
+    if decision == "new":
+        canonical = _text(payload.get("canonical_name"))
+        if store.normalize_name(canonical) in {
+            "",
+            "none",
+            "null",
+            "n/a",
+            "unknown",
+            "未知",
+            "无",
+        }:
+            raise ValueError("new relation 缺少有效 canonical_name")
+    return payload
 
 
 def _type_exact(conn: sqlite3.Connection, label: str) -> sqlite3.Row | None:

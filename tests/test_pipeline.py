@@ -746,6 +746,127 @@ class PipelineTest(unittest.TestCase):
         self.assertEqual(row["canonical_name"], "梯度下降法")
         self.assertIn("GD", store.aliases_for(self.conn, resolved.entity_id))
 
+    def test_resolver_promotes_only_explicitly_accepted_alias_suggestions(self):
+        observed = EntityObservation(
+            name="小批量随机梯度下降",
+            definition="使用小批量样本估计梯度的优化算法",
+            entity_type="solution",
+            model_quote="小批量随机梯度下降",
+            source_text="小批量随机梯度下降使用小批量样本估计梯度。",
+            passage_ids=("P000001",),
+            location="P000001",
+            aliases=("mini-batch SGD", "随机梯度下降"),
+        )
+        llm = FakeLLM(
+            {
+                "decision": "new",
+                "canonical_name": "小批量随机梯度下降",
+                "accepted_aliases": ["mini-batch SGD", "未被抽取的别名"],
+                "identity_basis": "首次建立独立算法对象",
+                "distinguishing_test": "可与随机梯度下降比较，不能合并",
+                "reason": "新实体",
+            }
+        )
+
+        resolved = resolution.resolve_observation(self.conn, llm, observed)
+        aliases = store.aliases_for(self.conn, resolved.entity_id)
+
+        self.assertIn("mini-batch SGD", aliases)
+        self.assertNotIn("随机梯度下降", aliases)
+        self.assertNotIn("未被抽取的别名", aliases)
+
+    def test_same_decision_does_not_promote_rejected_alias_suggestions(self):
+        existing = EntityObservation(
+            name="随机梯度下降",
+            definition="每次使用一个样本估计梯度的优化算法",
+            entity_type="solution",
+            model_quote="随机梯度下降",
+            source_text="随机梯度下降的批量大小为1。",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        entity_id = store.create_entity(self.conn, existing)
+        observed = EntityObservation(
+            name="随机梯度下降算法",
+            definition="随机梯度下降的名称变体",
+            entity_type="method",
+            model_quote="随机梯度下降算法",
+            source_text="随机梯度下降算法也称SGD。",
+            passage_ids=("P000002",),
+            location="P000002",
+            aliases=("SGD", "mini-batch SGD"),
+        )
+        llm = FakeLLM(
+            {
+                "decision": "same",
+                "candidate_id": entity_id,
+                "accepted_aliases": ["SGD"],
+                "identity_basis": "名称变体和缩写指向同一算法",
+                "distinguishing_test": "名称可互换且对象边界不变",
+                "reason": "同一算法的语言和缩写变体",
+            },
+            {
+                "verdict": "confirmed_same",
+                "identity_scope": "global_name",
+                "strongest_identity_conflict": "不存在；只是名称后缀和缩写差异",
+                "reason": "独立确认是同一算法",
+            },
+        )
+
+        resolved = resolution.resolve_observation(self.conn, llm, observed)
+        aliases = store.aliases_for(self.conn, entity_id)
+
+        self.assertEqual(resolved.outcome, "same")
+        self.assertIn("随机梯度下降算法", aliases)
+        self.assertIn("SGD", aliases)
+        self.assertNotIn("mini-batch SGD", aliases)
+
+    def test_tentative_same_requires_independent_identity_confirmation(self):
+        existing = EntityObservation(
+            name="感官输入",
+            definition="认知过程接收的感官信息",
+            entity_type="concept",
+            model_quote="感官输入",
+            source_text="注意力会选择感官输入。",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        entity_id = store.create_entity(self.conn, existing)
+        # Simulate a legacy/polluted alias: it may retrieve a candidate, but it
+        # must not bypass either identity judgment.
+        store.add_alias(self.conn, entity_id, "值")
+        observed = EntityObservation(
+            name="值",
+            definition="注意力机制中与键配对的技术成分",
+            entity_type="component",
+            model_quote="值（感官输入）",
+            source_text="教学类比把值写作感官输入。",
+            passage_ids=("P000002",),
+            location="P000002",
+            aliases=("感官输入",),
+        )
+        llm = FakeLLM(
+            {
+                "decision": "same",
+                "candidate_id": entity_id,
+                "accepted_aliases": ["感官输入"],
+                "reason": "括号中并列出现",
+            },
+            {
+                "verdict": "reject_same",
+                "identity_scope": "passage_local",
+                "strongest_identity_conflict": "技术角色与教学类比对象可区分",
+                "reason": "局部映射不能成为全局同义",
+            },
+        )
+
+        resolved = resolution.resolve_observation(self.conn, llm, observed)
+
+        self.assertEqual(resolved.outcome, "uncertain")
+        self.assertNotEqual(resolved.entity_id, entity_id)
+        self.assertNotIn("感官输入", store.aliases_for(self.conn, resolved.entity_id))
+        self.assertIn("独立的身份否证检查", llm.calls[1][1])
+
     def test_exact_name_with_conflicting_type_requires_llm_identity_judgment(self):
         section = EntityObservation(
             name="玻尔兹曼机",

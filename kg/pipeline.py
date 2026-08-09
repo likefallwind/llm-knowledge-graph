@@ -383,7 +383,10 @@ def process_chunk(
             model=_model_name(fast_llm),
         )
         entity_id = resolved.entity_id
-        keys = (observation.name, *observation.aliases)
+        # Extraction aliases are suggestions until the identity resolver has
+        # accepted them.  Reusing raw suggestions here would bypass the
+        # resolver for Claim endpoints inside the same Chunk.
+        keys = (observation.name, *store.aliases_for(conn, entity_id))
         for name in keys:
             local_candidates.setdefault(store.reference_key(name), set()).add(
                 entity_id
@@ -451,11 +454,15 @@ def process_chunk(
             result.claims += int(materialized["claim_created"])
             result.assertions += int(materialized["assertion_created"])
             result.evidence += int(materialized["evidence_created"])
-        elif outcome == "pending_endpoint":
+        elif outcome in {"pending_endpoint", "pending_relation"}:
             row = observations.get_observation(conn, observation_id)
             result.pending.append(
                 {
-                    "stage": "endpoint_resolution",
+                    "stage": (
+                        "endpoint_resolution"
+                        if outcome == "pending_endpoint"
+                        else "relation_resolution"
+                    ),
                     "observation_id": observation_id,
                     "subject": str(row["subject_name"]),
                     "relation": str(row["relation"]),

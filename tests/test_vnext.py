@@ -7,7 +7,7 @@ import time
 import unittest
 from pathlib import Path
 
-from kg import db, extraction, pipeline, sources, store, structure, viz
+from kg import db, extraction, pipeline, sources, store, structure, viz, vocabulary
 from kg.models import (
     ClaimObservation,
     EntityObservation,
@@ -204,6 +204,83 @@ class VNextTest(unittest.TestCase):
         ).fetchone()
         self.assertEqual((row["relation"], row["relation_kind"]), ("改进自", "other"))
         self.assertEqual(store.integrity_report(self.conn)["ok"], True)
+
+    def test_uncertain_relation_does_not_create_type_or_alias(self):
+        claim = ClaimObservation(
+            "训练数据集",
+            "包含",
+            "输入特征",
+            "输入和标签构成训练数据集",
+            "输入和标签构成训练数据集。",
+            ("P000001",),
+            "P000001",
+            raw_relation="包含",
+            statement_text="训练数据集包含输入特征",
+        )
+        llm = FakeLLM(
+            {
+                "decision": "uncertain",
+                "candidate_id": None,
+                "canonical_name": None,
+                "relation_kind": "other",
+                "description": None,
+                "reason": "现有证据不足以确定全局谓词身份",
+            }
+        )
+
+        result = vocabulary.resolve_relation(self.conn, llm, claim)
+        vocabulary.save_relation_resolution(
+            self.conn, 1, "包含", result, model="FakeLLM"
+        )
+
+        self.assertIsNone(result.relation_type_id)
+        self.assertEqual(result.canonical_name, "包含")
+        self.assertEqual(result.outcome, "uncertain")
+        self.assertIsNone(
+            self.conn.execute(
+                "SELECT id FROM relation_types WHERE normalized_name IN ('none','包含')"
+            ).fetchone()
+        )
+        self.assertIsNone(
+            self.conn.execute(
+                "SELECT id FROM relation_aliases WHERE normalized_name='包含'"
+            ).fetchone()
+        )
+
+    def test_new_relation_with_null_name_is_rejected_without_database_write(self):
+        claim = ClaimObservation(
+            "A", "改进自", "B", "A 改进自 B", "A 改进自 B。",
+            ("P000001",), "P000001", raw_relation="改进自",
+            statement_text="A 改进自 B",
+        )
+        llm = FakeLLM(
+            {
+                "decision": "new",
+                "canonical_name": None,
+                "relation_kind": "other",
+                "description": None,
+                "reason": "缺少名称",
+            },
+            {
+                "decision": "new",
+                "canonical_name": None,
+                "relation_kind": "other",
+                "description": None,
+                "reason": "仍缺少名称",
+            },
+        )
+
+        with self.assertRaisesRegex(ValueError, "canonical_name"):
+            vocabulary.resolve_relation(self.conn, llm, claim)
+
+        self.assertEqual(
+            self.conn.execute("SELECT COUNT(*) FROM relation_types").fetchone()[0],
+            3,
+        )
+        self.assertEqual(
+            self.conn.execute("SELECT COUNT(*) FROM relation_aliases").fetchone()[0],
+            0,
+        )
 
     def test_all_visualization_views_are_self_contained(self):
         self._source("# 卷积网络\n\n## NiN\n\nNiN 是一种网络架构。")
