@@ -334,6 +334,11 @@ score(o, e) = max(similarity(normalize(o.name), normalize(name))
 
 若一方去空格后的名称包含另一方，score 至少提升到 `0.55`。
 
+若候选的 canonical name 或已验证 alias 直接出现在观察的 definition 或 model quote
+中，score 至少提升到 `0.72`。这用于召回原文宽泛称呼背后的实际指代，例如定义明确
+出现「键」但 observation name 是教学类比中的「非自主性提示」。字符串命中仍只负责
+召回，不构成身份或 alias 证据，也不增加模型调用。
+
 普通解析保留：
 
 ```text
@@ -350,6 +355,11 @@ MiniMax M3 看到：
 - 每个候选的 canonical name、aliases、definition、类型；
 - 候选最近最多三条 Entity Evidence。
 
+模型先根据 observation 的 definition、model quote 和 source text 识别实际指代，再
+执行 Entity 对齐。表面名称只在当前 passage 指向某个候选时，仍可将 observation
+关联该候选；是否把表面名称登记为全局 alias 继续使用原有 alias 裁决，不由局部指代
+自动推出。
+
 输出：
 
 ```text
@@ -361,10 +371,14 @@ uncertain(canonical_name)
 执行规则：
 
 - `same` 只有 candidate_id 确实来自候选集合时才复用实体。
+- tentative `same` 继续经过原有独立身份否证；确认实际指代相同但名称仅为局部用词时，
+  关联候选但不登记该表面名称为 alias。该分支不增加新的模型调用。
 - `new` 新建实体。
 - `uncertain` 也新建独立实体，不建立合并状态或审核队列。
 - 非法 decision 或非法 candidate_id 降级为 `uncertain`。
-- `new/uncertain` 返回的 canonical name 若已指向现有实体，退回观察名，避免通过名称冲突偷偷合并。
+- `new/uncertain` 的 canonical name 必须依据 observation 实际语义，使用语料已支持的
+  最小限定与已有实体消歧。若返回名称冲突而原始观察名本身无冲突，可退回原始名称；
+  两者都冲突时拒绝该无效结果，不能记录 `new/uncertain` 却偷偷复用已有 Entity。
 
 ### 6.5 后续重判
 

@@ -849,6 +849,7 @@ class PipelineTest(unittest.TestCase):
             {
                 "decision": "same",
                 "candidate_id": entity_id,
+                "canonical_name": "值（注意力机制）",
                 "accepted_aliases": ["感官输入"],
                 "reason": "括号中并列出现",
             },
@@ -866,6 +867,177 @@ class PipelineTest(unittest.TestCase):
         self.assertNotEqual(resolved.entity_id, entity_id)
         self.assertNotIn("感官输入", store.aliases_for(self.conn, resolved.entity_id))
         self.assertIn("独立的身份否证检查", llm.calls[1][1])
+
+    def test_candidate_recall_includes_entity_named_in_definition(self):
+        key = EntityObservation(
+            name="键",
+            definition="注意力机制中与查询匹配的技术成分",
+            entity_type="component",
+            model_quote="键与查询匹配",
+            source_text="键与查询匹配",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        key_id = store.create_entity(self.conn, key)
+        observed = EntityObservation(
+            name="非自主性提示",
+            definition="注意力机制中与值配对的键",
+            entity_type="component",
+            model_quote="每个值都与一个键配对",
+            source_text="键可以想象为感官输入的非自主性提示。",
+            passage_ids=("P000002",),
+            location="P000002",
+        )
+
+        candidates = resolution.candidate_entities(
+            self.conn, observed.name, observation=observed
+        )
+
+        candidate = next(item for item in candidates if item["id"] == key_id)
+        self.assertTrue(candidate["mentioned_in_observation"])
+        self.assertGreaterEqual(candidate["score"], 0.72)
+
+    def test_contextual_surface_name_links_without_global_alias(self):
+        general = EntityObservation(
+            name="梯度下降",
+            definition="沿负梯度方向更新参数的一般优化方法",
+            entity_type="优化算法",
+            model_quote="梯度下降",
+            source_text="梯度下降沿负梯度更新参数。",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        batch = EntityObservation(
+            name="批量梯度下降",
+            definition="每一步使用全部样本计算梯度",
+            entity_type="优化算法",
+            model_quote="批量梯度下降",
+            source_text="批量梯度下降使用全部样本。",
+            passage_ids=("P000002",),
+            location="P000002",
+        )
+        general_id = store.create_entity(self.conn, general)
+        batch_id = store.create_entity(self.conn, batch)
+        observed = EntityObservation(
+            name="梯度下降",
+            definition="一次以大批量处理全部数据的优化方法",
+            entity_type="优化算法",
+            model_quote="大批量一次处理数据的梯度下降",
+            source_text="小批量随机梯度下降比梯度下降更快。",
+            passage_ids=("P000003",),
+            location="P000003",
+        )
+        llm = FakeLLM(
+            {
+                "decision": "same",
+                "candidate_id": batch_id,
+                "canonical_name": "批量梯度下降",
+                "accepted_aliases": [],
+                "reason": "当前观察实际指向全批量变体",
+            },
+            {
+                "verdict": "confirmed_same",
+                "identity_scope": "passage_referent",
+                "strongest_identity_conflict": "表面名称较宽，但实际指代明确",
+                "reason": "确认当前语料指向批量梯度下降",
+            },
+        )
+        candidates = [
+            {
+                "id": general_id,
+                "canonical_name": "梯度下降",
+                "aliases": [],
+                "definition": general.definition,
+                "type_profile": [],
+                "evidence": [],
+                "score": 1.0,
+            },
+            {
+                "id": batch_id,
+                "canonical_name": "批量梯度下降",
+                "aliases": [],
+                "definition": batch.definition,
+                "type_profile": [],
+                "evidence": [],
+                "score": 0.72,
+            },
+        ]
+
+        with mock.patch("kg.resolution.candidate_entities", return_value=candidates):
+            resolved = resolution.resolve_observation(self.conn, llm, observed)
+
+        self.assertEqual(resolved.outcome, "same")
+        self.assertEqual(resolved.entity_id, batch_id)
+        self.assertNotIn("梯度下降", store.aliases_for(self.conn, batch_id))
+        self.assertIn("passage_referent", llm.calls[1][1])
+
+    def test_distinct_same_surface_requires_disambiguated_canonical_name(self):
+        existing = EntityObservation(
+            name="卷积",
+            definition="卷积层中不翻转卷积核的互相关运算",
+            entity_type="数学运算",
+            model_quote="卷积",
+            source_text="卷积层实际执行互相关。",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        existing_id = store.create_entity(self.conn, existing)
+        observed = EntityObservation(
+            name="卷积",
+            definition="翻转一个函数后计算重叠的数学运算",
+            entity_type="数学运算",
+            model_quote="数学中的卷积",
+            source_text="数学中的卷积需要翻转函数。",
+            passage_ids=("P000002",),
+            location="P000002",
+        )
+        llm = FakeLLM(
+            {
+                "decision": "new",
+                "canonical_name": "数学卷积",
+                "reason": "与深度学习中俗称卷积的互相关不同",
+            }
+        )
+
+        resolved = resolution.resolve_observation(self.conn, llm, observed)
+
+        self.assertNotEqual(resolved.entity_id, existing_id)
+        self.assertEqual(
+            store.get_entity(self.conn, resolved.entity_id)["canonical_name"],
+            "数学卷积",
+        )
+
+    def test_colliding_distinct_name_is_rejected_instead_of_fake_split(self):
+        existing = EntityObservation(
+            name="梯度下降",
+            definition="一般优化方法",
+            entity_type="优化算法",
+            model_quote="梯度下降",
+            source_text="梯度下降",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        store.create_entity(self.conn, existing)
+        observed = EntityObservation(
+            name="梯度下降",
+            definition="语义不同但尚未正确命名的对象",
+            entity_type="优化算法",
+            model_quote="梯度下降",
+            source_text="梯度下降",
+            passage_ids=("P000002",),
+            location="P000002",
+        )
+        llm = FakeLLM(
+            {
+                "decision": "new",
+                "canonical_name": "梯度下降",
+                "reason": "不同对象但没有完成名称消歧",
+            }
+        )
+
+        with self.assertRaisesRegex(ValueError, "canonical_name 与已有 Entity 冲突"):
+            resolution.resolve_observation(self.conn, llm, observed)
+        self.assertEqual(store.counts(self.conn)["entities"], 1)
 
     def test_exact_name_with_conflicting_type_requires_llm_identity_judgment(self):
         section = EntityObservation(

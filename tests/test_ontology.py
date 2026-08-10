@@ -110,7 +110,9 @@ class DefinitionsReachThePromptsTest(unittest.TestCase):
         self.assertIn("括号解释、教学类比、角色映射", prompt_seen[0])
         self.assertIn("不能提升为\n全局 alias", prompt_seen[0])
         self.assertIn("decision 必须与上述分析一致", prompt_seen[0])
-        self.assertIn("基础概念/算法族名称与带有限定词的变体名称", prompt_seen[0])
+        self.assertIn("基础概念/算法族与带有限定词的变体", prompt_seen[0])
+        self.assertIn("识别本观察的实际指代", prompt_seen[0])
+        self.assertIn("最小限定来消歧", prompt_seen[0])
         self.assertIn("值（感官输入）", prompt_seen[0])
         self.assertIn("随机梯度下降", prompt_seen[0])
         self.assertIn("小批量随机梯度下降", prompt_seen[0])
@@ -133,7 +135,7 @@ class PromptVersionsAreBumpedTest(unittest.TestCase):
         self.assertNotIn("relation-judge-passages-1", versions)
         self.assertEqual(
             resolution.RESOLUTION_PROMPT_VERSION,
-            "entity-identity-ontology-4-strict-identity",
+            "entity-identity-ontology-5-semantic-naming",
         )
         self.assertEqual(
             extraction.ENTITY_PROMPT_VERSION,
