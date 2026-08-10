@@ -255,6 +255,14 @@ def as_claim(conn: sqlite3.Connection, row: sqlite3.Row) -> ClaimObservation:
         entity = store.get_entity(conn, int(row["object_entity_id"]))
         if entity is not None:
             object_name = str(entity["canonical_name"])
+    relation_description = ""
+    if row["relation_type_id"] is not None:
+        relation_row = conn.execute(
+            "SELECT description FROM relation_types WHERE id=?",
+            (int(row["relation_type_id"]),),
+        ).fetchone()
+        if relation_row is not None:
+            relation_description = str(relation_row["description"])
     return ClaimObservation(
         subject=subject,
         relation=str(row["relation"]),
@@ -271,6 +279,7 @@ def as_claim(conn: sqlite3.Connection, row: sqlite3.Row) -> ClaimObservation:
             if row["relation_type_id"] is not None
             else None
         ),
+        relation_description=relation_description,
         statement_text=str(row["statement_text"]),
         scope_text=str(row["scope_text"]),
         scope_is_restrictive=bool(row["scope_is_restrictive"]),

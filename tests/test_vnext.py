@@ -178,12 +178,16 @@ class VNextTest(unittest.TestCase):
         )
         simple_llm = FakeLLM(
             {"decision": "new", "canonical_name": "改进自", "relation_kind": "other",
-             "description": "主语是在宾语基础上的改进", "reason": "不同于种子关系"},
+             "description": "主语是在宾语基础上的改进", "register_alias": False,
+             "projection_statement": "A 改进自 B",
+             "reason": "不同于种子关系"},
         )
         llm = FakeLLM(
             {"decision": "new", "canonical_name": "A", "reason": "首次出现"},
             {"decision": "new", "canonical_name": "B", "reason": "首次出现"},
-            {"verdict": "supports", "reason": "原文明示"},
+            {"assertion_verdict": "supports",
+             "projection_statement": "A 改进自 B",
+             "projection_faithful": True, "reason": "原文明示"},
         )
         result = pipeline.process_chunk(
             self.conn,
@@ -204,6 +208,54 @@ class VNextTest(unittest.TestCase):
         ).fetchone()
         self.assertEqual((row["relation"], row["relation_kind"]), ("改进自", "other"))
         self.assertEqual(store.integrity_report(self.conn)["ok"], True)
+
+    def test_same_relation_does_not_become_global_alias_without_separate_approval(self):
+        relation_id = self.conn.execute(
+            """INSERT INTO relation_types
+               (canonical_name,normalized_name,relation_kind,description)
+               VALUES ('包含组件','包含组件','other',
+                       '主语整体包含宾语组件，方向为整体到组件')"""
+        ).lastrowid
+        claim = ClaimObservation(
+            "模型", "包含", "组件", "模型包含组件", "模型包含组件。",
+            ("P000001",), "P000001", raw_relation="包含",
+            statement_text="模型包含组件",
+        )
+        response = {
+            "decision": "same",
+            "candidate_id": relation_id,
+            "canonical_name": "包含组件",
+            "relation_kind": "other",
+            "description": "主语整体包含宾语组件",
+            "projection_statement": "模型包含组件",
+            "register_alias": False,
+            "reason": "当前命题相同，但裸谓词依赖上下文",
+        }
+        first_llm = FakeLLM(response)
+        first = vocabulary.resolve_relation(self.conn, first_llm, claim)
+
+        self.assertEqual(first.relation_type_id, relation_id)
+        self.assertFalse(first.register_alias)
+        self.assertIsNone(
+            self.conn.execute(
+                "SELECT id FROM relation_aliases WHERE normalized_name='包含'"
+            ).fetchone()
+        )
+        self.assertIn('"statement": "模型包含组件"', first_llm.calls[0][1])
+
+        second_llm = FakeLLM({**response, "register_alias": True})
+        second = vocabulary.resolve_relation(self.conn, second_llm, claim)
+        self.assertTrue(second.register_alias)
+        self.assertIsNotNone(
+            self.conn.execute(
+                "SELECT id FROM relation_aliases WHERE normalized_name='包含'"
+            ).fetchone()
+        )
+
+        exact_llm = FakeLLM()
+        exact = vocabulary.resolve_relation(self.conn, exact_llm, claim)
+        self.assertEqual(exact.relation_type_id, relation_id)
+        self.assertEqual(exact_llm.calls, [])
 
     def test_uncertain_relation_does_not_create_type_or_alias(self):
         claim = ClaimObservation(

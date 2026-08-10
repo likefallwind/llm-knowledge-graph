@@ -91,7 +91,10 @@ class ClaimObservationTest(unittest.TestCase):
 
         self._entity(source_id, "待定方法")
         final_judge = FakeLLM(
-            {"verdict": "supports", "reason": "最终 Assertion 仍由原文支持"}
+            {"assertion_verdict": "supports",
+             "projection_statement": "待定方法是基础方法的一种",
+             "projection_faithful": True,
+             "reason": "最终 Assertion 仍由原文支持"}
         )
         report = observations.replay_pending(
             self.conn, final_judge, promote_threshold=3
@@ -223,9 +226,15 @@ class ClaimObservationTest(unittest.TestCase):
                 ],
                 "reason": "三个独立片段稳定指向同一对象",
             },
-            {"verdict": "supports", "reason": "第一条完整命题受支持"},
-            {"verdict": "supports", "reason": "第二条完整命题受支持"},
-            {"verdict": "supports", "reason": "第三条完整命题受支持"},
+            {"assertion_verdict": "supports",
+             "projection_statement": "候选方法是基础方法的一种",
+             "projection_faithful": True, "reason": "第一条完整命题受支持"},
+            {"assertion_verdict": "supports",
+             "projection_statement": "候选方法是基础方法的一种",
+             "projection_faithful": True, "reason": "第二条完整命题受支持"},
+            {"assertion_verdict": "supports",
+             "projection_statement": "候选方法是基础方法的一种",
+             "projection_faithful": True, "reason": "第三条完整命题受支持"},
         )
 
         report = observations.replay_pending(

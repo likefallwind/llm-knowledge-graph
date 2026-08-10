@@ -344,27 +344,6 @@ def process_chunk(
     # Grounded observations survive later identity, validation, or model failures.
     conn.commit()
 
-    for observation_id, claim in zip(observation_ids, batch.claims):
-        relation_result = vocabulary.resolve_relation(conn, fast_llm, claim)
-        conn.execute(
-            """UPDATE claim_observations
-               SET relation=?,relation_type_id=?,relation_kind=?,
-                   updated_at=CURRENT_TIMESTAMP WHERE id=?""",
-            (
-                relation_result.canonical_name,
-                relation_result.relation_type_id,
-                relation_result.relation_kind,
-                observation_id,
-            ),
-        )
-        vocabulary.save_relation_resolution(
-            conn,
-            observation_id,
-            claim.raw_relation or claim.relation,
-            relation_result,
-            model=_model_name(fast_llm),
-        )
-
     for observation_id, observation in zip(
         entity_observation_ids, batch.entities
     ):
@@ -414,6 +393,32 @@ def process_chunk(
         if len(entity_ids) == 1
     }
     observations.resolve_endpoint_ids(conn, observation_ids, local=local)
+    # Normalize relations only after endpoint resolution so the normalizer sees
+    # the final canonical endpoint names together with the complete Assertion.
+    for observation_id in observation_ids:
+        row = observations.get_observation(conn, observation_id)
+        if row is None:
+            continue
+        claim = observations.as_claim(conn, row)
+        relation_result = vocabulary.resolve_relation(conn, fast_llm, claim)
+        conn.execute(
+            """UPDATE claim_observations
+               SET relation=?,relation_type_id=?,relation_kind=?,
+                   updated_at=CURRENT_TIMESTAMP WHERE id=?""",
+            (
+                relation_result.canonical_name,
+                relation_result.relation_type_id,
+                relation_result.relation_kind,
+                observation_id,
+            ),
+        )
+        vocabulary.save_relation_resolution(
+            conn,
+            observation_id,
+            claim.raw_relation or claim.relation,
+            relation_result,
+            model=_model_name(fast_llm),
+        )
     observations.prepare_assertions(conn, observation_ids)
     rows = [
         observations.get_observation(conn, observation_id)

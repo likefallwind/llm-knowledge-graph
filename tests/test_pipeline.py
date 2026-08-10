@@ -295,9 +295,13 @@ class PipelineTest(unittest.TestCase):
                 "canonical_name": "批量梯度下降法",
                 "reason": "不同粒度对象",
             },
-            {"verdict": "supports", "reason": "明确说是一种"},
+            {"assertion_verdict": "supports",
+             "projection_statement": "卷积神经网络是神经网络的一种",
+             "projection_faithful": True, "reason": "明确说是一种"},
             second_extraction,
-            {"verdict": "supports", "reason": "独立来源明确支持"},
+            {"assertion_verdict": "supports",
+             "projection_statement": "卷积神经网络是神经网络的一种",
+             "projection_faithful": True, "reason": "独立来源明确支持"},
         )
         result = pipeline.process_catalog(self.conn, llm, catalog)
         self.assertFalse(result["failures"])
@@ -1180,7 +1184,9 @@ class PipelineTest(unittest.TestCase):
                 "canonical_name": "机器学习",
                 "reason": "不同对象",
             },
-            {"verdict": "insufficient", "reason": "只有共现"},
+            {"assertion_verdict": "insufficient",
+             "projection_statement": "候选实体与基础实体相关",
+             "projection_faithful": True, "reason": "只有共现"},
         )
         pipeline.process_catalog(self.conn, llm, catalog)
         self.assertEqual(store.counts(self.conn)["entities"], 2)

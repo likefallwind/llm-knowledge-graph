@@ -7,7 +7,7 @@ from .llm import JSONLLM
 from .models import ClaimObservation
 
 
-VALIDATION_PROMPT_VERSION = "canonical-assertion-judge-3-knowledge-admission"
+VALIDATION_PROMPT_VERSION = "canonical-assertion-judge-4-projection-faithfulness"
 
 VALIDATION_SYSTEM = """你是关系证据裁判，不是知识来源。
 只根据程序从 Source 取得的 source_text 判断关系；禁止使用外部知识补足省略信息。
@@ -32,19 +32,26 @@ def judge_claim(llm: JSONLLM, claim: ClaimObservation) -> tuple[str, str]:
     if relation_kind in {"is_a", "part_of", "prerequisite_of"}:
         relation_definition = ontology.relation_detail(relation_kind)
     else:
-        relation_definition = (
+        relation_definition = claim.relation_description or (
             "这是开放关系。source_text 必须明确表达 subject 通过该谓词指向 "
             "object；仅共现、主题相近、目录相邻、模型常识或可能的推断均不成立。"
         )
     payload = llm.complete_json(
         VALIDATION_SYSTEM,
-        """判断 source_text 相对于最终 Assertion 的含义。
-supports：source_text 明确表达完整 Assertion，规范化后的端点没有语义扩大，所有限制性
-条件、范围、否定、可能性和数量限制均被保留，且关系方向正确。
-contradicts：source_text 明确反对完整 Assertion。
-insufficient：只是共现、相关、强调、顺序，或触发了排除项、语义不完整、无法判断。
-先做判定测试，再逐条核对排除项；两者冲突时以排除项为准。
-返回 {"verdict":"supports|contradicts|insufficient","reason":"简短理由"}。
+        """分别完成两个判断，不得因为完整 Assertion 有原文支持，就默认三元组投影正确。
+
+1. assertion_verdict：只判断 source_text 是否明确支持或反对完整 Assertion。supports 要求
+完整保留条件、范围、否定、可能性和数量限制；否则为 insufficient。
+2. projection_faithful：先严格按照关系定义，把三元组口头化成
+“subject 通过 canonical relation 指向 object”的 projection_statement，再判断它是否与
+完整 Assertion 表达同一命题、方向一致。仅仅在 Assertion 中出现两个端点不够；若真正的
+主语或宾语是端点的参数、输出、组成部分等第三个对象，必须为 false。
+
+只有 assertion_verdict=supports 且 projection_faithful=true，最终关系才能作为支持证据；
+投影不忠实一律不准入。先做判定测试，再逐条核对排除项；冲突时以排除项为准。
+返回 {"assertion_verdict":"supports|contradicts|insufficient",
+"projection_statement":"按关系定义口头化后的三元组命题",
+"projection_faithful":true,"reason":"同时解释两个判断"}。
 
 三元组投影：%s
 完整 Assertion：%s
@@ -73,9 +80,22 @@ source_text（唯一权威证据）：%s"""
             json.dumps(claim.model_quote, ensure_ascii=False),
             json.dumps(claim.source_text, ensure_ascii=False),
         ),
+        validate=_validate_judgment_payload,
     )
-    verdict = str(payload.get("verdict", "")).strip().lower()
+    verdict = str(payload.get("assertion_verdict", "")).strip().lower()
     reason = str(payload.get("reason", "")).strip()
-    if verdict not in {"supports", "contradicts", "insufficient"}:
-        return "insufficient", reason or "validator 返回非法 verdict"
+    if payload.get("projection_faithful") is not True:
+        return "insufficient", reason or "最终三元组不能忠实投影完整 Assertion"
     return verdict, reason
+
+
+def _validate_judgment_payload(payload: dict) -> dict:
+    verdict = str(payload.get("assertion_verdict", "")).strip().lower()
+    if verdict not in {"supports", "contradicts", "insufficient"}:
+        raise ValueError("validator 返回非法 assertion_verdict")
+    if not isinstance(payload.get("projection_faithful"), bool):
+        raise ValueError("validator 缺少 projection_faithful")
+    projection = str(payload.get("projection_statement", "")).strip()
+    if not projection:
+        raise ValueError("validator 缺少 projection_statement")
+    return payload

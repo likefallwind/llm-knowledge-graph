@@ -88,6 +88,7 @@ class ClaimObservation:
     scope_text: str = ""
     scope_is_restrictive: bool = False
     normalized_statement: str = ""
+    relation_description: str = ""
 
 
 @dataclass(frozen=True)

@@ -33,7 +33,12 @@ class DefinitionsReachThePromptsTest(unittest.TestCase):
 
     def test_judge_prompt_carries_the_relation_exclusions(self):
         for relation in sorted(RELATIONS):
-            llm = FakeLLM({"verdict": "insufficient", "reason": "r"})
+            llm = FakeLLM({
+                "assertion_verdict": "insufficient",
+                "projection_statement": "甲通过关系指向乙",
+                "projection_faithful": True,
+                "reason": "r",
+            })
             validation.judge_claim(
                 llm,
                 ClaimObservation(
@@ -51,6 +56,32 @@ class DefinitionsReachThePromptsTest(unittest.TestCase):
             for text in ontology.RELATION_BY_NAME[relation].excludes:
                 with self.subTest(relation=relation, exclude=text[:20]):
                     self.assertIn(text, user_prompt)
+
+    def test_open_relation_description_and_projection_gate_reach_judge(self):
+        llm = FakeLLM({
+            "assertion_verdict": "supports",
+            "projection_statement": "整体是组件集合中的成员",
+            "projection_faithful": False,
+            "reason": "完整句有证据，但投影方向相反",
+        })
+        verdict, reason = validation.judge_claim(
+            llm,
+            ClaimObservation(
+                subject="整体",
+                relation="is_member_of",
+                object="组件",
+                model_quote="整体包含组件",
+                source_text="整体包含组件。",
+                passage_ids=("P000001",),
+                location="loc",
+                statement_text="整体包含组件",
+                relation_description="主语是宾语集合中的成员",
+            ),
+        )
+
+        self.assertEqual(verdict, "insufficient")
+        self.assertIn("投影方向相反", reason)
+        self.assertIn("主语是宾语集合中的成员", llm.calls[0][1])
 
     def test_live_failure_boundaries_remain_explicit(self):
         part_of = ontology.RELATION_BY_NAME["part_of"]
@@ -111,6 +142,8 @@ class DefinitionsReachThePromptsTest(unittest.TestCase):
         self.assertIn("不能提升为\n全局 alias", prompt_seen[0])
         self.assertIn("decision 必须与上述分析一致", prompt_seen[0])
         self.assertIn("基础概念/算法族与带有限定词的变体", prompt_seen[0])
+        self.assertIn("定义只覆盖了不同使用场景", prompt_seen[0])
+        self.assertIn("不得仅因\n候选先在 LSTM", prompt_seen[0])
         self.assertIn("识别本观察的实际指代", prompt_seen[0])
         self.assertIn("最小限定来消歧", prompt_seen[0])
         self.assertIn("值（感官输入）", prompt_seen[0])
@@ -135,7 +168,7 @@ class PromptVersionsAreBumpedTest(unittest.TestCase):
         self.assertNotIn("relation-judge-passages-1", versions)
         self.assertEqual(
             resolution.RESOLUTION_PROMPT_VERSION,
-            "entity-identity-ontology-5-semantic-naming",
+            "entity-identity-ontology-6-contextual-definition",
         )
         self.assertEqual(
             extraction.ENTITY_PROMPT_VERSION,
@@ -147,7 +180,7 @@ class PromptVersionsAreBumpedTest(unittest.TestCase):
         )
         self.assertEqual(
             validation.VALIDATION_PROMPT_VERSION,
-            "canonical-assertion-judge-3-knowledge-admission",
+            "canonical-assertion-judge-4-projection-faithfulness",
         )
 
 
