@@ -170,6 +170,7 @@ def create_entity(
     observation: EntityObservation,
     *,
     canonical_name: str = "",
+    include_observation_name_alias: bool = True,
 ) -> int:
     canonical = canonical_name.strip() or observation.name
     normalized = normalize_name(canonical)
@@ -187,7 +188,12 @@ def create_entity(
             (canonical, normalized, observation.definition),
         )
         entity_id = int(cursor.lastrowid)
-    for alias in (observation.name, *observation.aliases):
+    aliases = (
+        (observation.name, *observation.aliases)
+        if include_observation_name_alias
+        else observation.aliases
+    )
+    for alias in aliases:
         add_alias(conn, entity_id, alias)
     return entity_id
 

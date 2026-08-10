@@ -4,6 +4,7 @@ import json
 import tempfile
 import threading
 import unittest
+from dataclasses import replace
 from pathlib import Path
 from unittest import mock
 
@@ -1007,7 +1008,7 @@ class PipelineTest(unittest.TestCase):
             "数学卷积",
         )
 
-    def test_colliding_distinct_name_is_rejected_instead_of_fake_split(self):
+    def test_colliding_new_name_retries_semantic_naming_only(self):
         existing = EntityObservation(
             name="梯度下降",
             definition="一般优化方法",
@@ -1032,10 +1033,52 @@ class PipelineTest(unittest.TestCase):
                 "decision": "new",
                 "canonical_name": "梯度下降",
                 "reason": "不同对象但没有完成名称消歧",
-            }
+            },
+            {
+                "canonical_name": "批量梯度下降",
+                "naming_basis": "语料明确说明每步使用全部样本",
+            },
         )
 
-        with self.assertRaisesRegex(ValueError, "canonical_name 与已有 Entity 冲突"):
+        resolved = resolution.resolve_observation(self.conn, llm, observed)
+
+        self.assertEqual(resolved.outcome, "new")
+        self.assertEqual(store.counts(self.conn)["entities"], 2)
+        self.assertEqual(
+            store.get_entity(self.conn, resolved.entity_id)["canonical_name"],
+            "批量梯度下降",
+        )
+        self.assertNotIn("梯度下降", store.aliases_for(self.conn, resolved.entity_id))
+        self.assertIn("只修正语义命名", llm.calls[1][1])
+
+    def test_colliding_new_name_is_rejected_if_retry_still_collides(self):
+        existing = EntityObservation(
+            name="梯度下降",
+            definition="一般优化方法",
+            entity_type="优化算法",
+            model_quote="梯度下降",
+            source_text="梯度下降",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        store.create_entity(self.conn, existing)
+        observed = replace(
+            existing,
+            definition="语义不同但尚未正确命名的对象",
+            passage_ids=("P000002",),
+            location="P000002",
+        )
+        llm = FakeLLM(
+            {
+                "decision": "new",
+                "canonical_name": "梯度下降",
+                "reason": "不同对象但没有完成名称消歧",
+            },
+            {"canonical_name": "梯度下降", "naming_basis": "无区分"},
+            {"canonical_name": "梯度下降", "naming_basis": "仍无区分"},
+        )
+
+        with self.assertRaisesRegex(ValueError, "语义重命名仍与已有 Entity 冲突"):
             resolution.resolve_observation(self.conn, llm, observed)
         self.assertEqual(store.counts(self.conn)["entities"], 1)
 

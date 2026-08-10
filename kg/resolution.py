@@ -242,23 +242,42 @@ type_labels 是开放类别词。以下旧标签仅用于解释历史观察，�
         decision = "uncertain"
         reason = reason or "resolver 返回了非法 decision"
     # A distinct judgment with a colliding name is an invalid semantic naming
-    # result.  Never silently turn it into the existing Entity while recording
-    # `new`/`uncertain`; the caller can retry the grounded observation later.
+    # result. Never silently turn it into the existing Entity while recording
+    # `new`/`uncertain`; only a `new` result gets one bounded naming-only retry.
     if not canonical:
         raise ValueError(f"{decision} entity 缺少有效 canonical_name")
     collisions = store.exact_entity_ids(conn, canonical)
     if collisions:
-        raw_name = _canonical_name(observation.name)
-        if raw_name and not store.exact_entity_ids(conn, raw_name):
-            canonical = raw_name
-        else:
-            raise ValueError(
-                f"{decision} entity canonical_name 与已有 Entity 冲突: "
-                f"{canonical!r} -> {collisions}"
+        if decision == "new":
+            canonical = _retry_colliding_new_name(
+                conn,
+                llm,
+                observation=observation,
+                proposed_name=canonical,
+                collision_ids=collisions,
+                candidates=candidates,
+                identity_reason=reason,
             )
+        else:
+            raw_name = _canonical_name(observation.name)
+            if raw_name and not store.exact_entity_ids(conn, raw_name):
+                canonical = raw_name
+            else:
+                raise ValueError(
+                    f"{decision} entity canonical_name 与已有 Entity 冲突: "
+                    f"{canonical!r} -> {collisions}"
+                )
     reviewed_observation = replace(observation, aliases=accepted_aliases)
     entity_id = store.create_entity(
-        conn, reviewed_observation, canonical_name=canonical
+        conn,
+        reviewed_observation,
+        canonical_name=canonical,
+        # A surface name that already identifies another Entity is contextual
+        # evidence for this observation, not a safe global alias for the new
+        # semantically disambiguated Entity.
+        include_observation_name_alias=not bool(
+            store.exact_entity_ids(conn, observation.name)
+        ),
     )
     return Resolution(
         entity_id=entity_id,
@@ -266,6 +285,85 @@ type_labels 是开放类别词。以下旧标签仅用于解释历史观察，�
         reason=reason,
         candidates=candidate_ids,
     )
+
+
+def _retry_colliding_new_name(
+    conn: sqlite3.Connection,
+    llm: JSONLLM,
+    *,
+    observation: EntityObservation,
+    proposed_name: str,
+    collision_ids: list[int],
+    candidates: list[dict[str, Any]],
+    identity_reason: str,
+) -> str:
+    """Retry semantic naming only after a grounded `new` decision collides."""
+    conflicts = [_entity_context(conn, entity_id) for entity_id in collision_ids]
+
+    def validate(payload: dict[str, Any]) -> dict[str, Any]:
+        canonical = _canonical_name(payload.get("canonical_name"))
+        if not canonical:
+            raise ValueError("语义重命名缺少有效 canonical_name")
+        collisions = store.exact_entity_ids(conn, canonical)
+        if collisions:
+            raise ValueError(
+                "语义重命名仍与已有 Entity 冲突: "
+                f"{canonical!r} -> {collisions}"
+            )
+        return payload
+
+    payload = llm.complete_json(
+        RESOLUTION_SYSTEM,
+        """第一次身份裁决已经确定新观察是独立知识对象（decision=new），但给出的
+canonical_name 与已有 Entity 冲突。现在只修正语义命名，不得重新判断身份，不得合并
+实体，也不得添加或修改 alias。
+
+名称必须准确表达 definition 中的实际对象，并使用 source_text、model_quote 或
+definition 已明确支持的最小限定来说明它与冲突实体的身份边界。不要只重复观察原名或
+冲突名称；不要引入语料没有提供的知识。若对象是某种结构、模型、语言单元、实现函数、
+算法变体或其他带限定的对象，应把造成身份差异的限定保留在 canonical_name 中。
+
+只返回：
+{
+  "canonical_name": "不与已有 Entity 冲突、且有语料依据的语义规范名",
+  "naming_basis": "该限定由哪段输入支持"
+}
+
+新观察：
+%s
+
+第一次裁决理由：
+%s
+
+第一次冲突名称：
+%s
+
+直接冲突实体：
+%s
+
+第一次裁决看到的全部候选：
+%s"""
+        % (
+            json.dumps(
+                {
+                    "name": observation.name,
+                    "definition": observation.definition,
+                    "type_labels": observation.type_labels
+                    or ((observation.entity_type,) if observation.entity_type else ()),
+                    "model_quote": observation.model_quote,
+                    "source_text": observation.source_text,
+                    "passage_ids": observation.passage_ids,
+                },
+                ensure_ascii=False,
+            ),
+            identity_reason,
+            proposed_name,
+            json.dumps(conflicts, ensure_ascii=False),
+            json.dumps(candidates, ensure_ascii=False),
+        ),
+        validate=validate,
+    )
+    return _canonical_name(payload.get("canonical_name"))
 
 
 def _confirm_same(
