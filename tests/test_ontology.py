@@ -163,7 +163,7 @@ class PromptVersionsAreBumpedTest(unittest.TestCase):
         self.assertNotIn("relation-judge-passages-1", versions)
         self.assertEqual(
             resolution.RESOLUTION_PROMPT_VERSION,
-            "entity-identity-ontology-9-alias-visible",
+            "entity-identity-ontology-10-knowledge-aliases-top10",
         )
         self.assertEqual(
             extraction.ENTITY_PROMPT_VERSION,

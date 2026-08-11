@@ -11,7 +11,7 @@ from .llm import JSONLLM
 from .models import EntityObservation, Resolution
 
 
-RESOLUTION_PROMPT_VERSION = "entity-identity-ontology-9-alias-visible"
+RESOLUTION_PROMPT_VERSION = "entity-identity-ontology-10-knowledge-aliases-top10"
 
 IDENTITY_KNOWLEDGE_POLICY = """你可以使用可靠的通用知识判断术语的通常含义、同义关系、
 翻译、缩写，以及概念、实现、子类、实例之间的身份边界。原文和语境用于确定当前名称
@@ -33,11 +33,18 @@ def candidate_entities(
     name: str,
     *,
     observation: EntityObservation | None = None,
-    limit: int = 5,
+    limit: int = 10,
     threshold: float = 0.35,
     exclude_id: int | None = None,
 ) -> list[dict[str, Any]]:
-    query = store.normalize_name(name)
+    query_names = [name]
+    if observation is not None:
+        query_names.extend(observation.aliases)
+    queries = [
+        store.normalize_name(value)
+        for value in dict.fromkeys(query_names)
+        if value.strip()
+    ]
     semantic_text = ""
     if observation is not None:
         semantic_text = store.normalize_name(
@@ -51,12 +58,15 @@ def candidate_entities(
         names = [str(row["canonical_name"]), *store.aliases_for(conn, entity_id)]
         score = max(
             SequenceMatcher(None, query, store.normalize_name(value)).ratio()
+            for query in queries
             for value in names
         )
-        compact_query = query.replace(" ", "")
+        compact_queries = [query.replace(" ", "") for query in queries]
         compact_names = [store.normalize_name(value).replace(" ", "") for value in names]
         if any(
-            compact_query in value or value in compact_query for value in compact_names
+            query in value or value in query
+            for query in compact_queries
+            for value in compact_names
         ):
             score = max(score, 0.55)
         mentioned_names = [
@@ -119,6 +129,11 @@ def resolve_observation(
 正式名/简称等确实指向同一对象的名称，才能放入 accepted_aliases。实现名、类名、实例名、
 角色映射和只在当前语境成立的称呼不得作为全局 alias。
 
+你还可以基于可靠通用知识在 knowledge_aliases 中补充当前语料没有直接列出的标准翻译、
+英文全称、通行缩写、正式名/简称或纯拼写格式变体，最多 5 个。这里只能放跨语境仍唯一
+指向同一对象的标准名称；普通近义词、上位/下位概念、相关对象、实现/API/实例、局部角色、
+教学类比和不确定名称一律不得加入。没有高度可靠的补充名称时返回空数组。
+
 候选的 type_profile 是历次局部类型观察，只是辅助线索，不是身份白名单；类型不同不能
 覆盖对术语通常含义和实际对象边界的判断。
 
@@ -145,6 +160,7 @@ resource，不能删去章节编号或载体限定后变成同名知识内容；
   "candidate_id": 仅 same 时填写候选 id，否则为 null,
   "canonical_name": "实际语义的规范名称；所有 decision 都填写，new/uncertain 必须有据且可区分",
   "accepted_aliases": ["仅从新观察 aliases 中选择确认是全局同一名称的字符串"],
+  "knowledge_aliases": ["可靠通用知识确认的标准翻译、全称、缩写或名称变体，最多5个"],
   "identity_basis": "说明基于通用知识与当前义项得出的身份结论",
   "distinguishing_test": "说明是否存在真正的对象边界，而不是场景或定义详略差异",
   "reason": "简短理由"
@@ -319,6 +335,7 @@ canonical_name 中；应用场景本身不是限定。
             json.dumps(
                 {
                     "name": observation.name,
+                    "aliases": observation.aliases,
                     "definition": observation.definition,
                     "type_labels": observation.type_labels
                     or ((observation.entity_type,) if observation.entity_type else ()),
@@ -386,6 +403,7 @@ def _confirm_same(
             json.dumps(
                 {
                     "name": observation.name,
+                    "aliases": observation.aliases,
                     "definition": observation.definition,
                     "type_labels": observation.type_labels
                     or ((observation.entity_type,) if observation.entity_type else ()),
@@ -421,7 +439,7 @@ def _canonical_name(value: Any) -> str:
 def _accepted_aliases(
     payload: dict[str, Any], observation: EntityObservation
 ) -> tuple[str, ...]:
-    """Keep only resolver-reviewed aliases that were proposed by extraction."""
+    """Return source-proposed and resolver-generated standard name variants."""
     raw = payload.get("accepted_aliases", [])
     if not isinstance(raw, list):
         return ()
@@ -439,6 +457,16 @@ def _accepted_aliases(
         if normalized in proposed and normalized not in seen:
             accepted.append(proposed[normalized])
             seen.add(normalized)
+    knowledge = payload.get("knowledge_aliases", [])
+    if isinstance(knowledge, list):
+        for value in knowledge[:5]:
+            if not isinstance(value, str) or not value.strip():
+                continue
+            alias = value.strip()
+            normalized = store.normalize_name(alias)
+            if normalized not in seen:
+                accepted.append(alias)
+                seen.add(normalized)
     return tuple(accepted)
 
 

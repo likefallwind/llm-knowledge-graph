@@ -806,6 +806,7 @@ class PipelineTest(unittest.TestCase):
                 "decision": "new",
                 "canonical_name": "小批量随机梯度下降",
                 "accepted_aliases": ["mini-batch SGD", "未被抽取的别名"],
+                "knowledge_aliases": ["mini-batch stochastic gradient descent"],
                 "identity_basis": "首次建立独立算法对象",
                 "distinguishing_test": "可与随机梯度下降比较，不能合并",
                 "reason": "新实体",
@@ -816,6 +817,7 @@ class PipelineTest(unittest.TestCase):
         aliases = store.aliases_for(self.conn, resolved.entity_id)
 
         self.assertIn("mini-batch SGD", aliases)
+        self.assertIn("mini-batch stochastic gradient descent", aliases)
         self.assertNotIn("随机梯度下降", aliases)
         self.assertNotIn("未被抽取的别名", aliases)
         resolver_request = llm.calls[0][1]
@@ -823,6 +825,79 @@ class PipelineTest(unittest.TestCase):
             '"aliases": ["mini-batch SGD", "随机梯度下降"]',
             resolver_request,
         )
+
+    def test_resolver_can_register_reliable_knowledge_aliases(self):
+        observed = EntityObservation(
+            name="支持向量机",
+            definition="通过最大化分类间隔构造决策边界的监督学习方法",
+            entity_type="method",
+            model_quote="支持向量机使用最大间隔分类器。",
+            source_text="支持向量机使用最大间隔分类器。",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        llm = FakeLLM(
+            {
+                "decision": "new",
+                "canonical_name": "支持向量机",
+                "accepted_aliases": [],
+                "knowledge_aliases": ["Support Vector Machine", "SVM"],
+                "reason": "标准英文全称与缩写可跨语境互换",
+            }
+        )
+
+        resolved = resolution.resolve_observation(self.conn, llm, observed)
+        aliases = store.aliases_for(self.conn, resolved.entity_id)
+
+        self.assertIn("Support Vector Machine", aliases)
+        self.assertIn("SVM", aliases)
+
+    def test_candidate_recall_uses_incoming_observation_aliases(self):
+        existing = EntityObservation(
+            name="Gated Recurrent Unit",
+            definition="使用门控机制的循环神经网络单元",
+            entity_type="component",
+            aliases=("GRU",),
+            model_quote="Gated Recurrent Unit",
+            source_text="Gated Recurrent Unit",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        entity_id = store.create_entity(self.conn, existing)
+        incoming = EntityObservation(
+            name="门控循环单元",
+            definition="使用门控机制控制循环状态的信息流",
+            entity_type="component",
+            aliases=("GRU",),
+            model_quote="门控循环单元",
+            source_text="门控循环单元使用门控机制。",
+            passage_ids=("P000002",),
+            location="P000002",
+        )
+
+        candidates = resolution.candidate_entities(
+            self.conn, incoming.name, observation=incoming
+        )
+
+        candidate = next(item for item in candidates if item["id"] == entity_id)
+        self.assertEqual(candidate["score"], 1.0)
+
+    def test_candidate_recall_returns_ten_by_default(self):
+        for index in range(12):
+            item = EntityObservation(
+                name=f"候选概念{index}",
+                definition=f"候选概念{index}的解释",
+                entity_type="concept",
+                model_quote=f"候选概念{index}",
+                source_text=f"候选概念{index}",
+                passage_ids=("P000001",),
+                location="P000001",
+            )
+            store.create_entity(self.conn, item)
+
+        candidates = resolution.candidate_entities(self.conn, "候选概念")
+
+        self.assertEqual(len(candidates), 10)
 
     def test_same_decision_does_not_promote_rejected_alias_suggestions(self):
         existing = EntityObservation(

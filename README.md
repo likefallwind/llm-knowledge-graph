@@ -28,6 +28,9 @@ Read → Structure → Extract Entities → Extract Relations → Normalize → 
 - 实体对齐只有 `same / new / uncertain`。`uncertain` 会保留独立实体，之后可用 `reconcile` 重新判断。
 - 名称、字符串相似度、局部类型和 definition 都只是 identity 候选与义项线索；即使唯一
   精确同名也由 LLM 基于通用知识做最终判断，原文主要用于确定当前提及的义项。
+- identity 候选召回使用 observation 的名称和待审核 aliases，对已有 Entity 的规范名和已
+  验证 aliases 取相似度最高的前 10 个；这些字符串只负责召回。resolver 可补充最多五个
+  可靠通用知识中的标准翻译、英文全称、通行缩写或名称变体，明确审核后才注册。
 - `Entity.definition` 不由第一次抽取永久决定。主流程结束时，同一 Entity 的全部
   EntityObservation 用于锚定当前义项和具体语料事实，定义整理器可使用可靠通用知识补全
   通常含义、上位类别和跨场景稳定特征，形成用于身份识别的规范概念解释。聚合结果保存所

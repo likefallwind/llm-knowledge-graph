@@ -329,11 +329,13 @@ normalize(name) = collapse_whitespace(normalize(name))
 
 ### 6.3 候选召回
 
-当前第一版对所有 Entity 的 canonical name 和 aliases 计算 `SequenceMatcher` 相似度：
+当前第一版用观察的 name 和待审核 aliases，对所有 Entity 的 canonical name 和已验证
+aliases 计算 `SequenceMatcher` 相似度：
 
 ```text
-score(o, e) = max(similarity(normalize(o.name), normalize(name))
-                  for name in canonical_and_aliases(e))
+score(o, e) = max(similarity(normalize(query_name), normalize(entity_name))
+                  for query_name in [o.name, *o.aliases]
+                  for entity_name in canonical_and_aliases(e))
 ```
 
 若一方去空格后的名称包含另一方，score 至少提升到 `0.55`。
@@ -346,7 +348,7 @@ score(o, e) = max(similarity(normalize(o.name), normalize(name))
 普通解析保留：
 
 ```text
-score >= 0.35 的前 5 个候选
+score >= 0.35 的前 10 个候选
 ```
 
 相似度只负责召回，绝不自动合并。
@@ -365,6 +367,9 @@ MiniMax M3 看到：
 只在当前 passage 指向某个候选时，仍可将 observation
 关联该候选；是否把表面名称登记为全局 alias 继续使用原有 alias 裁决，不由局部指代
 自动推出。
+模型可另行返回最多五个 `knowledge_aliases`，只用于可靠通用知识中跨语境安全互换的标准
+翻译、英文全称、通行缩写、正式名/简称或拼写变体。普通近义词、相关概念、实现/API、
+实例和局部角色不得注册。原文 aliases 与知识 aliases 均须由 resolver 明确接受后才写入。
 
 输出：
 

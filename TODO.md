@@ -37,9 +37,9 @@
 - `3340ccc`：只提升模型明确接受的 alias 建议，并改进 identity/relation 处理。
 - `397bda1`：扩充候选召回与 identity 消歧上下文。
 - `f48d21a`：规范名碰撞时重试 semantic naming。
-- 当前 `kg/resolution.py`：`entity-identity-ontology-9-alias-visible`。v9 修复了 v8 构造
-  identity 请求时遗漏 `EntityObservation.aliases` 的问题；抽取出来的翻译、缩写和英文名
-  现在会真正交给 resolver 审核，仍只有明确返回 `accepted_aliases` 的名称才注册。
+- 当前 `kg/resolution.py`：`entity-identity-ontology-10-knowledge-aliases-top10`。v9 修复了
+  identity 请求遗漏 `EntityObservation.aliases` 的问题；v10 进一步让 observation aliases
+  参与候选召回、将候选上限从 5 提到 10，并允许 resolver 补充严格限定的标准知识名称变体。
 
 47 个完整 chunk 的冻结分析见 `tmp/fresh47-quality-analysis-20260810.md`。关键结论：
 
@@ -231,10 +231,37 @@ paddle                     -> same Entity #1
 `tmp/alias-resolution-v9-smoke.db`。确定性全套验证仍为
 `111 passed, 22 subtests passed`，`compileall` 和 `git diff --check` 通过。
 
+### 9. 已完成：知识 alias、incoming alias 召回与 Top 10 回归
+
+v9 冒烟之后的 6 组并发 6 测试确认了一个剩余边界：只在语料分别出现“支持向量机/SVM”
+或“主成分分析/PCA”、且抽取没有给第一条 Observation 提出 alias 时，模型虽知道两者相同，
+但字符串召回为空，旧流程仍会创建两个 Entity。当前 v10 做了三项有界修改：
+
+- observation 的 name 与待审核 aliases 都可用于候选召回；这只扩大 LLM 看到的候选，不
+  直接证明 `same`，也不绕过 alias 审核。
+- 普通 identity 候选上限从 5 提高到 10。
+- resolver 可返回最多五个 `knowledge_aliases`，仅限可靠通用知识中的标准翻译、英文全称、
+  通行缩写、正式名/简称和拼写变体；原文 alias 仍单独通过 `accepted_aliases` 审核。
+
+同一批真实 MiniMax-M3 顺序测试在 `workers=6` 下由 v9 的 `4/6` 提升为 v10 的 `6/6`：
+
+```text
+飞桨                    -> paddle                    same
+批量规范化              -> BN                        same
+Gated Recurrent Unit    -> 门控循环单元              same
+Convolutional Neural Network -> 卷积神经网络          same
+支持向量机（无原文 alias） -> SVM                    same
+主成分分析（无原文 alias） -> PCA                    same
+```
+
+最后两组在第二条到来前已由 resolver 注册标准全称与缩写，候选分数均为 `1.0`。
+结果文件：`tmp/alias-resolution-v10-eval6-20260811-201559.json`。确定性验证为
+`114 passed, 22 subtests passed`，`compileall` 和 `git diff --check` 通过。
+
 下一步不要立即全量运行；应先在全新独立数据库重跑同一批 50 个 chunk，确认真实抽取顺序、
 候选召回和 identity 组合仍稳定，再决定是否全书重跑。
 
-### 9. 当前仓库与实验状态摘要
+### 10. 当前仓库与实验状态摘要
 
 - 当前分支：`experiment/assertion-layer-pilot`。
 - 当前 HEAD：`14366a7`，与 `origin/experiment/assertion-layer-pilot` 一致。
