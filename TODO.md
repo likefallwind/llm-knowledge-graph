@@ -1,6 +1,6 @@
 # TODO 与探索记录
 
-最后更新：2026-08-08
+最后更新：2026-08-11
 
 正式库状态：《动手学深度学习》(D2L) 单本书已跑完，数据仍在 `data/knowledge-vnext.db`
 （schema v9，3817 实体 / 6901 Claim / 17297 Evidence / 1105 片段全部 done，`kg check` 通过）。
@@ -9,6 +9,242 @@
 
 > 注意：`data/knowledge.db`（默认路径）仍是 6 个实体的旧库。跑 CLI 记得带
 > `--db data/knowledge-vnext.db`。
+
+---
+
+## 2026-08-09 至 2026-08-11：Entity resolution、None 边与关系投影修复
+
+这一轮是在 schema v10 Assertion 实验之上继续修质量问题。所有真实实验仍写入 `tmp/`
+独立数据库，**没有覆盖 `data/knowledge-vnext.db` 正式库**。
+
+### 1. 已完成：Entity resolution 与语义命名
+
+最初的明确错误是把不同概念错误合并，例如随机梯度下降、小批量随机梯度下降和批量梯度
+下降。讨论后确定的原则不是建立全局身份证明、机械枚举否决规则或全图二次重判，而是：
+
+- 继续使用现有 LLM identity/alias 判断，不增加一轮独立 alias 审查和额外 API 调用。
+- 第一次 identity 判断更严格，`same` 必须是同一概念，而不是相关、上下位、组件、参数、
+  实现方式或仅在某场景中一起出现。
+- 当前上下文中的简称可以解析到正确 Entity，但只有模型明确接受的 alias 建议才注册为永久
+  全局 alias；“本句指的是某 Entity”不等于“这个裸称在全局永远是它的 alias”。
+- semantic naming 使用观察定义与当前上下文补全名称。例如某处裸称“梯度下降”，如果语义
+  实际是批量梯度下降，就应命名为“批量梯度下降”，而不是先创建一个歧义的“梯度下降”。
+- 当拟创建的新 Entity 规范名已经碰撞时，结合定义和场景重试语义命名；一般概念在不同
+  使用场景中出现时，不应只因场景不同而机械拆分。
+
+当前相关版本与提交：
+
+- `3340ccc`：只提升模型明确接受的 alias 建议，并改进 identity/relation 处理。
+- `397bda1`：扩充候选召回与 identity 消歧上下文。
+- `f48d21a`：规范名碰撞时重试 semantic naming。
+- 当前 `kg/resolution.py`：`entity-identity-ontology-9-alias-visible`。v9 修复了 v8 构造
+  identity 请求时遗漏 `EntityObservation.aliases` 的问题；抽取出来的翻译、缩写和英文名
+  现在会真正交给 resolver 审核，仍只有明确返回 `accepted_aliases` 的名称才注册。
+
+47 个完整 chunk 的冻结分析见 `tmp/fresh47-quality-analysis-20260810.md`。关键结论：
+
+- 260 个 EntityObservation，198 个 Entity；198 `new`、62 `same`、0 unresolved。
+- 多层感知机在多个 chunk 中正确合并。
+- 数学卷积与深度学习卷积、一元/二元/三元语法、一般多层感知机与单隐藏层多层感知机
+  均保持了合理区分。
+- 随机梯度下降、小批量随机梯度下降、批量梯度下降没有再错误合并；上下文裸称可以指向
+  批量梯度下降，但没有注册成污染全局的 alias。
+- 47 个 chunk 已足以确认 Entity 修改总体有效。剩余的 3 个失败 chunk 不影响这个主结论。
+
+剩余边界：`全连接层` 曾因 chunk 523 先以 LSTM 使用场景出现、chunk 140 后出现通用定义而
+形成两个 Entity。后续提示已加入“同一 Entity 的不同使用场景仍可能是同一概念”的说明；
+小规模复测中 chunk 523 没有再次单独抽取 `全连接层`，因此这个特定顺序案例尚未形成一次
+完整的正向回归证据，但也没有观察到新的错误拆分。
+
+### 2. 已完成：None/null relation 输入 bug
+
+此前确认的 bug 是：MiniMax 没有返回可用的 relation-normalizer 结果时，不应把它当成
+合法的 `null`/`none` relation 继续输入或物化。当前行为是拒绝空/`none`/`null` 等关系名，
+没有可靠归一结果的 ClaimObservation 保持 pending/uncertain，不创建空 RelationType 和 Claim。
+
+47-chunk 实验的证据：
+
+- 空 RelationType：0；空 Entity 名称：0。
+- 19 条未归一化边明确停留在 pending/uncertain，没有被错误物化。
+- endpoint pending：0；SQLite integrity 与 KG consistency check 通过。
+
+因此 None 边 bug 当前可视为已修复。不要把 pending relation 数量误报成 None 边数量。
+
+### 3. 已完成：关系上下文、alias 注册与最终投影裁判
+
+47-chunk 人工抽查暴露的主要剩余问题已经从 Entity 转到边：自然语言 statement 有原文支持，
+但投影成 `subject - canonical relation - object` 后可能改变参与者、含义或方向。典型旧反例：
+
+- 把“卷积层的权重称为卷积核”投影成“卷积层是卷积核的别称”。
+- 把“LSTM 包含遗忘门”投影成 `LSTM is_member_of 遗忘门`。
+- 把图模式/符号式编程、交叉熵损失/掩蔽语言模型的方向投反。
+
+按“不额外增加审查调用”的原则，修改了现有 relation-normalizer 和 judge 调用：
+
+- relation normalizer 在 Entity resolution 之后运行，获得完整 statement、scope、原文引文、
+  source text、规范化后的主宾端点和候选关系描述。
+- 当前 `kg/vocabulary.py` 版本为
+  `open-relation-normalizer-3-contextual-alias`。
+- `decision=same` 与 `register_alias=true` 分开判断。当前 observation 可以映射到已有关系，
+  不代表原始短语适合作为全局 alias；只有明确返回 `register_alias=true` 才注册。
+- judge 同时判断 `assertion_verdict` 和 `projection_faithful`。只有原文支持完整 Assertion，
+  且最终三元组投影的核心参与者、关系含义和方向均忠实，才能物化。
+- Claim 是导航用的紧凑投影，Assertion 保存条件、范围、数量、时间等限定。不能只因 Claim
+  没有重复 Assertion 中已经保存的限定就判为不忠实。
+- `14366a7` 已提交上述 relation description、处理顺序和投影上下文的主体修改。
+- 当前工作区还有尚未提交的 judge v5 修改：
+  `canonical-assertion-judge-5-scoped-projection`，涉及 `kg/validation.py` 与
+  `tests/test_ontology.py`。新对话开始后先看 `git status --short`，不要丢掉这两处修改。
+
+此前验证结果：全套测试 `106 passed, 28 subtests passed`，`git diff --check` 通过。
+
+### 4. 已完成：6 个针对性小规模关系实验
+
+实验组数据库：
+
+```text
+tmp/relation-context-v3-parallel-20260810-215900.g353.db
+tmp/relation-context-v3-parallel-20260810-215900.g523.db
+tmp/relation-context-v3-parallel-20260810-215900.g740.db
+tmp/relation-context-v3-parallel-20260810-215900.g981.db
+```
+
+退出标记 `tmp/relation-context-v3-parallel-20260810-215900.exit` 为
+`final_status=0 failures=none`。人工检查结果：
+
+- relation aliases 全部为空，没有再次把上下文短语（尤其“包含”）扩散成全局 alias。
+- 标量案例正确接受紧凑投影：Assertion 保留“只有一个元素”的限制，Claim 可保持
+  `标量 -> 由...表示 -> 张量`。
+- LSTM 到输入门、遗忘门、输出门的三条边全部归一为“包含组成部分”，且均被支持、物化。
+- 卷积核案例正确生成“卷积核是卷积层的可学习参数/组成部分”。
+- 图模式案例生成 `tf.function -> 启用 -> 图模式`，没有错误地把图模式和符号式编程合并。
+- 掩蔽语言模型案例生成“掩蔽语言模型使用交叉熵损失”，含义与方向正确。
+- 候选记忆元的权重关系这次没有被抽取，因此该特定目标没有获得覆盖；这是抽取随机性，
+  不是已观察到的错误边。
+
+自动门禁 `tmp/relation-context-v3-parallel-20260810-215900.gate.json` 返回失败，但人工复核确认
+主要是门禁写得过于机械：它要求固定实体名称和固定方向，因而把上述语义正确的反向表述判为
+“未覆盖”。`tmp/relation-gate-then-fresh50-20260810.exit` 因此阻止了 50-chunk 启动。
+**这个 gate failure 不是模型修复失败，不能据此回滚提示词。**
+
+当前结论：小规模实验没有看到 alias 扩散、None 边、错误合并和旧的四类投影错误复发，
+已经达到扩大到 100 chunk 的条件；但这不等于全部边界情况都已完美验证。
+
+### 5. 已停止：旧 identity 版本的 50-chunk 实验
+
+用户随后决定先跑 50 个 chunk，并将并发上限调整为 4。任务已于
+2026-08-11 10:56:35+08:00 在后台启动：
+
+- 启动脚本：`tmp/run_fresh50_relation_v1_20260811.sh`
+- 分析器：`tmp/analyze_fresh50.py`
+- tmux：`kg-fresh50-rel-v1-20260811`
+- 数据库：`tmp/fresh50-relation-v1-20260811.db`
+- 日志：`tmp/fresh50-relation-v1-20260811.log`
+- 分析：`tmp/fresh50-relation-v1-20260811.analysis.json`
+- 完成标记：`tmp/fresh50-relation-v1-20260811.finished`
+- 退出标记：`tmp/fresh50-relation-v1-20260811.exit`
+- 配置：`chunk-workers=4`、`judge-workers=4`、共享
+  `llm-max-concurrency=4`；同一时间只运行一个 `kg` 进程。
+- 样本：30 个跨全书的分散新样本（6 个窗口，每个 5 个）+ 上一轮 20 个回归样本，
+  共 50 个、无重复，范围 chunk 39–1082。
+- 最终核查：SQLite integrity 为 `ok`，`source_progress` 为 `44 done / 2 failed`；日志停在
+  regression chunk 681–683 开始处，没有 `.finished`、`.exit`、存活 tmux 或 Python worker。
+  因此它是未完成的旧提示词样本，不得继续当作当前版本实验，也不要在同一数据库混入新版
+  identity 结果。
+
+### 6. 已完成：知识优先的 Entity identity 与 10 组真实测试
+
+Entity identity、概念解释与语料事实抽取的知识边界已经拆开：抽取、Claim 和 Assertion
+继续严格依据原文；identity 裁判可以使用可靠通用知识判断通常含义、同义/翻译/缩写，
+以及概念、实现、子类、实例和配置之间的对象边界。`Entity.definition` 聚合也可在全部
+Observation 锚定的义项上，用可靠通用知识补全通常含义、上位类别和跨场景稳定特征；
+语料特有的事实仍须原文支持。局部 definition 只是线索，不能因应用场景或定义详略不同
+机械拆分 Entity。
+
+实现同步修改了首次 identity、独立 same 复核、同名冲突重命名、`reconcile` 和待定端点
+晋升；删除“同名且类型兼容就直接 same”的机械捷径。该轮 10 组测试使用版本：
+
+```text
+entity-identity-ontology-8-knowledge-first
+endpoint-promotion-2-knowledge-identity
+```
+
+真实 MiniMax-M3 小规模测试使用 4 路并发、10 组正反例，结果 `10/10`：
+
+- 正例全部 same：GoogLeNet/通用语境的全连接层、pandas/通用语境的张量、BERT/通用语境
+  的掩蔽语言模型、Inception/通用语境的卷积层、CNN/卷积神经网络。
+- 负例全部 new：注意力机制中的值/感官输入、数学卷积/深度学习互相关、Vocab 类/词表、
+  SGD/小批量 SGD、BERT/BERT-base。
+- CNN 正确注册标准缩写和英文全称；五个负例没有给新 Entity 注册冲突 alias。
+
+结果文件：`tmp/identity-knowledge-v8-eval10-20260811-153042.json`。确定性验证为
+`108 passed, 22 subtests passed`，`compileall` 和 `git diff --check` 通过。
+
+### 7. 已完成：知识辅助的 Entity 概念解释与旧坏样本冒烟
+
+`Entity.definition` 已明确为帮助 identity 判断的规范概念解释，不要求是严格词典定义。
+当前 `kg/definitions.py` 版本为
+`entity-definition-observations-3-knowledge-assisted`：
+
+- 全部 Observation 用于锚定当前义项和语料特有的具体事实；可靠通用知识可补全通常含义、
+  上位类别和跨场景稳定特征。
+- 用途、性质、实现方式、典型比较和应用场景可以进入解释，但一次局部场景不能成为概念
+  身份边界。
+- 拥有一条 Observation 的 Entity 也会进入整理；首次抽取留下的局部 definition 不再因为
+  观察数量不足而长期保留。
+- prompt version 已升级，旧 `entity-definition-observations-2` 缓存不会阻止新版重算。
+
+真实 MiniMax-M3 冒烟在原 30-chunk 数据库的独立可写副本中复测 7 个 Entity：批量规范化、
+LSTM、MXNet、全连接层、多层感知机、卷积神经网络和注意力机制。结果 `7/7` 成功、0 失败，
+再次运行全部按观察指纹缓存跳过；SQLite integrity 与 `kg check` 均通过。关键旧问题已改善：
+
+- 多层感知机从“二维图像输入、四阶权重张量”的局部描述恢复为由多个全连接层组成的前馈
+  神经网络。
+- 批量规范化不再被收窄为 GoogLeNet 后续版本中的专属层。
+- 全连接层的通用含义保持在第一句，二维图像、RNN 和注意力对比只作为场景补充。
+- 只有一条 Observation 的卷积神经网络也成功生成概念解释。
+
+冒烟数据库：`tmp/fresh30-definition-v3-smoke-20260811-191617.db`。原始数据库
+`tmp/fresh30-identity-v8-20260811-154811.db` 未修改，仍为 0 条 definition synthesis。
+确定性验证更新为 `111 passed, 22 subtests passed`，`compileall` 和 `git diff --check` 通过。
+
+### 8. 已完成：EntityObservation alias 传递修复
+
+30-chunk 样本中 `飞桨` 与 `Paddle（飞桨）` 被拆分的直接原因不是 identity 模型不知道
+两者的翻译关系：Observation #53 已抽取出 `aliases=["PaddlePaddle"]`，但 v8 构造
+resolution 请求时遗漏了 `EntityObservation.aliases`。模型一方面被要求审核新观察 aliases，
+另一方面实际看不到这些候选名称，导致 `PaddlePaddle` 没有注册；后续 `paddle` 因而无法
+召回已有的 `飞桨` Entity。
+
+当前 `kg/resolution.py` 版本升级为 `entity-identity-ontology-9-alias-visible`，请求中明确
+传入待审核 aliases，机械层仍只接受抽取阶段提出、且 resolver 明确返回在
+`accepted_aliases` 中的名称。真实 MiniMax-M3 顺序重放结果：
+
+```text
+飞桨 + alias PaddlePaddle -> new Entity #1
+paddle                     -> same Entity #1
+最终 Entity                -> 飞桨（PaddlePaddle）
+最终 aliases               -> 飞桨 / PaddlePaddle / paddle
+```
+
+冒烟脚本与数据库分别为 `tmp/alias-resolution-v9-smoke.py` 和
+`tmp/alias-resolution-v9-smoke.db`。确定性全套验证仍为
+`111 passed, 22 subtests passed`，`compileall` 和 `git diff --check` 通过。
+
+下一步不要立即全量运行；应先在全新独立数据库重跑同一批 50 个 chunk，确认真实抽取顺序、
+候选召回和 identity 组合仍稳定，再决定是否全书重跑。
+
+### 9. 当前仓库与实验状态摘要
+
+- 当前分支：`experiment/assertion-layer-pilot`。
+- 当前 HEAD：`14366a7`，与 `origin/experiment/assertion-layer-pilot` 一致。
+- 未提交代码还包括本节 Entity identity 修改；`kg/validation.py` 中原有 judge v5 scoped
+  projection 修改必须保留，不要混淆或覆盖。
+- `tmp/` 实验文件被忽略，不会进入 Git；不要覆盖旧数据库。
+- 旧 fresh50-v6 实验实际只完成 47/50：
+  `tmp/fresh50-v6-20260810.exit` 为 `done=47/50`、`final_status=1`，没有 `.finished`。
+- 对这 47 个完整 chunk 的结论应读取 `tmp/fresh47-quality-analysis-20260810.md`，不要把
+  47/50 的运行状态误写为完整 50-chunk 成功。
 
 ---
 

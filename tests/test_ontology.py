@@ -82,6 +82,8 @@ class DefinitionsReachThePromptsTest(unittest.TestCase):
         self.assertEqual(verdict, "insufficient")
         self.assertIn("投影方向相反", reason)
         self.assertIn("主语是宾语集合中的成员", llm.calls[0][1])
+        self.assertIn("不需要重复\n这些已由 Assertion 保存的限制", llm.calls[0][1])
+        self.assertIn("卷积层的权重", llm.calls[0][1])
 
     def test_live_failure_boundaries_remain_explicit(self):
         part_of = ontology.RELATION_BY_NAME["part_of"]
@@ -101,17 +103,16 @@ class DefinitionsReachThePromptsTest(unittest.TestCase):
             any("具体依赖机制" in text for text in prerequisite.excludes)
         )
 
-    def test_resolution_prompt_explains_entity_types(self):
-        prompt_seen: list[str] = []
+    def test_resolution_prompt_uses_knowledge_for_identity(self):
+        calls_seen: list[tuple[str, str]] = []
 
         class RecordingLLM(FakeLLM):
             def complete_json(self, system: str, user: str, **kwargs):
-                prompt_seen.append(user)
+                calls_seen.append((system, user))
                 return super().complete_json(system, user, **kwargs)
 
         conn = db.connect(":memory:")
         self.addCleanup(conn.close)
-        # 先建一个实体，否则唯一精确匹配路径会跳过 LLM 调用。
         conn.execute(
             "INSERT INTO entities(canonical_name,normalized_name,definition)"
             " VALUES ('梯度下降法','梯度下降法','一种优化方法')"
@@ -133,25 +134,19 @@ class DefinitionsReachThePromptsTest(unittest.TestCase):
                 location="loc",
             ),
         )
-        self.assertTrue(prompt_seen, "身份裁决应当调用了 LLM")
-        self.assertIn("这是 identity 判断，不是相关性", prompt_seen[0])
-        self.assertIn("合并反事实", prompt_seen[0])
-        self.assertIn("aliases 都只是上游模型提供的待判断线索", prompt_seen[0])
-        self.assertIn("不得以“候选已有此 alias”为理由循环证明 same", prompt_seen[0])
-        self.assertIn("括号解释、教学类比、角色映射", prompt_seen[0])
-        self.assertIn("不能提升为\n全局 alias", prompt_seen[0])
-        self.assertIn("decision 必须与上述分析一致", prompt_seen[0])
-        self.assertIn("基础概念/算法族与带有限定词的变体", prompt_seen[0])
-        self.assertIn("定义只覆盖了不同使用场景", prompt_seen[0])
-        self.assertIn("不得仅因\n候选先在 LSTM", prompt_seen[0])
-        self.assertIn("识别本观察的实际指代", prompt_seen[0])
-        self.assertIn("最小限定来消歧", prompt_seen[0])
-        self.assertIn("值（感官输入）", prompt_seen[0])
-        self.assertIn("随机梯度下降", prompt_seen[0])
-        self.assertIn("小批量随机梯度下降", prompt_seen[0])
-        for item in ontology.ENTITY_TYPE_DEFS:
-            with self.subTest(name=item.name):
-                self.assertIn(item.name, prompt_seen[0])
+        self.assertTrue(calls_seen, "身份裁决应当调用了 LLM")
+        system, prompt = calls_seen[0]
+        self.assertIn("可靠的通用知识", system)
+        self.assertIn("definition 可能只是", system)
+        self.assertIn("原文主要用于义项消歧", prompt)
+        self.assertIn("不得仅因原文没有给出", prompt)
+        self.assertIn("只是辅助线索，不是身份白名单", prompt)
+        self.assertIn("应用场景不同", prompt)
+        self.assertIn("标准名称", prompt)
+        self.assertIn("不得以“候选已有此 alias”为理由循环证明 same", prompt)
+        self.assertIn("值（感官输入）", prompt)
+        self.assertIn("随机梯度下降", prompt)
+        self.assertIn("小批量随机梯度下降", prompt)
 
 
 class PromptVersionsAreBumpedTest(unittest.TestCase):
@@ -168,7 +163,7 @@ class PromptVersionsAreBumpedTest(unittest.TestCase):
         self.assertNotIn("relation-judge-passages-1", versions)
         self.assertEqual(
             resolution.RESOLUTION_PROMPT_VERSION,
-            "entity-identity-ontology-6-contextual-definition",
+            "entity-identity-ontology-9-alias-visible",
         )
         self.assertEqual(
             extraction.ENTITY_PROMPT_VERSION,
@@ -180,7 +175,7 @@ class PromptVersionsAreBumpedTest(unittest.TestCase):
         )
         self.assertEqual(
             validation.VALIDATION_PROMPT_VERSION,
-            "canonical-assertion-judge-4-projection-faithfulness",
+            "canonical-assertion-judge-5-scoped-projection",
         )
 
 

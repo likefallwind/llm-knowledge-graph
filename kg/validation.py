@@ -7,7 +7,7 @@ from .llm import JSONLLM
 from .models import ClaimObservation
 
 
-VALIDATION_PROMPT_VERSION = "canonical-assertion-judge-4-projection-faithfulness"
+VALIDATION_PROMPT_VERSION = "canonical-assertion-judge-5-scoped-projection"
 
 VALIDATION_SYSTEM = """你是关系证据裁判，不是知识来源。
 只根据程序从 Source 取得的 source_text 判断关系；禁止使用外部知识补足省略信息。
@@ -44,8 +44,13 @@ def judge_claim(llm: JSONLLM, claim: ClaimObservation) -> tuple[str, str]:
 完整保留条件、范围、否定、可能性和数量限制；否则为 insufficient。
 2. projection_faithful：先严格按照关系定义，把三元组口头化成
 “subject 通过 canonical relation 指向 object”的 projection_statement，再判断它是否与
-完整 Assertion 表达同一命题、方向一致。仅仅在 Assertion 中出现两个端点不够；若真正的
-主语或宾语是端点的参数、输出、组成部分等第三个对象，必须为 false。
+完整 Assertion 的核心关系参与者、关系含义和方向一致。Claim 是便于导航的紧凑投影，
+Assertion 才负责保存条件、范围、数量、时间和其他限定；projection_statement 不需要重复
+这些已由 Assertion 保存的限制，不能仅因紧凑边省略限定就判 false。例如 Assertion 说
+“标量由只有一个元素的张量表示”时，紧凑投影“标量 represented_by 张量”可以忠实。
+但仅仅在 Assertion 中出现两个端点仍然不够；若真正参与关系的主语或宾语是端点的参数、
+输出、组成部分等第三个对象，或者关系含义/方向改变，必须为 false。例如“卷积层的权重
+被称为卷积核”不能投影成“卷积层是卷积核的别称”。
 
 只有 assertion_verdict=supports 且 projection_faithful=true，最终关系才能作为支持证据；
 投影不忠实一律不准入。先做判定测试，再逐条核对排除项；冲突时以排除项为准。

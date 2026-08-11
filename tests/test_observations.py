@@ -186,6 +186,34 @@ class ClaimObservationTest(unittest.TestCase):
 
         self.assertEqual(candidates, [])
 
+    def test_promotion_same_registers_only_explicit_global_aliases(self):
+        source_id = self._source("attention", "注意力机制中的值与键配对。")
+        entity_id = self._entity(source_id, "注意力机制中的值")
+        candidate = {
+            "name": "值",
+            "names": ["值", "感官输入"],
+            "rows": [],
+        }
+        decision, selected, _ = observations._apply_promotion_decision(
+            self.conn,
+            candidate,
+            [{"id": entity_id}],
+            {
+                "decision": "same",
+                "candidate_id": entity_id,
+                "accepted_aliases": ["值", "未提出的名称"],
+                "reason": "值在当前端点中指向注意力机制中的技术角色",
+            },
+            model="FakeLLM",
+        )
+
+        self.assertEqual(decision, "same")
+        self.assertEqual(selected, entity_id)
+        aliases = store.aliases_for(self.conn, entity_id)
+        self.assertIn("值", aliases)
+        self.assertNotIn("感官输入", aliases)
+        self.assertNotIn("未提出的名称", aliases)
+
     def test_three_passages_promote_entity_and_replay_all_claim_evidence(self):
         source_ids = [
             self._source(str(index), f"候选方法是基础方法的一种。证据 {index}")

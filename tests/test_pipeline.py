@@ -299,6 +299,32 @@ class PipelineTest(unittest.TestCase):
              "projection_statement": "卷积神经网络是神经网络的一种",
              "projection_faithful": True, "reason": "明确说是一种"},
             second_extraction,
+            {
+                "decision": "same",
+                "candidate_id": 1,
+                "canonical_name": "梯度下降法",
+                "accepted_aliases": [],
+                "reason": "同一优化算法的重复观察",
+            },
+            {
+                "verdict": "confirmed_same",
+                "identity_scope": "global_name",
+                "strongest_identity_conflict": "不存在",
+                "reason": "确认是同一算法",
+            },
+            {
+                "decision": "same",
+                "candidate_id": 2,
+                "canonical_name": "批量梯度下降法",
+                "accepted_aliases": [],
+                "reason": "同一算法变体的重复观察",
+            },
+            {
+                "verdict": "confirmed_same",
+                "identity_scope": "global_name",
+                "strongest_identity_conflict": "不存在",
+                "reason": "确认是同一算法变体",
+            },
             {"assertion_verdict": "supports",
              "projection_statement": "卷积神经网络是神经网络的一种",
              "projection_faithful": True, "reason": "独立来源明确支持"},
@@ -381,6 +407,19 @@ class PipelineTest(unittest.TestCase):
                     )
                 ],
                 "claims": [],
+            },
+            {
+                "decision": "same",
+                "candidate_id": 1,
+                "canonical_name": "卷积神经网络",
+                "accepted_aliases": [],
+                "reason": "同一概念的另一条定义观察",
+            },
+            {
+                "verdict": "confirmed_same",
+                "identity_scope": "global_name",
+                "strongest_identity_conflict": "不存在",
+                "reason": "确认是同一概念",
             },
             {
                 "definition": "卷积神经网络是包含卷积层的一类特殊神经网络。",
@@ -779,6 +818,11 @@ class PipelineTest(unittest.TestCase):
         self.assertIn("mini-batch SGD", aliases)
         self.assertNotIn("随机梯度下降", aliases)
         self.assertNotIn("未被抽取的别名", aliases)
+        resolver_request = llm.calls[0][1]
+        self.assertIn(
+            '"aliases": ["mini-batch SGD", "随机梯度下降"]',
+            resolver_request,
+        )
 
     def test_same_decision_does_not_promote_rejected_alias_suggestions(self):
         existing = EntityObservation(
@@ -826,6 +870,51 @@ class PipelineTest(unittest.TestCase):
         self.assertIn("SGD", aliases)
         self.assertNotIn("mini-batch SGD", aliases)
 
+    def test_exact_canonical_name_still_requires_knowledge_identity_judgment(self):
+        existing = EntityObservation(
+            name="全连接层",
+            definition="GoogLeNet 中与 Inception 块串联的网络层",
+            entity_type="网络层",
+            model_quote="全连接层",
+            source_text="GoogLeNet 串联卷积层和全连接层。",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        entity_id = store.create_entity(self.conn, existing)
+        observed = EntityObservation(
+            name="全连接层",
+            definition="通过权重矩阵和偏置变换输入的神经网络层",
+            entity_type="神经网络层",
+            model_quote="全连接层",
+            source_text="全连接层计算输入的仿射变换。",
+            passage_ids=("P000002",),
+            location="P000002",
+        )
+        llm = FakeLLM(
+            {
+                "decision": "same",
+                "candidate_id": entity_id,
+                "canonical_name": "全连接层",
+                "accepted_aliases": [],
+                "reason": "应用场景不同但仍是同一通用网络层概念",
+            },
+            {
+                "verdict": "confirmed_same",
+                "identity_scope": "global_name",
+                "strongest_identity_conflict": "不存在；GoogLeNet 只是应用场景",
+                "reason": "通用知识确认是同一概念",
+            },
+        )
+
+        resolved = resolution.resolve_observation(self.conn, llm, observed)
+
+        self.assertEqual(resolved.outcome, "same")
+        self.assertEqual(resolved.entity_id, entity_id)
+        self.assertEqual(len(llm.calls), 2)
+        self.assertIn("可靠的通用知识", llm.calls[0][0])
+        self.assertIn("定义不完整", llm.calls[1][1])
+        llm.assert_finished()
+
     def test_tentative_same_requires_independent_identity_confirmation(self):
         existing = EntityObservation(
             name="感官输入",
@@ -871,7 +960,9 @@ class PipelineTest(unittest.TestCase):
         self.assertEqual(resolved.outcome, "uncertain")
         self.assertNotEqual(resolved.entity_id, entity_id)
         self.assertNotIn("感官输入", store.aliases_for(self.conn, resolved.entity_id))
-        self.assertIn("独立的身份否证检查", llm.calls[1][1])
+        self.assertIn("独立复核身份", llm.calls[1][1])
+        self.assertIn("可靠通用知识", llm.calls[1][1])
+        self.assertIn("应用场景不同当成冲突", llm.calls[1][1])
 
     def test_candidate_recall_includes_entity_named_in_definition(self):
         key = EntityObservation(

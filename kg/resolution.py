@@ -6,16 +6,26 @@ from dataclasses import replace
 from difflib import SequenceMatcher
 from typing import Any
 
-from . import ontology, store
+from . import store
 from .llm import JSONLLM
 from .models import EntityObservation, Resolution
 
 
-RESOLUTION_PROMPT_VERSION = "entity-identity-ontology-6-contextual-definition"
+RESOLUTION_PROMPT_VERSION = "entity-identity-ontology-9-alias-visible"
 
-RESOLUTION_SYSTEM = """你是实体身份裁判，不是知识来源。
-只能根据给出的语料观察与候选实体判断身份，禁止补充外部知识。
-宁可 uncertain，也不要错误合并。只输出 JSON 对象。"""
+IDENTITY_KNOWLEDGE_POLICY = """你可以使用可靠的通用知识判断术语的通常含义、同义关系、
+翻译、缩写，以及概念、实现、子类、实例之间的身份边界。原文和语境用于确定当前名称
+实际指向哪个义项，辅助你判断，但不得仅因两个片段描述了不同应用场景，就判断为不同
+Entity。要基于知识做最终判断。
+
+输入中的 definition 可能只是某次观察或若干语料的局部概括，可能不完整或带有应用场景；
+它是义项线索，不是预先成立的身份边界。原文没有重新定义一个通用术语，也不构成 new 或
+uncertain 的理由。"""
+
+RESOLUTION_SYSTEM = f"""你是实体身份裁判，不是知识内容抽取器。
+{IDENTITY_KNOWLEDGE_POLICY}
+只有概念义项或对象边界确实无法判断时才返回 uncertain；不要因为原文证据不完整而机械
+拆分实体，也不要因为名称相似而错误合并。只输出 JSON 对象。"""
 
 
 def candidate_entities(
@@ -79,32 +89,6 @@ def candidate_entities(
 def resolve_observation(
     conn: sqlite3.Connection, llm: JSONLLM, observation: EntityObservation
 ) -> Resolution:
-    exact = store.exact_entity_ids(conn, observation.name)
-    if len(exact) == 1:
-        entity_id = exact[0]
-        entity = store.get_entity(conn, entity_id)
-        type_profile = store.type_profile(conn, entity_id)
-        # Only an exact canonical name is safe enough to skip identity review.
-        # Alias rows in an older graph may predate strict review, so matching an
-        # alias must still go through the LLM rather than circularly proving it.
-        canonical_matches = bool(
-            entity
-            and store.normalize_name(str(entity["canonical_name"]))
-            == store.normalize_name(observation.name)
-        )
-        if canonical_matches and any(
-            item["entity_type"] == observation.entity_type
-            for item in type_profile
-        ):
-            return Resolution(
-                entity_id=entity_id,
-                outcome="same",
-                reason=(
-                    "exact canonical name with compatible observed type; "
-                    "unreviewed alias suggestions were not promoted"
-                ),
-            )
-
     candidates = candidate_entities(
         conn, observation.name, observation=observation
     )
@@ -112,49 +96,31 @@ def resolve_observation(
         RESOLUTION_SYSTEM,
         """严格判断新观察实际描述的知识对象，并将它与候选 Entity 对齐。
 
-先根据 name、definition、model_quote 和 source_text 识别本观察的实际指代，再判断
-它是否与某个候选 Entity 是同一知识对象。原文使用的表面名称可能比实际指代宽泛，
-也可能是教学类比中的局部称呼；表面名称不是全局 alias，不妨碍当前 observation
-指向语料已经明确表达的候选 Entity。此时可以判 same，但不得把该表面名称放入
-accepted_aliases。比如某段把全批量优化简称为「梯度下降」，而定义和比较明确指向
-候选「批量梯度下降」，应判 same 并选择该候选，但不能把「梯度下降」注册为它的
-全局 alias；把注意力机制的「键」类比为「非自主性提示」时，若观察定义实际描述键，
-应指向候选「键」，同样不能把类比名称注册为全局 alias。
+第一步结合通用知识与 name、definition、model_quote、source_text 判断本观察实际指向的
+通常概念或具体对象；原文主要用于义项消歧。第二步再判断它与候选是否具有同一身份。
 
-这是 identity 判断，不是相关性、相似性或归类判断。same 的门槛很高：只有在不同
-语境中实际指代同一对象，才能判为 same。用途相近、定义相关、共同出现、
-一个实现另一个、一个是另一个的变体/子类/实例/配置/角色/数据集版本，或者当前段落把
-二者对应起来，都不足以构成 same。括号解释、教学类比、角色映射或“在这里称为”只证明
-当前 passage 的局部对应；除非语料同时证明名称在其他语境也指向同一对象，否则不能提升为
-全局 alias。以上只是原则示例，不是要枚举所有情况。
+这是 identity 判断，不是相关性、相似性或归类判断：
+- same：跨语境仍是同一概念或同一对象。定义详略、讲解角度、属性、公式、用途、所属模型
+  或应用场景不同，都不会自动产生新 Entity。通用概念先在 GoogLeNet、LSTM、CNN、RNN、
+  BERT 等具体场景中出现，后来又以一般形式出现，通常仍是同一个概念。
+- new：可靠通用知识或当前义项表明确实是不同对象，例如概念与其实现、类与概念、基础概念
+  与子类/变体/实例/配置、作品与数据集、技术角色与教学类比对象。
+- uncertain：综合通用知识和语境后仍无法确定当前义项或身份边界。不得仅因原文没有给出
+  完整定义而返回 uncertain。
 
-但必须区分“对象身份不同”和“同一对象的定义只覆盖了不同使用场景”。教材片段常常只
-描述一个标准对象在当前架构中的用途、公式或性质；definition 不完整不等于对象变成了该
-场景专属的子类。若新观察与候选使用同一稳定概念名称和兼容类型，两组定义可以同时为同一
-对象成立，而原文没有明确引入带限定的变体、子类、配置或专门版本，就应判 same。不得仅因
-候选先在 LSTM、CNN、RNN 等特定架构中出现，就把后来的一般定义拆成新 Entity。反之，只有
-语料明确证明限定改变了对象边界，才保留为不同实体。
-
-判定 same 前必须做三个检查：
-1. 区分检查：语料是否可能同时谈论二者，并比较、区分或在二者之间建立有方向的关系？
-   如果可以，它们就不是同一个对象。
-2. 合并反事实：合并后，下面任一名称、定义或 source_text 是否会变假、丢失限定条件，
-   或把局部语境中的对应关系扩大为全局同义？如果会，就不能判 same。
-3. 场景兼容检查：候选定义中的架构、任务或用途是否只是该对象的一次应用，而不是候选
-   身份名称的一部分？若两段性质可同时属于同一标准对象，不能用场景差异证明 new。
-
-decision 必须与上述分析一致。基础概念/算法族与带有限定词的变体若实际对象边界不同，
-应保留为不同实体；但若当前 passage 的定义、性质和比较已经明确说明宽泛表面名称实际
-指向某个已有的具体候选，则 observation 可以对齐该候选，同时不注册表面名称为 alias。
+判定前检查：
+1. 两组描述能否作为同一标准对象在不同场景中的性质同时成立？能则场景差异不支持 new。
+2. 二者是否可以在同一知识体系中同时出现并被比较、实现、包含或建立其他有方向关系？
+   若是，通常是两个对象而不是 same。
+3. 合并是否会抹掉真正属于身份的限定，或把局部角色映射扩大成全局同义？若会则不能 same。
 
 候选 aliases 以及新观察 aliases 都只是上游模型提供的待判断线索，不是已经证明的事实，
 不得以“候选已有此 alias”为理由循环证明 same。只有缩写/全称、翻译、拼写格式变体、
 正式名/简称等确实指向同一对象的名称，才能放入 accepted_aliases。实现名、类名、实例名、
 角色映射和只在当前语境成立的称呼不得作为全局 alias。
 
-候选的 type_profile 是历次观察类型的汇总而非单一白名单；类型不一致也许可以解释，
-但它是身份边界证据，不能忽略。若无法用现有名称、定义和原文排除身份差异，应返回
-uncertain；宁可暂时保留重复实体，也不要错误合并。
+候选的 type_profile 是历次局部类型观察，只是辅助线索，不是身份白名单；类型不同不能
+覆盖对术语通常含义和实际对象边界的判断。
 
 例如「随机梯度下降」与「小批量随机梯度下降」可以在同一段中被比较，是不同算法；即使
 某段把读取小批量样本的过程简称为“随机梯度下降”，也只是该段的宽泛用词，不构成身份；
@@ -163,11 +129,10 @@ uncertain；宁可暂时保留重复实体，也不要错误合并。
 不能据此把值与感官输入、查询与自主性提示注册成可跨语境互换的全局同义词。
 相反，SGD 与 stochastic gradient descent 在同一对象边界下只是缩写与全称。
 
-若判 new，canonical_name 必须准确表达 definition 中的实际语义。观察名过宽、同名但
-异义或遗漏了造成身份差异的限定时，必须使用 source_text、model_quote 或 definition 已
-明确支持的最小限定来消歧，例如「数学卷积」「一元语法模型」「机器学习注意力机制」。
-不得引入语料没有提供的新知识。若无法给出不与已有名称冲突的有据名称，应返回 uncertain，
-不能创建另一个无法区分的同名 Entity。
+若判 new，canonical_name 应使用可靠通用知识中的标准名称，并结合当前语境保留真正造成
+身份差异的最小限定，例如「数学卷积」「一元语法模型」「机器学习注意力机制」。不得为了
+避开名称冲突而虚构并不存在的子类、版本或限定。若无法给出可区分的规范名称，应返回
+uncertain，不能创建另一个无法区分的同名 Entity。
 
 同名也不构成 same：教材章节、目录条目等 resource 与其讲述的同名算法、模型或
 概念是不同知识对象。比如「15.1 玻尔兹曼机」这一节不能与「玻尔兹曼机」算法合并。
@@ -180,12 +145,10 @@ resource，不能删去章节编号或载体限定后变成同名知识内容；
   "candidate_id": 仅 same 时填写候选 id，否则为 null,
   "canonical_name": "实际语义的规范名称；所有 decision 都填写，new/uncertain 必须有据且可区分",
   "accepted_aliases": ["仅从新观察 aliases 中选择确认是全局同一名称的字符串"],
-  "identity_basis": "same 时说明为何是同一对象；new/uncertain 时说明身份边界或缺失证据",
-  "distinguishing_test": "说明二者能否共现并被比较/建立关系，以及合并反事实是否安全",
+  "identity_basis": "说明基于通用知识与当前义项得出的身份结论",
+  "distinguishing_test": "说明是否存在真正的对象边界，而不是场景或定义详略差异",
   "reason": "简短理由"
 }
-
-type_labels 是开放类别词。以下旧标签仅用于解释历史观察，不是白名单：%s
 
 新观察：
 %s
@@ -193,10 +156,10 @@ type_labels 是开放类别词。以下旧标签仅用于解释历史观察，�
 候选：
 %s"""
         % (
-            ontology.entity_type_summary(),
             json.dumps(
                 {
                     "name": observation.name,
+                    "aliases": observation.aliases,
                     "definition": observation.definition,
                     "type_labels": observation.type_labels
                     or ((observation.entity_type,) if observation.entity_type else ()),
@@ -306,7 +269,7 @@ def _retry_colliding_new_name(
     candidates: list[dict[str, Any]],
     identity_reason: str,
 ) -> str:
-    """Retry semantic naming only after a grounded `new` decision collides."""
+    """Retry semantic naming only after a knowledge-based `new` decision collides."""
     conflicts = [_entity_context(conn, entity_id) for entity_id in collision_ids]
 
     def validate(payload: dict[str, Any]) -> dict[str, Any]:
@@ -327,15 +290,15 @@ def _retry_colliding_new_name(
 canonical_name 与已有 Entity 冲突。现在只修正语义命名，不得重新判断身份，不得合并
 实体，也不得添加或修改 alias。
 
-名称必须准确表达 definition 中的实际对象，并使用 source_text、model_quote 或
-definition 已明确支持的最小限定来说明它与冲突实体的身份边界。不要只重复观察原名或
-冲突名称；不要引入语料没有提供的知识。若对象是某种结构、模型、语言单元、实现函数、
-算法变体或其他带限定的对象，应把造成身份差异的限定保留在 canonical_name 中。
+使用可靠通用知识中的标准名称，并结合当前语境保留真正造成身份差异的最小限定。不要只
+重复观察原名或冲突名称，也不要为了避开冲突而虚构不存在的子类、版本或限定。若对象是
+某种结构、模型、语言单元、实现函数、算法变体或其他带限定的对象，应把身份限定保留在
+canonical_name 中；应用场景本身不是限定。
 
 只返回：
 {
-  "canonical_name": "不与已有 Entity 冲突、且有语料依据的语义规范名",
-  "naming_basis": "该限定由哪段输入支持"
+  "canonical_name": "不与已有 Entity 冲突的标准规范名",
+  "naming_basis": "该名称对应的知识对象边界"
 }
 
 新观察：
@@ -385,39 +348,29 @@ def _confirm_same(
     """Adversarially verify a tentative merge before mutating graph identity."""
     payload = llm.complete_json(
         RESOLUTION_SYSTEM,
-        """第一次裁决拟将下面两个实体合并。现在进行独立的身份否证检查。
+        """第一次裁决拟将下面的 observation 关联到候选 Entity。现在独立复核身份。
 
-你的任务不是支持第一次答案，而是主动寻找当前 observation 的实际指代与候选仍是
-两个知识对象的证据。
-候选 aliases 不是身份证据；当前段落中的括号解释、教学类比、角色对应、宽泛用词，
-也不能证明跨语境全局同义。只要存在合理的对象边界差异，或现有语料不足以排除实际
-指代相同，就必须 reject_same。只有缩写/全称、翻译、拼写变体等名称可跨语境安全互换，
-且合并不会把局部关系提升成全局 alias 时，identity_scope 才能是 global_name。
+使用可靠通用知识判断二者是否真是同一概念或对象，原文只用于确认当前 observation 的
+具体义项。主动寻找最强的真实身份冲突，但不能把定义不完整、原文没有重新定义、讲解角度
+不同或应用场景不同当成冲突。只有通用知识或语境表明二者是概念/实现、上下位、变体、
+实例、配置、资源/内容、技术角色/类比对象等不同对象时，才 reject_same。
 
-必须分别判断实体指代与名称范围。不能因为
-当前定义写成“A 被称为 B”或“A（B）”，就用这句话循环证明 A/B 是全局同义词；如果
-离开该教学段落后，一个名称仍是技术角色、另一个仍是被类比或被表示的对象，就应拒绝。
-例如“值（感官输入）”和“查询（自主性提示）”必须 reject_same，因为这是注意力机制
-角色与认知类比对象的局部映射，不是名称层面的全局同义。该例用于说明一般原则，不能只
-匹配字面词语作答。
+必须分别判断“实际指代”和“名称能否成为全局 alias”：
+- 实际指代相同，即使表面名称只是当前 passage 的宽泛用词或角色称呼，也可
+  confirmed_same，并把 identity_scope 设为 passage_referent；此时不批准全局 alias。
+- 名称本身是可跨语境安全互换的缩写、全称、翻译、拼写或正式名变体时，设为 global_name。
+- 实际对象不同才 reject_same。候选 aliases 以及“A 被称为 B”“A（B）”等局部文字不能
+  循环证明身份。
 
-如果表面名称只在当前 passage 指向候选，但 definition、model_quote 和 source_text 已经
-明确当前 observation 的实际对象就是候选，可以 confirmed_same，并把 identity_scope
-设为 passage_referent；这不会批准表面名称成为全局 alias。只有名称本身可跨语境安全
-互换时才设为 global_name。若实际对象仍不同或证据不足，必须 reject_same。
-
-审查对象是 observation 的实际指代，不是 observation.name 这个字符串本身。例如观察
-名为「非自主性提示」，但 definition 的主语和知识内容实际描述注意力机制的「键」，原文
-只是把键类比为非自主性提示，而拟合并候选正是「键」，则应 confirmed_same 且设为
-passage_referent；「非自主性提示」与「键」不是全局同义，只决定不能设为 global_name，
-不能反过来否定 observation 实际指向候选「键」。相反，若拟合并候选是心理学概念
-「非自主性提示」，才应因技术角色与类比对象不同而 reject_same。
+例如，注意力讲解把技术角色「值」类比为「感官输入」时，值与感官输入是不同对象；但若
+观察名是一个局部称呼、其实际指代明确为候选「键」，则 observation 可以关联到键而不把
+局部称呼注册成键的全局 alias。
 
 返回：
 {
   "verdict": "confirmed_same | reject_same",
   "identity_scope": "global_name | passage_referent | uncertain",
-  "strongest_identity_conflict": "最强的身份边界冲突；若确认相同则说明为何不存在冲突",
+  "strongest_identity_conflict": "最强的真实身份边界冲突；若确认相同则说明为何场景差异不构成冲突",
   "reason": "简短结论"
 }
 
@@ -524,8 +477,12 @@ def reconcile(
         examined += 1
         payload = llm.complete_json(
             RESOLUTION_SYSTEM,
-            """两个已有实体是否指向同一个知识对象？
-返回 {"decision":"same|new|uncertain","canonical_name":"若 same 给出更规范名称","reason":"..."}。
+            """使用可靠通用知识判断两个已有 Entity 是否指向同一个知识对象。原文、
+definition、type profile 和 Evidence 只用于确认各自义项；不得仅因定义详略、属性、用途
+或应用场景不同而拆分。概念与实现、上下位、变体、实例、配置、资源与内容仍是不同对象。
+只有义项或身份边界确实无法判断时才 uncertain。
+
+返回 {"decision":"same|new|uncertain","canonical_name":"若 same 给出标准规范名称","reason":"..."}。
 实体 A：%s
 实体 B：%s"""
             % (

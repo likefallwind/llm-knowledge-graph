@@ -8,26 +8,36 @@ from typing import Any, Iterable
 from .llm import JSONLLM
 
 
-DEFINITION_PROMPT_VERSION = "entity-definition-observations-2"
+DEFINITION_PROMPT_VERSION = "entity-definition-observations-3-knowledge-assisted"
 
-SYSTEM_PROMPT = """你是语料约束的知识定义整理器。
-只能使用用户提供的 EntityObservation，不得使用模型记忆补充任何事实。
-目标是从同一 Entity 的全部观察中形成一个规范、简洁、能回答“它是什么”的定义。
-宣传性评价、地位、流行程度、影响力、仅说明用途、仅说明出现位置或仅与其他对象
-比较的文字不能进入 definition；即使原文支持，也只能列入 rejected_candidates。
+SYSTEM_PROMPT = """你是语料辅助的知识概念整理器。
+这里的 definition 是用于帮助识别 Entity 的规范概念解释，不要求是严格的词典定义。
+你可以使用可靠的通用知识理解术语的通常含义，并结合用户提供的全部
+EntityObservation 确定当前 Entity 实际指向哪个义项。
+
+EntityObservation 和 source_text 是必要依据：definition 必须与全部原始语料一致；
+原文中特有的事实、数字、版本、历史事件和应用结果必须有 Observation 直接支持。
+可靠通用知识只用于明确通常含义、上位类别和跨场景稳定特征，不得虚构不确定或有争议的
+具体事实，也不得仅因概念首先出现在特定模型、章节或应用场景中，就把该场景写成概念
+本身的身份边界。当前 Entity.definition 可能只是首次观察留下的局部解释，不是权威边界。
 只输出 JSON 对象。"""
 
 USER_PROMPT = """请为下面这个 Entity 合成规范定义。
 
 要求：
-1. definition 只回答“它是什么”，采用“上位类别 + 区分性特征”的形式，使用一至两句话。
-2. definition 中每个实质性陈述都必须被引用 Observation 的 source_text 直接支持。
-3. 不得因为常识上正确就补充语料没有表达的特征。
-4. supporting_observations 返回一至五项，每项包含 observation_id、passage_ids、support。
+1. definition 使用一至两句话。第一句优先说明“它通常是什么”；第二句可以补充有助于
+   识别它的用途、性质、实现方式或典型比较。
+2. 可以使用可靠通用知识补全上位类别、通常含义和跨场景稳定特征，但 definition 必须与
+   全部 Observation 一致。来自原文的具体事实必须由 source_text 直接支持。
+3. 原文中的用途、性质、实现方式、比较关系和应用场景可以进入解释，但不得让一次局部
+   使用遮蔽通常含义，或把应用场景误写成概念身份边界。
+4. supporting_observations 返回一至五项，每项包含 observation_id、passage_ids、support；
+   support 说明该 Observation 如何锚定当前义项，或支持解释中的原文具体事实。
 5. passage_ids 必须属于对应 Observation。
-6. 地位、流行度、重要性、影响、宣传性形容和应用成绩不得写入 definition；
-   rejected_candidates 简要指出没有采用的较弱定义及原因。
-7. 如果证据存在局限，写入 limitation，不要猜测。
+6. rejected_candidates 简要记录与语料冲突、明显过窄或会误导身份判断的候选解释；没有则
+   返回空数组。
+7. 如果语料只提供了局部信息、不同观察存在张力，或解释使用了原文未完整重述的通用知识，
+   在 limitation 中如实说明，不要猜测。
 
 输出格式：
 {{
@@ -53,7 +63,7 @@ def synthesize_pending(
     *,
     entity_ids: Iterable[int] | None = None,
     limit: int | None = None,
-    min_observations: int = 2,
+    min_observations: int = 1,
 ) -> dict[str, Any]:
     """Synthesize definitions whose complete Observation set has changed."""
     if min_observations < 1:

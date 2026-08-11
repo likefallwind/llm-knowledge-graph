@@ -101,7 +101,7 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument(
         "--skip-definition-synthesis",
         action="store_true",
-        help="跳过基于全部 EntityObservation 的定义聚合（默认运行）",
+        help="跳过基于全部 EntityObservation 的概念解释聚合（默认运行）",
     )
     run.add_argument(
         "--definition-limit",
@@ -111,7 +111,7 @@ def _parser() -> argparse.ArgumentParser:
 
     synthesize = sub.add_parser(
         "synthesize-definitions",
-        help="基于每个 Entity 的全部 Observation 生成可追溯定义",
+        help="基于每个 Entity 的全部 Observation 生成可追溯概念解释",
     )
     synthesize.add_argument(
         "--entity-id", type=int, action="append", dest="entity_ids"

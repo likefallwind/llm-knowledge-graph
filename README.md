@@ -1,6 +1,9 @@
 # AI 全领域知识图谱（最小实现）
 
-这是 `plan.md` 的可运行实现。系统只把语料作为知识来源，LLM 只负责抽取、实体身份判断和关系证据裁决。
+这是 `plan.md` 的可运行实现。正式 Claim、Assertion 和语料特有事实只以语料为来源；LLM
+负责抽取、实体身份判断和关系证据裁决。Entity identity 与用于身份识别的规范概念解释可
+使用可靠通用知识判断术语义项、对象边界和通常含义，但不能据此新增语料未表达的关系或
+具体事实。
 
 vNext 把 KGGen 的开放抽取与 Tree-KG 的教材结构先验合并到同一条、仍然可审计的闭环中：
 
@@ -23,9 +26,12 @@ Read → Structure → Extract Entities → Extract Relations → Normalize → 
 - Evidence 记录文档版本、位置、模型和提示词版本，为未来 LLM/人类校准保留可能性；当前不实现校准队列。
 - 相同 `(subject, relation, object)` 只保存一个 Claim，不同 Source 的 Evidence 自动累计。
 - 实体对齐只有 `same / new / uncertain`。`uncertain` 会保留独立实体，之后可用 `reconcile` 重新判断。
+- 名称、字符串相似度、局部类型和 definition 都只是 identity 候选与义项线索；即使唯一
+  精确同名也由 LLM 基于通用知识做最终判断，原文主要用于确定当前提及的义项。
 - `Entity.definition` 不由第一次抽取永久决定。主流程结束时，同一 Entity 的全部
-  EntityObservation 会作为唯一语料聚合出规范定义，并保存所引用的 Observation、
-  Passage、模型和提示词版本；原始观察不覆盖。
+  EntityObservation 用于锚定当前义项和具体语料事实，定义整理器可使用可靠通用知识补全
+  通常含义、上位类别和跨场景稳定特征，形成用于身份识别的规范概念解释。聚合结果保存所
+  引用的 Observation、Passage、模型和提示词版本；原始观察不覆盖。
 - `is_a` 和 `prerequisite_of` 写入前检查循环；孤立 Entity 合法。
 
 旧项目数据位于被忽略的 `data/kg.db`，schema 8 试验数据也采用了不同的抽取语义。vNext 不迁移或修改旧库；新数据库默认是 `data/knowledge-vnext.db`。
@@ -114,9 +120,11 @@ Entity 对齐、Claim 物化和全部 SQLite 写入仍保持串行，避免改�
 失败计数清零，避免服务限额错误瞬间扩散到全部剩余 Chunk。
 两者默认均为 1；小批次建议先使用 `--chunk-workers 2 --judge-workers 2`。
 
-`kg run` 默认在片段处理结束后，为拥有至少两条 EntityObservation 且观察集合发生
-变化的 Entity 聚合定义。定义必须引用当前 Entity 的真实 Observation ID 和 Passage
-ID；无效引用或模型失败不会覆盖旧定义。相同观察指纹、模型和提示词版本会直接跳过。
+`kg run` 默认在片段处理结束后，为拥有至少一条 EntityObservation 且观察集合发生
+变化的 Entity 聚合概念解释。原文负责锚定义项和具体事实，可靠通用知识只补全通常含义、
+上位类别和跨场景稳定特征；用途、性质、实现方式和典型比较可以作为辅助解释，但不能把
+一次局部场景写成概念身份边界。结果必须引用当前 Entity 的真实 Observation ID 和
+Passage ID；无效引用或模型失败不会覆盖旧定义。相同观察指纹、模型和提示词版本会直接跳过。
 长实验可用 `--definition-limit N` 限制本轮数量，之后继续运行即可断点续做；仅在明确
 需要跳过该阶段时使用 `--skip-definition-synthesis`。
 

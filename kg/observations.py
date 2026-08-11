@@ -11,10 +11,12 @@ from .llm import JSONLLM
 from .models import ClaimObservation, EntityObservation, Resolution
 
 
-PROMOTION_REVIEW_VERSION = "endpoint-promotion-1"
-PROMOTION_SYSTEM = """你是待定实体审核器，不是知识来源。
-只能使用给出的 Source 原文判断这些反复出现的端点是否稳定指向一个可独立学习的知识对象。
-禁止用模型记忆补充定义；宁可 uncertain，也不要制造空壳实体或错误别名。只输出 JSON 对象。"""
+PROMOTION_REVIEW_VERSION = "endpoint-promotion-2-knowledge-identity"
+PROMOTION_SYSTEM = f"""你是待定实体审核器。
+判断原文是否足以让一个端点成为正式 Entity，以及为新 Entity 编写 definition 时，只能使用
+给出的 Source 原文，不得用模型记忆补充知识。判断它是否与候选 Entity 是同一身份时遵守：
+{resolution.IDENTITY_KNOWLEDGE_POLICY}
+不要制造空壳实体或错误别名。只输出 JSON 对象。"""
 
 
 def entity_observation_key(
@@ -830,7 +832,8 @@ def promote_candidates(
             PROMOTION_SYSTEM,
             """这个名称已在至少 %d 个独立 Passage 中作为 Claim 端点出现。
 判断这些原文是否足以确认它是一个稳定、可复指、可独立学习的 Entity。
-若与候选 Entity 相同，可返回 same；字符串相似本身不是同一实体证据。
+若与候选 Entity 相同，可基于可靠通用知识返回 same；原文用于确定当前端点的义项，
+字符串相似本身不是同一实体证据，应用场景不同也不是拆分理由。
 若创建新 Entity，definition 必须能由给出的 source_text 直接支持，并选择 1-3 个真实的 source_id + passage_id 组合。
 返回：
 {
@@ -839,7 +842,8 @@ def promote_candidates(
   "canonical_name": "规范名称",
   "definition": "仅依据原文的定义",
   "type_labels": ["1-3 个开放类别词，可为空"],
-  "aliases": ["原文支持的别名"],
+  "aliases": ["创建 new 时原文支持的别名"],
+  "accepted_aliases": ["判 same 时，仅从待定名称中选择可跨语境安全互换的全局别名"],
   "evidence_refs": [{"source_id": 1, "passage_id": "P000001"}],
   "reason": "简短理由"
 }
@@ -915,8 +919,19 @@ def _apply_promotion_decision(
         allowed = {int(item["id"]) for item in similar}
         if selected not in allowed:
             return "uncertain", None, reason or "same 返回了非法 candidate_id"
-        for name in candidate["names"]:
-            store.add_alias(conn, selected, str(name))
+        aliases_raw = payload.get("accepted_aliases", [])
+        proposed = {
+            store.normalize_name(str(name)): str(name)
+            for name in candidate["names"]
+            if str(name).strip()
+        }
+        if isinstance(aliases_raw, list):
+            for name in aliases_raw:
+                if not isinstance(name, str):
+                    continue
+                accepted = proposed.get(store.normalize_name(name))
+                if accepted:
+                    store.add_alias(conn, selected, accepted)
         return "same", selected, reason
     if decision != "new":
         return "uncertain", None, reason or "证据不足"
