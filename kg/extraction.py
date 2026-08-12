@@ -14,7 +14,7 @@ from .models import (
 )
 
 
-ENTITY_PROMPT_VERSION = "open-entities-section-5-tool-layers"
+ENTITY_PROMPT_VERSION = "open-entities-section-6-tool-boundary"
 RELATION_PROMPT_VERSION = "open-relations-assertion-4-recall-protection"
 EXTRACTION_PROMPT_VERSION = (
     f"{ENTITY_PROMPT_VERSION}+{RELATION_PROMPT_VERSION}"
@@ -28,7 +28,7 @@ SYSTEM_PROMPT = """你是语料约束的知识抽取器。
 ENTITY_PROMPT = """从下面的语料片段抽取 EntityObservation。
 
 Entity 必须是在本片段中有稳定名称、可复指，并有实质性定义或知识含义的对象。
-类型标签是开放的：使用原文语境中简洁、可复用的类别词，可为空，不得为了满足
+类型标签是开放的：基于原文准确、可复用的类别词，可为空，不得为了满足
 预设词表而扭曲实体。每个实体最多给出 3 个 type_labels。
 
 准入边界：
@@ -42,18 +42,16 @@ Entity 必须是在本片段中有稳定名称、可复指，并有实质性定�
   识别并解释该对象？如果不能，必须省略。代码只能作为正文已介绍概念的补充证据，
   不能单独产生 Entity。这条测试用于概念类对象；工具与代码对象改用下面三层判定。
 
-工具与代码对象的三层判定（只看对象本身指代什么，不看正文语气是否像在讲授）：
+工具与代码对象的三层判定：
 1. 工具系统本身准入，作为独立 Entity。判定：它是否是一个有独立名称、可脱离本书
    指称的框架、库或平台。例如 PyTorch、TensorFlow、MXNet、Gluon、Keras 准入。
 2. 概念的代码写法准入，作为独立 Entity，**不要写进某个概念的 aliases**。判定：这个
-   名字与正文讲过的某一个概念是否一对一指代同一个对象。例如 MSELoss 之于均方误差、
-   Dense 与 nn.Linear 之于全连接层，都是一对一，准入。
-3. 工具的内部组织单位、容器，以及教材为讲解临时定义的辅助物，一律不准入。判定：
-   它是否只对应一组对象，或不对应任何概念。例如 nn 模块装着很多层、optim 模块装着
-   很多优化器、Sequential 是容器、data 模块无对应概念，均不准入；train_ch6、
+   名字是否是一个经典的写法，比如 nn.Linear 等。
+3. 教材为讲解临时定义的辅助物，一律不准入。判定：
+   它是否只对应一组对象，或不对应任何概念。例如 教材中train_ch6、
    fancy_func、d2l.Timer、d2l.Animator、d2l.Accumulator、Stopping 按钮、
    Image→Create 操作同样不准入。
-第 2 层与第 3 层的分界只有一条：一对一指代同一个对象才准入，一对多或无对应即省略。
+第 2 层与第 3 层的分界只有一条：是否是教材临时定义的。
 
 - 召回保护：叙述正文明确陈述定义、性质、比较、因果、组成、适用条件或限制时，构成
   这些知识陈述所需的全部具名领域对象都应抽取。某对象在当前段落没有被重新完整定义，

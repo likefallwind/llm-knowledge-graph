@@ -11,7 +11,7 @@ from .llm import JSONLLM
 from .models import EntityObservation, Resolution
 
 
-RESOLUTION_PROMPT_VERSION = "entity-identity-ontology-10-knowledge-aliases-top10"
+RESOLUTION_PROMPT_VERSION = "entity-identity-ontology-12-candidate-knowledge-aliases"
 
 IDENTITY_KNOWLEDGE_POLICY = """你可以使用可靠的通用知识判断术语的通常含义、同义关系、
 翻译、缩写，以及概念、实现、子类、实例之间的身份边界。原文和语境用于确定当前名称
@@ -55,7 +55,13 @@ def candidate_entities(
         entity_id = int(row["id"])
         if entity_id == exclude_id:
             continue
-        names = [str(row["canonical_name"]), *store.aliases_for(conn, entity_id)]
+        formal_aliases = store.aliases_for(conn, entity_id)
+        alias_candidates = store.alias_candidates_for(conn, entity_id)
+        names = [
+            str(row["canonical_name"]),
+            *formal_aliases,
+            *alias_candidates,
+        ]
         score = max(
             SequenceMatcher(None, query, store.normalize_name(value)).ratio()
             for query in queries
@@ -84,7 +90,8 @@ def candidate_entities(
                 {
                     "id": entity_id,
                     "canonical_name": str(row["canonical_name"]),
-                    "aliases": names[1:],
+                    "aliases": formal_aliases,
+                    "candidate_aliases": alias_candidates,
                     "definition": str(row["definition"]),
                     "type_profile": store.type_profile(conn, entity_id),
                     "evidence": store.evidence_for_entity(conn, entity_id),
@@ -129,10 +136,14 @@ def resolve_observation(
 正式名/简称等确实指向同一对象的名称，才能放入 accepted_aliases。实现名、类名、实例名、
 角色映射和只在当前语境成立的称呼不得作为全局 alias。
 
-你还可以基于可靠通用知识在 knowledge_aliases 中补充当前语料没有直接列出的标准翻译、
-英文全称、通行缩写、正式名/简称或纯拼写格式变体，最多 5 个。这里只能放跨语境仍唯一
-指向同一对象的标准名称；普通近义词、上位/下位概念、相关对象、实现/API/实例、局部角色、
-教学类比和不确定名称一律不得加入。没有高度可靠的补充名称时返回空数组。
+你还可以基于可靠通用知识在 knowledge_aliases 中建议当前语料没有直接列出的标准翻译、
+英文全称、通行缩写、正式名/简称或纯拼写格式变体，最多 5 个。这些建议只用于以后召回
+身份候选，不是已经验证的全局 alias；只有后续真实 observation 经身份裁决确认后才能升级
+为正式 alias。普通近义词、上位/下位概念、相关对象、实现/API/实例、局部角色、教学类比
+和不确定名称一律不得加入。没有高度可靠的候选名称时返回空数组。
+
+候选 Entity 的 candidate_aliases 同样只是历史 resolver 给出的未验证召回提示，不是身份
+证据，不得用它循环证明 same；必须依据对象边界、定义和语境独立判断。
 
 候选的 type_profile 是历次局部类型观察，只是辅助线索，不是身份白名单；类型不同不能
 覆盖对术语通常含义和实际对象边界的判断。
@@ -160,7 +171,7 @@ resource，不能删去章节编号或载体限定后变成同名知识内容；
   "candidate_id": 仅 same 时填写候选 id，否则为 null,
   "canonical_name": "实际语义的规范名称；所有 decision 都填写，new/uncertain 必须有据且可区分",
   "accepted_aliases": ["仅从新观察 aliases 中选择确认是全局同一名称的字符串"],
-  "knowledge_aliases": ["可靠通用知识确认的标准翻译、全称、缩写或名称变体，最多5个"],
+  "knowledge_aliases": ["仅作候选召回提示的标准翻译、全称、缩写或名称变体，最多5个"],
   "identity_basis": "说明基于通用知识与当前义项得出的身份结论",
   "distinguishing_test": "说明是否存在真正的对象边界，而不是场景或定义详略差异",
   "reason": "简短理由"
@@ -191,6 +202,7 @@ resource，不能删去章节编号或载体限定后变成同名知识内容；
     decision = str(payload.get("decision", "")).strip().lower()
     reason = str(payload.get("reason", "")).strip()
     accepted_aliases = _accepted_aliases(payload, observation)
+    alias_candidates = _knowledge_alias_candidates(payload)
     candidate_ids = tuple(int(item["id"]) for item in candidates)
     if decision == "same":
         try:
@@ -205,19 +217,21 @@ resource，不能删去章节编号或载体限定后变成同名知识内容；
                 candidate=candidate,
                 proposed_reason=reason,
             )
-            if confirmation[0]:
+            if confirmation[0] == "same":
                 aliases = accepted_aliases
                 if confirmation[1] == "global_name":
                     aliases = (observation.name, *aliases)
                 for alias in aliases:
                     store.add_alias(conn, selected, alias)
+                for alias in alias_candidates:
+                    store.add_alias_candidate(conn, selected, alias)
                 return Resolution(
                     entity_id=selected,
                     outcome="same",
                     reason=confirmation[2] or reason,
                     candidates=candidate_ids,
                 )
-            decision = "uncertain"
+            decision = confirmation[0]
             accepted_aliases = ()
             reason = confirmation[2] or "same 未通过独立身份否证确认"
         else:
@@ -229,24 +243,52 @@ resource，不能删去章节编号或载体限定后变成同名知识内容；
     if decision not in {"new", "uncertain"}:
         decision = "uncertain"
         reason = reason or "resolver 返回了非法 decision"
-    # A distinct judgment with a colliding name is an invalid semantic naming
-    # result. Never silently turn it into the existing Entity while recording
-    # `new`/`uncertain`; only a `new` result gets one bounded naming-only retry.
+    # A `new` judgment with a colliding canonical name may actually be a missed
+    # identity candidate (especially across languages). Rejudge identity first;
+    # only an explicit second `new` may enter the bounded naming retry.
     if not canonical:
         raise ValueError(f"{decision} entity 缺少有效 canonical_name")
     collisions = store.exact_entity_ids(conn, canonical)
     if collisions:
+        candidate_ids = tuple(dict.fromkeys((*candidate_ids, *collisions)))
         if decision == "new":
-            canonical = _retry_colliding_new_name(
-                conn,
-                llm,
-                observation=observation,
-                proposed_name=canonical,
-                collision_ids=collisions,
-                candidates=candidates,
-                identity_reason=reason,
+            collision_decision, collision_id, identity_scope, collision_reason = (
+                _recheck_colliding_new(
+                    conn,
+                    llm,
+                    observation=observation,
+                    collision_ids=collisions,
+                    proposed_reason=reason,
+                )
             )
-        else:
+            reason = collision_reason or reason
+            if collision_decision == "same" and collision_id is not None:
+                aliases = accepted_aliases
+                if identity_scope == "global_name":
+                    aliases = (observation.name, *aliases)
+                for alias in aliases:
+                    store.add_alias(conn, collision_id, alias)
+                for alias in alias_candidates:
+                    store.add_alias_candidate(conn, collision_id, alias)
+                return Resolution(
+                    entity_id=collision_id,
+                    outcome="same",
+                    reason=reason,
+                    candidates=candidate_ids,
+                )
+            decision = collision_decision
+            accepted_aliases = ()
+            if decision == "new":
+                canonical = _retry_colliding_new_name(
+                    conn,
+                    llm,
+                    observation=observation,
+                    proposed_name=canonical,
+                    collision_ids=collisions,
+                    candidates=candidates,
+                    identity_reason=reason,
+                )
+        if decision == "uncertain":
             raw_name = _canonical_name(observation.name)
             if raw_name and not store.exact_entity_ids(conn, raw_name):
                 canonical = raw_name
@@ -267,12 +309,44 @@ resource，不能删去章节编号或载体限定后变成同名知识内容；
             store.exact_entity_ids(conn, observation.name)
         ),
     )
+    for alias in alias_candidates:
+        store.add_alias_candidate(conn, entity_id, alias)
     return Resolution(
         entity_id=entity_id,
         outcome=decision,
         reason=reason,
         candidates=candidate_ids,
     )
+
+
+def _recheck_colliding_new(
+    conn: sqlite3.Connection,
+    llm: JSONLLM,
+    *,
+    observation: EntityObservation,
+    collision_ids: list[int],
+    proposed_reason: str,
+) -> tuple[str, int | None, str, str]:
+    """Rejudge colliding Entities as identity candidates before renaming."""
+    uncertain_reason = ""
+    uncertain_scope = "uncertain"
+    saw_uncertain = False
+    for entity_id in collision_ids:
+        decision, identity_scope, reason = _confirm_same(
+            llm,
+            observation=observation,
+            candidate=_entity_context(conn, entity_id),
+            proposed_reason=proposed_reason,
+        )
+        if decision == "same":
+            return decision, entity_id, identity_scope, reason
+        if decision == "uncertain":
+            saw_uncertain = True
+            uncertain_reason = uncertain_reason or reason
+            uncertain_scope = identity_scope
+    if saw_uncertain:
+        return "uncertain", None, uncertain_scope, uncertain_reason
+    return "new", None, "not_same", reason
 
 
 def _retry_colliding_new_name(
@@ -361,7 +435,7 @@ def _confirm_same(
     observation: EntityObservation,
     candidate: dict[str, Any],
     proposed_reason: str,
-) -> tuple[bool, str, str]:
+) -> tuple[str, str, str]:
     """Adversarially verify a tentative merge before mutating graph identity."""
     payload = llm.complete_json(
         RESOLUTION_SYSTEM,
@@ -370,13 +444,14 @@ def _confirm_same(
 使用可靠通用知识判断二者是否真是同一概念或对象，原文只用于确认当前 observation 的
 具体义项。主动寻找最强的真实身份冲突，但不能把定义不完整、原文没有重新定义、讲解角度
 不同或应用场景不同当成冲突。只有通用知识或语境表明二者是概念/实现、上下位、变体、
-实例、配置、资源/内容、技术角色/类比对象等不同对象时，才 reject_same。
+实例、配置、资源/内容、技术角色/类比对象等不同对象时，才判 new。
 
 必须分别判断“实际指代”和“名称能否成为全局 alias”：
 - 实际指代相同，即使表面名称只是当前 passage 的宽泛用词或角色称呼，也可
-  confirmed_same，并把 identity_scope 设为 passage_referent；此时不批准全局 alias。
+  same，并把 identity_scope 设为 passage_referent；此时不批准全局 alias。
 - 名称本身是可跨语境安全互换的缩写、全称、翻译、拼写或正式名变体时，设为 global_name。
-- 实际对象不同才 reject_same。候选 aliases 以及“A 被称为 B”“A（B）”等局部文字不能
+- 实际对象明确不同判 new；只有确实无法判断对象边界才判 uncertain。候选 aliases 以及
+  “A 被称为 B”“A（B）”等局部文字不能
   循环证明身份。
 
 例如，注意力讲解把技术角色「值」类比为「感官输入」时，值与感官输入是不同对象；但若
@@ -385,8 +460,8 @@ def _confirm_same(
 
 返回：
 {
-  "verdict": "confirmed_same | reject_same",
-  "identity_scope": "global_name | passage_referent | uncertain",
+  "decision": "same | new | uncertain",
+  "identity_scope": "global_name | passage_referent | not_same | uncertain",
   "strongest_identity_conflict": "最强的真实身份边界冲突；若确认相同则说明为何场景差异不构成冲突",
   "reason": "简短结论"
 }
@@ -418,13 +493,26 @@ def _confirm_same(
         ),
     )
     verdict = str(payload.get("verdict", "")).strip().lower()
+    decision = str(payload.get("decision", "")).strip().lower()
     identity_scope = str(payload.get("identity_scope", "")).strip().lower()
     reason = str(payload.get("reason", "")).strip()
-    confirmed = verdict == "confirmed_same" and identity_scope in {
+    if decision not in {"same", "new", "uncertain"}:
+        if verdict == "confirmed_same":
+            decision = (
+                "same"
+                if identity_scope in {"global_name", "passage_referent"}
+                else "uncertain"
+            )
+        elif verdict == "reject_same":
+            decision = "uncertain" if identity_scope == "uncertain" else "new"
+        else:
+            decision = "uncertain"
+    if decision == "same" and identity_scope not in {
         "global_name",
         "passage_referent",
-    }
-    return confirmed, identity_scope, reason
+    }:
+        decision = "uncertain"
+    return decision, identity_scope, reason
 
 
 def _canonical_name(value: Any) -> str:
@@ -457,17 +545,25 @@ def _accepted_aliases(
         if normalized in proposed and normalized not in seen:
             accepted.append(proposed[normalized])
             seen.add(normalized)
-    knowledge = payload.get("knowledge_aliases", [])
-    if isinstance(knowledge, list):
-        for value in knowledge[:5]:
-            if not isinstance(value, str) or not value.strip():
-                continue
-            alias = value.strip()
-            normalized = store.normalize_name(alias)
-            if normalized not in seen:
-                accepted.append(alias)
-                seen.add(normalized)
     return tuple(accepted)
+
+
+def _knowledge_alias_candidates(payload: dict[str, Any]) -> tuple[str, ...]:
+    """Keep model-knowledge names as recall hints, never formal aliases."""
+    raw = payload.get("knowledge_aliases", [])
+    if not isinstance(raw, list):
+        return ()
+    candidates: list[str] = []
+    seen: set[str] = set()
+    for value in raw[:5]:
+        if not isinstance(value, str) or not value.strip():
+            continue
+        alias = value.strip()
+        normalized = store.normalize_name(alias)
+        if normalized not in seen:
+            candidates.append(alias)
+            seen.add(normalized)
+    return tuple(candidates)
 
 
 def reconcile(
@@ -479,6 +575,33 @@ def reconcile(
     ] = {}
     entities = [_entity_context(conn, int(row["id"])) for row in store.list_entities(conn)]
     by_id = {int(item["id"]): item for item in entities}
+    saved_rows = conn.execute(
+        """
+        SELECT entity_id,candidate_entity_ids
+        FROM entity_observations
+        WHERE resolution_outcome='uncertain' AND entity_id IS NOT NULL
+        ORDER BY id
+        """
+    ).fetchall()
+    for row in saved_rows:
+        source_id = int(row["entity_id"])
+        if source_id not in by_id:
+            continue
+        try:
+            saved_ids = json.loads(str(row["candidate_entity_ids"]))
+        except (TypeError, ValueError, json.JSONDecodeError):
+            continue
+        if not isinstance(saved_ids, list):
+            continue
+        for value in saved_ids:
+            try:
+                candidate_id = int(value)
+            except (TypeError, ValueError):
+                continue
+            if candidate_id == source_id or candidate_id not in by_id:
+                continue
+            pair = tuple(sorted((source_id, candidate_id)))
+            pairs[pair] = (by_id[pair[0]], by_id[pair[1]], 1.0)
     for entity in entities:
         source_id = int(entity["id"])
         for candidate in candidate_entities(

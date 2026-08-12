@@ -49,9 +49,8 @@ PDF 读取优先使用系统的 `pdftotext`。没有该命令时可安装可选�
 python -m pip install -e '.[pdf,yaml]'
 ```
 
-流水线按任务复杂度使用两个模型：原有的实体/关系抽取、实体消歧、关系证据裁判、
-定义聚合及关系补抽使用 MiniMax-M3；目录摘要与开放类型/关系词表归一使用
-MiniMax-M2.7。两者共用同一个兼容客户端和 API key：
+流水线的实体/关系抽取、实体消歧、关系证据裁判、定义聚合、关系补抽、目录摘要及
+开放类型/关系词表归一默认全部使用 MiniMax-M3。各角色共用同一个兼容客户端和 API key：
 
 ```bash
 export MINIMAX_API_KEY='...'
@@ -62,7 +61,7 @@ export MINIMAX_API_KEY='...'
 ```text
 endpoint: https://api.minimaxi.com/v1/text/chatcompletion_v2
 complex model: MiniMax-M3
-simple model: MiniMax-M2.7
+simple model: MiniMax-M3
 ```
 
 如需临时经过兼容网关，可设置 `KG_LLM_BASE_URL`。`KG_COMPLEX_LLM_MODEL` 和

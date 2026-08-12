@@ -8,8 +8,13 @@ from dataclasses import replace
 from pathlib import Path
 from unittest import mock
 
-from kg import db, llm as llm_module, pipeline, resolution, store
-from kg.models import ClaimObservation, EntityObservation, ExtractionBatch
+from kg import db, llm as llm_module, observations, pipeline, resolution, store
+from kg.models import (
+    ClaimObservation,
+    EntityObservation,
+    ExtractionBatch,
+    Resolution,
+)
 from tests.helpers import FakeLLM
 
 
@@ -768,6 +773,112 @@ class PipelineTest(unittest.TestCase):
         self.assertEqual(report["distinct"][0]["ids"], [ids[0], ids[2]])
         self.assertEqual(report["distinct"][0]["score"], 0.95)
 
+    def test_reconcile_uses_saved_cross_language_uncertain_candidates(self):
+        source_id = self.conn.execute(
+            """
+            INSERT INTO sources
+            (source_key,name,source_type,version,content,content_hash)
+            VALUES ('saved-cross-lang','S','test','1','正文','saved-cross-lang-hash')
+            """
+        ).lastrowid
+        chinese = EntityObservation(
+            name="支持向量机",
+            definition="最大间隔分类方法",
+            entity_type="algorithm",
+            model_quote="支持向量机",
+            source_text="支持向量机使用最大间隔。",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        english = replace(
+            chinese,
+            name="Support Vector Machine",
+            model_quote="Support Vector Machine",
+            source_text="Support Vector Machine maximizes the margin.",
+            passage_ids=("P000002",),
+            location="P000002",
+        )
+        chinese_id = store.create_entity(self.conn, chinese)
+        english_id = store.create_entity(self.conn, english)
+        observation_id, _ = observations.add_entity_observation(
+            self.conn,
+            source_id=source_id,
+            chunk_index=0,
+            observation=english,
+            extraction_model="test",
+        )
+        observations.save_entity_resolution(
+            self.conn,
+            observation_id,
+            Resolution(
+                entity_id=english_id,
+                outcome="uncertain",
+                reason="跨语言候选待复核",
+                candidates=(chinese_id,),
+            ),
+            resolver_model="test",
+        )
+        self.conn.commit()
+        llm = FakeLLM(
+            {
+                "decision": "same",
+                "canonical_name": "支持向量机",
+                "reason": "中英文名称是同一算法",
+            }
+        )
+
+        with mock.patch("kg.resolution.candidate_entities", return_value=[]):
+            report = resolution.reconcile(self.conn, llm, limit=1)
+
+        self.assertEqual(len(report["merged"]), 1)
+        self.assertEqual(report["merged"][0]["score"], 1.0)
+        self.assertEqual(store.counts(self.conn)["entities"], 1)
+
+    def test_reconcile_ignores_invalid_missing_or_self_saved_candidates(self):
+        source_id = self.conn.execute(
+            """
+            INSERT INTO sources
+            (source_key,name,source_type,version,content,content_hash)
+            VALUES ('invalid-saved','S','test','1','正文','invalid-saved-hash')
+            """
+        ).lastrowid
+        observed = EntityObservation(
+            name="独立对象",
+            definition="独立定义",
+            entity_type="concept",
+            model_quote="独立对象",
+            source_text="独立对象",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        entity_id = store.create_entity(self.conn, observed)
+        observation_id, _ = observations.add_entity_observation(
+            self.conn,
+            source_id=source_id,
+            chunk_index=0,
+            observation=observed,
+            extraction_model="test",
+        )
+        observations.save_entity_resolution(
+            self.conn,
+            observation_id,
+            Resolution(
+                entity_id=entity_id,
+                outcome="uncertain",
+                reason="无效候选测试",
+                candidates=(entity_id, 999999),
+            ),
+            resolver_model="test",
+        )
+        self.conn.commit()
+
+        with mock.patch("kg.resolution.candidate_entities", return_value=[]):
+            report = resolution.reconcile(self.conn, FakeLLM(), limit=10)
+
+        self.assertEqual(report["examined"], 0)
+        self.assertEqual(report["merged"], [])
+        self.assertEqual(store.counts(self.conn)["entities"], 1)
+
     def test_new_entity_uses_llm_canonical_name_and_keeps_source_alias(self):
         observed = EntityObservation(
             name="GD",
@@ -817,7 +928,11 @@ class PipelineTest(unittest.TestCase):
         aliases = store.aliases_for(self.conn, resolved.entity_id)
 
         self.assertIn("mini-batch SGD", aliases)
-        self.assertIn("mini-batch stochastic gradient descent", aliases)
+        self.assertNotIn("mini-batch stochastic gradient descent", aliases)
+        self.assertIn(
+            "mini-batch stochastic gradient descent",
+            store.alias_candidates_for(self.conn, resolved.entity_id),
+        )
         self.assertNotIn("随机梯度下降", aliases)
         self.assertNotIn("未被抽取的别名", aliases)
         resolver_request = llm.calls[0][1]
@@ -826,7 +941,7 @@ class PipelineTest(unittest.TestCase):
             resolver_request,
         )
 
-    def test_resolver_can_register_reliable_knowledge_aliases(self):
+    def test_knowledge_aliases_are_candidate_only_until_observed(self):
         observed = EntityObservation(
             name="支持向量机",
             definition="通过最大化分类间隔构造决策边界的监督学习方法",
@@ -848,9 +963,136 @@ class PipelineTest(unittest.TestCase):
 
         resolved = resolution.resolve_observation(self.conn, llm, observed)
         aliases = store.aliases_for(self.conn, resolved.entity_id)
+        candidates = store.alias_candidates_for(self.conn, resolved.entity_id)
 
-        self.assertIn("Support Vector Machine", aliases)
-        self.assertIn("SVM", aliases)
+        self.assertNotIn("Support Vector Machine", aliases)
+        self.assertNotIn("SVM", aliases)
+        self.assertIn("Support Vector Machine", candidates)
+        self.assertIn("SVM", candidates)
+        self.assertEqual(store.exact_entity_ids(self.conn, "SVM"), [])
+
+    def test_knowledge_alias_recall_promotes_real_observation_after_same(self):
+        chinese = EntityObservation(
+            name="支持向量机",
+            definition="通过最大化分类间隔构造决策边界的监督学习方法",
+            entity_type="method",
+            model_quote="支持向量机",
+            source_text="支持向量机使用最大间隔分类器。",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        llm = FakeLLM(
+            {
+                "decision": "new",
+                "canonical_name": "支持向量机",
+                "knowledge_aliases": ["SVM"],
+                "reason": "新实体",
+            }
+        )
+        first = resolution.resolve_observation(self.conn, llm, chinese)
+        incoming = replace(
+            chinese,
+            name="SVM",
+            model_quote="SVM",
+            source_text="SVM maximizes the classification margin.",
+            passage_ids=("P000002",),
+            location="P000002",
+        )
+        recalled = resolution.candidate_entities(
+            self.conn, incoming.name, observation=incoming
+        )
+        self.assertEqual([item["id"] for item in recalled], [first.entity_id])
+        self.assertEqual(recalled[0]["aliases"], ["支持向量机"])
+        self.assertEqual(recalled[0]["candidate_aliases"], ["SVM"])
+
+        same_llm = FakeLLM(
+            {
+                "decision": "same",
+                "candidate_id": first.entity_id,
+                "canonical_name": "支持向量机",
+                "accepted_aliases": [],
+                "knowledge_aliases": [],
+                "reason": "SVM 指向支持向量机",
+            },
+            {
+                "decision": "same",
+                "identity_scope": "global_name",
+                "reason": "标准缩写",
+            },
+        )
+        second = resolution.resolve_observation(self.conn, same_llm, incoming)
+
+        self.assertEqual(second.entity_id, first.entity_id)
+        self.assertEqual(second.outcome, "same")
+        self.assertIn("SVM", store.aliases_for(self.conn, first.entity_id))
+        self.assertNotIn(
+            "SVM", store.alias_candidates_for(self.conn, first.entity_id)
+        )
+        self.assertEqual(
+            store.exact_entity_ids(self.conn, "SVM"), [first.entity_id]
+        )
+
+    def test_training_set_knowledge_hint_does_not_pollute_dataset_aliases(self):
+        dataset = EntityObservation(
+            name="数据集",
+            definition="由多个数据样本组成的集合",
+            entity_type="data",
+            model_quote="数据集",
+            source_text="每个数据集由多个样本组成。",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        first = resolution.resolve_observation(
+            self.conn,
+            FakeLLM(
+                {
+                    "decision": "new",
+                    "canonical_name": "数据集",
+                    "knowledge_aliases": ["training set", "训练数据集"],
+                    "reason": "新实体",
+                }
+            ),
+            dataset,
+        )
+
+        self.assertNotIn("training set", store.aliases_for(self.conn, first.entity_id))
+        self.assertIn(
+            "training set",
+            store.alias_candidates_for(self.conn, first.entity_id),
+        )
+        self.assertEqual(store.exact_entity_ids(self.conn, "training set"), [])
+
+        training_set = replace(
+            dataset,
+            name="training set",
+            definition="专门用于拟合模型参数的数据子集",
+            model_quote="training set",
+            source_text="A training set is used to fit model parameters.",
+            passage_ids=("P000002",),
+            location="P000002",
+        )
+        recalled = resolution.candidate_entities(
+            self.conn, training_set.name, observation=training_set
+        )
+        self.assertEqual([item["id"] for item in recalled], [first.entity_id])
+        second = resolution.resolve_observation(
+            self.conn,
+            FakeLLM(
+                {
+                    "decision": "new",
+                    "canonical_name": "训练集",
+                    "knowledge_aliases": [],
+                    "reason": "训练集是数据集的特定子集，不是同一对象",
+                }
+            ),
+            training_set,
+        )
+
+        self.assertEqual(second.outcome, "new")
+        self.assertNotEqual(second.entity_id, first.entity_id)
+        self.assertEqual(store.counts(self.conn)["entities"], 2)
+        self.assertNotIn("training set", store.aliases_for(self.conn, first.entity_id))
+        self.assertIn("training set", store.aliases_for(self.conn, second.entity_id))
 
     def test_candidate_recall_uses_incoming_observation_aliases(self):
         existing = EntityObservation(
@@ -1032,12 +1274,50 @@ class PipelineTest(unittest.TestCase):
 
         resolved = resolution.resolve_observation(self.conn, llm, observed)
 
-        self.assertEqual(resolved.outcome, "uncertain")
+        self.assertEqual(resolved.outcome, "new")
         self.assertNotEqual(resolved.entity_id, entity_id)
         self.assertNotIn("感官输入", store.aliases_for(self.conn, resolved.entity_id))
         self.assertIn("独立复核身份", llm.calls[1][1])
         self.assertIn("可靠通用知识", llm.calls[1][1])
         self.assertIn("应用场景不同当成冲突", llm.calls[1][1])
+
+    def test_tentative_same_confirmation_can_remain_uncertain(self):
+        existing = EntityObservation(
+            name="共享名称",
+            definition="候选对象的定义",
+            entity_type="concept",
+            model_quote="共享名称",
+            source_text="候选对象",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        entity_id = store.create_entity(self.conn, existing)
+        observed = replace(
+            existing,
+            name="上下文名称",
+            definition="语境不足，无法判断具体义项",
+            passage_ids=("P000002",),
+            location="P000002",
+        )
+        llm = FakeLLM(
+            {
+                "decision": "same",
+                "candidate_id": entity_id,
+                "canonical_name": "上下文名称",
+                "reason": "初步认为相同",
+            },
+            {
+                "decision": "uncertain",
+                "identity_scope": "uncertain",
+                "reason": "当前义项仍无法确定",
+            },
+        )
+
+        resolved = resolution.resolve_observation(self.conn, llm, observed)
+
+        self.assertEqual(resolved.outcome, "uncertain")
+        self.assertNotEqual(resolved.entity_id, entity_id)
+        self.assertEqual(store.counts(self.conn)["entities"], 2)
 
     def test_candidate_recall_includes_entity_named_in_definition(self):
         key = EntityObservation(
@@ -1178,7 +1458,7 @@ class PipelineTest(unittest.TestCase):
             "数学卷积",
         )
 
-    def test_colliding_new_name_retries_semantic_naming_only(self):
+    def test_colliding_new_name_rechecks_identity_then_renames_if_still_new(self):
         existing = EntityObservation(
             name="梯度下降",
             definition="一般优化方法",
@@ -1205,6 +1485,11 @@ class PipelineTest(unittest.TestCase):
                 "reason": "不同对象但没有完成名称消歧",
             },
             {
+                "decision": "new",
+                "identity_scope": "not_same",
+                "reason": "复判确认是不同算法",
+            },
+            {
                 "canonical_name": "批量梯度下降",
                 "naming_basis": "语料明确说明每步使用全部样本",
             },
@@ -1219,7 +1504,87 @@ class PipelineTest(unittest.TestCase):
             "批量梯度下降",
         )
         self.assertNotIn("梯度下降", store.aliases_for(self.conn, resolved.entity_id))
-        self.assertIn("只修正语义命名", llm.calls[1][1])
+        self.assertIn("独立复核身份", llm.calls[1][1])
+        self.assertIn("只修正语义命名", llm.calls[2][1])
+
+    def test_colliding_new_name_recheck_can_link_existing_entity(self):
+        existing = EntityObservation(
+            name="支持向量机",
+            definition="最大间隔分类方法",
+            entity_type="algorithm",
+            model_quote="支持向量机",
+            source_text="支持向量机使用最大间隔。",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        entity_id = store.create_entity(self.conn, existing)
+        observed = replace(
+            existing,
+            name="Support Vector Machine",
+            model_quote="Support Vector Machine",
+            source_text="Support Vector Machine maximizes the margin.",
+            passage_ids=("P000002",),
+            location="P000002",
+        )
+        llm = FakeLLM(
+            {
+                "decision": "new",
+                "canonical_name": "支持向量机",
+                "reason": "首次漏掉跨语言身份",
+            },
+            {
+                "decision": "same",
+                "identity_scope": "global_name",
+                "reason": "中英文标准名称指向同一算法",
+            },
+        )
+
+        resolved = resolution.resolve_observation(self.conn, llm, observed)
+
+        self.assertEqual(resolved.outcome, "same")
+        self.assertEqual(resolved.entity_id, entity_id)
+        self.assertEqual(store.counts(self.conn)["entities"], 1)
+        self.assertIn("Support Vector Machine", store.aliases_for(self.conn, entity_id))
+
+    def test_colliding_new_name_recheck_can_be_uncertain(self):
+        existing = EntityObservation(
+            name="共享标准名",
+            definition="候选对象",
+            entity_type="concept",
+            model_quote="共享标准名",
+            source_text="候选对象",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        entity_id = store.create_entity(self.conn, existing)
+        observed = replace(
+            existing,
+            name="未消歧表面名",
+            definition="语境不足的另一次观察",
+            passage_ids=("P000002",),
+            location="P000002",
+        )
+        llm = FakeLLM(
+            {
+                "decision": "new",
+                "canonical_name": "共享标准名",
+                "reason": "首次判断为新对象",
+            },
+            {
+                "decision": "uncertain",
+                "identity_scope": "uncertain",
+                "reason": "复判仍无法确定对象边界",
+            },
+        )
+
+        resolved = resolution.resolve_observation(self.conn, llm, observed)
+
+        self.assertEqual(resolved.outcome, "uncertain")
+        self.assertNotEqual(resolved.entity_id, entity_id)
+        self.assertEqual(
+            store.get_entity(self.conn, resolved.entity_id)["canonical_name"],
+            "未消歧表面名",
+        )
 
     def test_colliding_new_name_is_rejected_if_retry_still_collides(self):
         existing = EntityObservation(
@@ -1243,6 +1608,11 @@ class PipelineTest(unittest.TestCase):
                 "decision": "new",
                 "canonical_name": "梯度下降",
                 "reason": "不同对象但没有完成名称消歧",
+            },
+            {
+                "decision": "new",
+                "identity_scope": "not_same",
+                "reason": "复判确认不同",
             },
             {"canonical_name": "梯度下降", "naming_basis": "无区分"},
             {"canonical_name": "梯度下降", "naming_basis": "仍无区分"},

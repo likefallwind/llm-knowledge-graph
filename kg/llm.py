@@ -16,7 +16,7 @@ import json_repair
 
 DEFAULT_MINIMAX_BASE_URL = "https://api.minimaxi.com/v1"
 DEFAULT_COMPLEX_MODEL = "MiniMax-M3"
-DEFAULT_SIMPLE_MODEL = "MiniMax-M2.7"
+DEFAULT_SIMPLE_MODEL = "MiniMax-M3"
 DEFAULT_MAX_CONCURRENCY = 6
 # Compatibility: the primary/complex pipeline remains the default client.
 DEFAULT_MINIMAX_MODEL = DEFAULT_COMPLEX_MODEL

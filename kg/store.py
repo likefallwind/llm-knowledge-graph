@@ -98,6 +98,20 @@ def aliases_for(conn: sqlite3.Connection, entity_id: int) -> list[str]:
     ]
 
 
+def alias_candidates_for(
+    conn: sqlite3.Connection, entity_id: int
+) -> list[str]:
+    """Return unverified names used only to recall identity candidates."""
+    return [
+        str(row["name"])
+        for row in conn.execute(
+            """SELECT name FROM entity_alias_candidates
+               WHERE entity_id=? ORDER BY id""",
+            (entity_id,),
+        )
+    ]
+
+
 def evidence_for_entity(
     conn: sqlite3.Connection, entity_id: int, *, limit: int = 3
 ) -> list[str]:
@@ -208,6 +222,43 @@ def add_alias(conn: sqlite3.Connection, entity_id: int, name: str) -> bool:
         VALUES (?,?,?)
         """,
         (entity_id, value, normalize_name(value)),
+    )
+    conn.execute(
+        """DELETE FROM entity_alias_candidates
+           WHERE entity_id=? AND normalized_name=?""",
+        (entity_id, normalize_name(value)),
+    )
+    return cursor.rowcount > 0
+
+
+def add_alias_candidate(
+    conn: sqlite3.Connection,
+    entity_id: int,
+    name: str,
+    *,
+    source: str = "knowledge",
+) -> bool:
+    """Persist an unverified recall hint without making it a global alias."""
+    value = name.strip()
+    if not value:
+        return False
+    normalized = normalize_name(value)
+    entity = get_entity(conn, entity_id)
+    if entity is None:
+        return False
+    if normalized == str(entity["normalized_name"]):
+        return False
+    formal = conn.execute(
+        """SELECT 1 FROM entity_aliases
+           WHERE entity_id=? AND normalized_name=?""",
+        (entity_id, normalized),
+    ).fetchone()
+    if formal:
+        return False
+    cursor = conn.execute(
+        """INSERT OR IGNORE INTO entity_alias_candidates
+           (entity_id,name,normalized_name,source) VALUES (?,?,?,?)""",
+        (entity_id, value, normalized, source),
     )
     return cursor.rowcount > 0
 
@@ -519,6 +570,8 @@ def merge_entities(
         add_alias(conn, target_id, str(source["canonical_name"]))
         for alias in aliases_for(conn, source_id):
             add_alias(conn, target_id, alias)
+        for alias in alias_candidates_for(conn, source_id):
+            add_alias_candidate(conn, target_id, alias)
 
         evidence_rows = conn.execute(
             "SELECT * FROM evidence WHERE entity_id=?", (source_id,)

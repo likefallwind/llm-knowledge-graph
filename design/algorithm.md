@@ -368,8 +368,11 @@ MiniMax M3 看到：
 关联该候选；是否把表面名称登记为全局 alias 继续使用原有 alias 裁决，不由局部指代
 自动推出。
 模型可另行返回最多五个 `knowledge_aliases`，只用于可靠通用知识中跨语境安全互换的标准
-翻译、英文全称、通行缩写、正式名/简称或拼写变体。普通近义词、相关概念、实现/API、
-实例和局部角色不得注册。原文 aliases 与知识 aliases 均须由 resolver 明确接受后才写入。
+翻译、英文全称、通行缩写、正式名/简称或拼写变体。它们持久化到
+`entity_alias_candidates`，只参与候选召回，不参与精确解析，也不是正式全局 alias。
+普通近义词、相关概念、实现/API、实例和局部角色不得建议。只有原文 observation 提供的
+名称经 resolver 身份裁决和独立确认后，才写入 `entity_aliases`；后续 observation 命中
+knowledge alias 并确认 `same + global_name` 时，该真实观察名称才升级为正式 alias。
 
 输出：
 

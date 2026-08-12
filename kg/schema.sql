@@ -82,6 +82,21 @@ CREATE TABLE IF NOT EXISTS entity_aliases (
 CREATE INDEX IF NOT EXISTS idx_aliases_name
 ON entity_aliases(normalized_name,entity_id);
 
+-- Resolver-suggested names from general knowledge are recall hints, not
+-- verified global aliases.  They must never participate in exact identity
+-- lookup or canonical Assertion endpoint replacement.
+CREATE TABLE IF NOT EXISTS entity_alias_candidates (
+    id INTEGER PRIMARY KEY,
+    entity_id INTEGER NOT NULL REFERENCES entities(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    normalized_name TEXT NOT NULL,
+    source TEXT NOT NULL DEFAULT 'knowledge',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(entity_id,normalized_name)
+);
+CREATE INDEX IF NOT EXISTS idx_alias_candidates_name
+ON entity_alias_candidates(normalized_name,entity_id);
+
 CREATE TABLE IF NOT EXISTS entity_observations (
     id INTEGER PRIMARY KEY,
     observation_key TEXT NOT NULL UNIQUE,
@@ -272,6 +287,32 @@ CREATE TABLE IF NOT EXISTS relation_resolutions (
     relation_type_id INTEGER NOT NULL REFERENCES relation_types(id),
     outcome TEXT NOT NULL CHECK(outcome IN ('same','new','uncertain')),
     candidate_relation_ids TEXT NOT NULL DEFAULT '[]',
+    normalizer_model TEXT NOT NULL,
+    prompt_version TEXT NOT NULL,
+    reason TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(observation_id,normalizer_model,prompt_version)
+);
+
+-- Every normalizer decision is retained.  In particular, a new relation is a
+-- proposal here and enters relation_types/relation_resolutions only after the
+-- final assertion judge accepts the source-grounded projection.
+CREATE TABLE IF NOT EXISTS relation_resolution_attempts (
+    id INTEGER PRIMARY KEY,
+    observation_id INTEGER NOT NULL REFERENCES claim_observations(id) ON DELETE CASCADE,
+    raw_relation TEXT NOT NULL,
+    outcome TEXT NOT NULL CHECK(outcome IN (
+        'same','new','uncertain','non_projectable'
+    )),
+    candidate_relation_ids TEXT NOT NULL DEFAULT '[]',
+    matched_relation_type_id INTEGER REFERENCES relation_types(id),
+    canonical_name TEXT NOT NULL DEFAULT '',
+    relation_kind TEXT NOT NULL DEFAULT 'other' CHECK(relation_kind IN (
+        'is_a','part_of','prerequisite_of','other'
+    )),
+    description TEXT NOT NULL DEFAULT '',
+    projection_statement TEXT NOT NULL DEFAULT '',
+    register_alias INTEGER NOT NULL DEFAULT 0 CHECK(register_alias IN (0,1)),
     normalizer_model TEXT NOT NULL,
     prompt_version TEXT NOT NULL,
     reason TEXT NOT NULL DEFAULT '',
