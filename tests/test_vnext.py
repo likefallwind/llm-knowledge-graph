@@ -216,6 +216,19 @@ class VNextTest(unittest.TestCase):
                VALUES ('包含组件','包含组件','other',
                        '主语整体包含宾语组件，方向为整体到组件')"""
         ).lastrowid
+        left = self.conn.execute(
+            """INSERT INTO entities(canonical_name,normalized_name,definition)
+               VALUES ('模型','模型','模型')"""
+        ).lastrowid
+        right = self.conn.execute(
+            """INSERT INTO entities(canonical_name,normalized_name,definition)
+               VALUES ('组件','组件','组件')"""
+        ).lastrowid
+        self.conn.execute(
+            """INSERT INTO claims(subject_id,relation_type_id,relation,object_id)
+               VALUES (?,?,?,?)""",
+            (left, relation_id, "包含组件", right),
+        )
         claim = ClaimObservation(
             "模型", "包含", "组件", "模型包含组件", "模型包含组件。",
             ("P000001",), "P000001", raw_relation="包含",
@@ -246,16 +259,16 @@ class VNextTest(unittest.TestCase):
         second_llm = FakeLLM({**response, "register_alias": True})
         second = vocabulary.resolve_relation(self.conn, second_llm, claim)
         self.assertTrue(second.register_alias)
-        self.assertIsNotNone(
+        self.assertIsNone(
             self.conn.execute(
                 "SELECT id FROM relation_aliases WHERE normalized_name='包含'"
             ).fetchone()
         )
 
-        exact_llm = FakeLLM()
+        exact_llm = FakeLLM(response)
         exact = vocabulary.resolve_relation(self.conn, exact_llm, claim)
         self.assertEqual(exact.relation_type_id, relation_id)
-        self.assertEqual(exact_llm.calls, [])
+        self.assertEqual(len(exact_llm.calls), 1)
 
     def test_uncertain_relation_does_not_create_type_or_alias(self):
         claim = ClaimObservation(
@@ -281,10 +294,6 @@ class VNextTest(unittest.TestCase):
         )
 
         result = vocabulary.resolve_relation(self.conn, llm, claim)
-        vocabulary.save_relation_resolution(
-            self.conn, 1, "包含", result, model="FakeLLM"
-        )
-
         self.assertIsNone(result.relation_type_id)
         self.assertEqual(result.canonical_name, "包含")
         self.assertEqual(result.outcome, "uncertain")

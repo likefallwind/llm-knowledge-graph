@@ -85,6 +85,14 @@ class DefinitionsReachThePromptsTest(unittest.TestCase):
         self.assertIn("不需要重复\n这些已由 Assertion 保存的限制", llm.calls[0][1])
         self.assertIn("卷积层的权重", llm.calls[0][1])
 
+    def test_relation_normalizer_version_covers_direct_projection_gate(self):
+        from kg import vocabulary
+
+        self.assertEqual(
+            vocabulary.RELATION_NORMALIZER_VERSION,
+            "open-relation-normalizer-4-direct-projection",
+        )
+
     def test_live_failure_boundaries_remain_explicit(self):
         part_of = ontology.RELATION_BY_NAME["part_of"]
         prerequisite = ontology.RELATION_BY_NAME["prerequisite_of"]
@@ -171,7 +179,7 @@ class PromptVersionsAreBumpedTest(unittest.TestCase):
         )
         self.assertEqual(
             extraction.RELATION_PROMPT_VERSION,
-            "open-relations-assertion-4-recall-protection",
+            "open-relations-assertion-5-pending-endpoint",
         )
         self.assertEqual(
             validation.VALIDATION_PROMPT_VERSION,

@@ -176,6 +176,94 @@ class ExtractionTest(unittest.TestCase):
         self.assertEqual(len(batch.claims), 1)
         self.assertIn("entities 超过上限 2，已截断", batch.rejected[-1])
 
+    def test_missing_relation_endpoint_is_preserved_for_later_resolution(self):
+        text = "概率可以针对随机变量的取值范围来定义。"
+        passages = segment_text(text)
+        llm = FakeLLM(
+            {
+                "entities": [
+                    {
+                        "name": "概率",
+                        "definition": "用于量化事件可能性的数学概念",
+                        "type_labels": ["数学概念"],
+                        "aliases": [],
+                        "evidence": {
+                            "passage_ids": ["P000001"],
+                            "quote": "概率可以针对随机变量的取值范围来定义",
+                        },
+                    }
+                ]
+            },
+            {
+                "relations": [
+                    {
+                        "subject": "概率",
+                        "predicate": "针对...定义",
+                        "object": "随机变量的取值范围",
+                        "statement": "概率可以针对随机变量的取值范围来定义。",
+                        "scope": "",
+                        "scope_is_restrictive": False,
+                        "stance": "support",
+                        "evidence": {
+                            "passage_ids": ["P000001"],
+                            "quote": "概率可以针对随机变量的取值范围来定义",
+                        },
+                    }
+                ]
+            },
+        )
+
+        batch = extract(llm, text, passages=passages)
+
+        self.assertEqual(len(batch.claims), 1)
+        self.assertEqual(batch.claims[0].subject, "概率")
+        self.assertEqual(batch.claims[0].object, "随机变量的取值范围")
+        self.assertNotIn("端点不在实体清单", "\n".join(batch.rejected))
+        relation_prompt = llm.calls[1][1]
+        self.assertIn("不能用清单中较宽泛的实体顶替缺失端点", relation_prompt)
+
+    def test_relation_with_two_missing_endpoints_is_rejected(self):
+        text = "概率可以针对随机变量的取值范围来定义。"
+        passages = segment_text(text)
+        llm = FakeLLM(
+            {
+                "entities": [
+                    {
+                        "name": "概率",
+                        "definition": "用于量化事件可能性的数学概念",
+                        "type_labels": ["数学概念"],
+                        "aliases": [],
+                        "evidence": {
+                            "passage_ids": ["P000001"],
+                            "quote": "概率可以针对随机变量的取值范围来定义",
+                        },
+                    }
+                ]
+            },
+            {
+                "relations": [
+                    {
+                        "subject": "概率测度",
+                        "predicate": "针对...定义",
+                        "object": "随机变量的取值范围",
+                        "statement": "概率测度可以针对随机变量的取值范围来定义。",
+                        "scope": "",
+                        "scope_is_restrictive": False,
+                        "stance": "support",
+                        "evidence": {
+                            "passage_ids": ["P000001"],
+                            "quote": "概率可以针对随机变量的取值范围来定义",
+                        },
+                    }
+                ]
+            },
+        )
+
+        batch = extract(llm, text, passages=passages)
+
+        self.assertEqual(batch.claims, ())
+        self.assertIn("两个端点均不在实体清单", batch.rejected[-1])
+
     def test_paraphrased_quote_and_actual_source_are_both_preserved(self):
         passages = segment_text(
             "梯度下降通过沿目标函数的负梯度方向更新参数。"

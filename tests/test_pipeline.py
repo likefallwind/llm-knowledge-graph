@@ -8,7 +8,15 @@ from dataclasses import replace
 from pathlib import Path
 from unittest import mock
 
-from kg import db, llm as llm_module, observations, pipeline, resolution, store
+from kg import (
+    db,
+    llm as llm_module,
+    observations,
+    pipeline,
+    resolution,
+    store,
+    vocabulary,
+)
 from kg.models import (
     ClaimObservation,
     EntityObservation,
@@ -187,6 +195,11 @@ class PipelineTest(unittest.TestCase):
             with mock.patch("kg.pipeline.extraction.extract", side_effect=extract), mock.patch(
                 "kg.pipeline.validation.judge_claim",
                 return_value=("supports", "测试关系"),
+            ), mock.patch(
+                "kg.pipeline.vocabulary.resolve_relation",
+                return_value=vocabulary.RelationResolution(
+                    2, "part_of", "part_of", "same", "测试关系"
+                ),
             ):
                 result = pipeline.process_catalog(
                     conn,
@@ -300,6 +313,9 @@ class PipelineTest(unittest.TestCase):
                 "canonical_name": "批量梯度下降法",
                 "reason": "不同粒度对象",
             },
+            {"decision": "same", "candidate_id": 1,
+             "projection_statement": "批量梯度下降法是梯度下降法的一种",
+             "register_alias": False, "reason": "方向和语义一致"},
             {"assertion_verdict": "supports",
              "projection_statement": "卷积神经网络是神经网络的一种",
              "projection_faithful": True, "reason": "明确说是一种"},
@@ -330,6 +346,9 @@ class PipelineTest(unittest.TestCase):
                 "strongest_identity_conflict": "不存在",
                 "reason": "确认是同一算法变体",
             },
+            {"decision": "same", "candidate_id": 1,
+             "projection_statement": "批量梯度下降法是梯度下降法的一种",
+             "register_alias": False, "reason": "方向和语义一致"},
             {"assertion_verdict": "supports",
              "projection_statement": "卷积神经网络是神经网络的一种",
              "projection_faithful": True, "reason": "独立来源明确支持"},
@@ -623,6 +642,9 @@ class PipelineTest(unittest.TestCase):
                 "canonical_name": "实体乙",
                 "reason": "新实体",
             },
+            {"decision": "same", "candidate_id": 1,
+             "projection_statement": "实体甲是实体乙的一种",
+             "register_alias": False, "reason": "方向和语义一致"},
         )
         result = pipeline.process_catalog(self.conn, llm, catalog)
         self.assertTrue(result["failures"])
@@ -1720,6 +1742,9 @@ class PipelineTest(unittest.TestCase):
                 "canonical_name": "机器学习",
                 "reason": "不同对象",
             },
+            {"decision": "same", "candidate_id": 2,
+             "projection_statement": "梯度下降法是机器学习的一部分",
+             "register_alias": False, "reason": "待最终证据裁判"},
             {"assertion_verdict": "insufficient",
              "projection_statement": "候选实体与基础实体相关",
              "projection_faithful": True, "reason": "只有共现"},

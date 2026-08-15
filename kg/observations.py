@@ -265,6 +265,14 @@ def as_claim(conn: sqlite3.Connection, row: sqlite3.Row) -> ClaimObservation:
         ).fetchone()
         if relation_row is not None:
             relation_description = str(relation_row["description"])
+    if not relation_description:
+        attempt = conn.execute(
+            """SELECT description FROM relation_resolution_attempts
+               WHERE observation_id=? ORDER BY id DESC LIMIT 1""",
+            (int(row["id"]),),
+        ).fetchone()
+        if attempt is not None:
+            relation_description = str(attempt["description"])
     return ClaimObservation(
         subject=subject,
         relation=str(row["relation"]),
@@ -350,7 +358,7 @@ def prepare_assertions(
     """Build the exact proposition that the final judge will evaluate.
 
     Extraction preserves a complete source-grounded statement.  This step runs
-    only after both endpoints and the relation have canonical identities, then
+    only after both endpoints and a projectable relation proposal exist, then
     substitutes canonical endpoint labels and fingerprints the final meaning.
     A changed endpoint/relation therefore invalidates an older cached judgment.
     """
@@ -361,7 +369,10 @@ def prepare_assertions(
     rows = conn.execute(
         f"""
         SELECT o.*,s.canonical_name AS canonical_subject,
-               t.canonical_name AS canonical_object
+               t.canonical_name AS canonical_object,
+               (SELECT a.outcome FROM relation_resolution_attempts a
+                WHERE a.observation_id=o.id ORDER BY a.id DESC LIMIT 1)
+                 AS relation_attempt_outcome
         FROM claim_observations o
         LEFT JOIN entities s ON s.id=o.subject_entity_id
         LEFT JOIN entities t ON t.id=o.object_entity_id
@@ -375,7 +386,11 @@ def prepare_assertions(
         if (
             row["subject_entity_id"] is None
             or row["object_entity_id"] is None
-            or row["relation_type_id"] is None
+            or (
+                row["relation_type_id"] is None
+                and str(row["relation_attempt_outcome"])
+                    not in {"same", "new"}
+            )
         ):
             continue
         subject = str(row["canonical_subject"])
@@ -392,7 +407,9 @@ def prepare_assertions(
         scope = _replace_endpoint(scope, str(row["object_name"]), object_name)
         fingerprint_payload = {
             "subject_id": int(row["subject_entity_id"]),
-            "relation_type_id": int(row["relation_type_id"]),
+            # A new predicate is judged before it receives a database id.
+            # Its canonical name is therefore the stable semantic identity.
+            "relation": store.normalize_name(str(row["relation"])),
             "object_id": int(row["object_entity_id"]),
             "statement": statement,
             "scope": scope,
@@ -520,8 +537,6 @@ def materialize(
     object_id = row["object_entity_id"]
     if subject_id is None or object_id is None:
         return {"outcome": "pending_endpoint"}
-    if row["relation_type_id"] is None:
-        return {"outcome": "pending_relation"}
     prepare_assertions(conn, [observation_id])
     row = get_observation(conn, observation_id)
     if row is None or not str(row["assertion_fingerprint"]):
@@ -541,6 +556,8 @@ def materialize(
             "verdict": str(judgment["verdict"]),
             "reason": str(judgment["reason"]),
         }
+    if row["relation_type_id"] is None:
+        return {"outcome": "pending_relation"}
     relation_type_id = row["relation_type_id"]
     relation_name = str(row["relation"])
     relation_kind = str(row["relation_kind"])

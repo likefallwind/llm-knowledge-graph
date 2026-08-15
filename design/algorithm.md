@@ -498,7 +498,19 @@ Claim；不重新抽取 Source，也不重复当前版本的关系裁判。
 
 ## 8. 关系证据裁判
 
-Passage 解析后的每个 Claim Evidence 单独交给 MiniMax M3。裁判同时看到 model quote 和 source text，但提示词明确规定 source text 是唯一权威证据。裁判只能返回：
+关系归一不再按字符串相似度取 top-k，也不为三种种子关系预留候选位。候选由两部分组成：
+
+- 当前名称精确命中的 RelationType/已验证 alias；
+- 已经有 Claim 证据支撑的全部开放 RelationType。
+
+名称精确命中也不能绕过上下文。归一器必须先按 `subject → predicate → object` 依次
+口头化，并核对真正承担关系的主语和宾语；若真实参与者其实是端点的参数、输出、组成
+部分或作者等第三个对象，则返回 `non_projectable`。`uncertain` 和
+`non_projectable` 都保留在 `relation_resolution_attempts` 中，但不进入后续裁判。
+
+`same` 和 `new` 也只是待验证方案：此时不新增 RelationType，不写全局 alias。Passage
+解析后的每个可投影 Claim Evidence 再单独交给 MiniMax M3。裁判同时看到 model quote
+和 source text，但提示词明确规定 source text 是唯一权威证据。裁判只能返回：
 
 ```text
 supports
@@ -519,7 +531,7 @@ insufficient
 
 ```text
 stance=support 且 verdict=supports
-    → 新建/复用 Claim，追加 support Evidence
+    → 确认 RelationType/alias，再新建或复用 Claim，追加 support Evidence
 
 stance=oppose 且 verdict=contradicts 且 Claim 已存在
     → 追加 oppose Evidence
@@ -773,12 +785,20 @@ for spec in load_catalog(catalog):
                 local_entities[observed_entity.names] = entity_id
 
             resolve_observation_endpoints(observations, local_entities)
-            for observation in observations:
+            relation_proposals = normalize_open_relations(
+                observations,
+                candidates=exact_matches_plus_supported_relation_catalog,
+            )
+            for observation, relation_proposal in relation_proposals:
+                if relation_proposal in {uncertain, non_projectable}:
+                    save_relation_attempt(observation, relation_proposal)
+                    continue
                 verdict = cached_or_judge_relation_evidence(observation)
                 save_append_only_judgment(observation, verdict)
                 if endpoints_ready(observation) and verdict_matches_stance(
                     verdict, observation.stance
                 ):
+                    finalize_relation_type_and_verified_alias(relation_proposal)
                     claim_id = upsert_claim_with_cycle_check(
                         observation.subject_id,
                         observation.relation,

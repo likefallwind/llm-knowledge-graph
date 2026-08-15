@@ -16,6 +16,8 @@ Read → Structure → Extract Entities → Extract Relations → Normalize → 
 - 正式图仍只有四类知识对象：`Source`、`Entity`、`Claim`、`Evidence`；Section、Observation 和开放词表是结构/审计数据。
 - 实体类型和关系类型均开放抽取并全局归一。旧六类实体类型和三个核心关系只作为种子，不是白名单。
 - `relation_kind` 保留 `is_a / part_of / prerequisite_of / other` 四种导航类别；`other` 下可以保存任意有原文证据的开放谓词。
+- 关系候选不按字符串相似度截断，也不为三种种子关系保留特殊席位：只使用名称精确命中和已有 Claim 支撑的开放 RelationType。精确命中仍须结合完整 Assertion 复判。
+- 新 RelationType 和 relation alias 只在最终关系证据裁判支持后写入；无法形成忠实 `subject → predicate → object` 投影的观察留作审计但不入图。
 - 教材目录持久化为 Section 树，自底向上生成仅由 Passage 支持的摘要。目录用于上下文、候选召回和展示，不自动生成 Claim。
 - Entity 和 Claim 没有 `proposed / published / shadow` 状态机。通过 Passage
   校验的 EntityObservation 和 ClaimObservation 都会先永久保存；实体身份判断

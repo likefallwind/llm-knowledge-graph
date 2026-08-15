@@ -395,12 +395,14 @@ def process_chunk(
     observations.resolve_endpoint_ids(conn, observation_ids, local=local)
     # Normalize relations only after endpoint resolution so the normalizer sees
     # the final canonical endpoint names together with the complete Assertion.
+    relation_results: dict[int, tuple[ClaimObservation, vocabulary.RelationResolution]] = {}
     for observation_id in observation_ids:
         row = observations.get_observation(conn, observation_id)
         if row is None:
             continue
         claim = observations.as_claim(conn, row)
         relation_result = vocabulary.resolve_relation(conn, fast_llm, claim)
+        relation_results[observation_id] = (claim, relation_result)
         conn.execute(
             """UPDATE claim_observations
                SET relation=?,relation_type_id=?,relation_kind=?,
@@ -447,6 +449,18 @@ def process_chunk(
             verdict=verdict,
             reason=reason,
         )
+        observation_id = int(row["id"])
+        relation_entry = relation_results.get(observation_id)
+        expected = "supports" if str(row["polarity"]) == "support" else "contradicts"
+        if verdict == expected and relation_entry is not None:
+            original_claim, relation_result = relation_entry
+            vocabulary.finalize_relation_resolution(
+                conn,
+                observation_id,
+                original_claim.raw_relation or original_claim.relation,
+                relation_result,
+                model=_model_name(fast_llm),
+            )
     # Cache relation judgments independently of whether endpoints exist yet.
     conn.commit()
 
