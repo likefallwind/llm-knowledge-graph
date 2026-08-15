@@ -179,7 +179,7 @@ class PromptVersionsAreBumpedTest(unittest.TestCase):
         )
         self.assertEqual(
             extraction.RELATION_PROMPT_VERSION,
-            "open-relations-assertion-5-pending-endpoint",
+            "open-relations-assertion-4-recall-protection",
         )
         self.assertEqual(
             validation.VALIDATION_PROMPT_VERSION,

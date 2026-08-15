@@ -15,7 +15,7 @@ from .models import (
 
 
 ENTITY_PROMPT_VERSION = "open-entities-section-6-tool-boundary"
-RELATION_PROMPT_VERSION = "open-relations-assertion-5-pending-endpoint"
+RELATION_PROMPT_VERSION = "open-relations-assertion-4-recall-protection"
 EXTRACTION_PROMPT_VERSION = (
     f"{ENTITY_PROMPT_VERSION}+{RELATION_PROMPT_VERSION}"
 )
@@ -92,15 +92,13 @@ Entity 必须是在本片段中有稳定名称、可复指，并有实质性定�
 
 RELATION_PROMPT = """从下面的原始语料中抽取开放式关系及其完整 Assertion。
 
-实体已经由上一阶段识别。subject 和 object 应优先使用实体清单中的完整名称；不要重新
-抽实体。如果无法保证两个端点都来自实体清单，则至少一个端点必须来自实体清单，如果真正承担关系的一端是原文中的稳定完整名词短语、但不在实体清单中，可以
-原样输出该端点并等待后续解析。predicate 使用
-原文关系的简洁、可复用表达，不受预设关系词表限制。
+实体已经由上一阶段识别。subject 和 object 必须使用实体清单中的完整名称；不要重新
+抽实体。predicate 使用原文关系的简洁、可复用表达，不受预设关系词表限制。
 
 规则：
 1. 只能依据原始 Passage，目录和摘要只提供定位上下文，不能单独证明关系。
 2. evidence.passage_ids 必须来自下面真实存在的 Passage，最多 3 个。
-3. 文中的例子不作为关系抽取依据，除非正文明确陈述了它们的普遍性或适用条件。
+3. 共现、章节相邻、主题相似或模型常识不能构成关系。
 4. statement 必须是一条可独立判断真假的完整陈述，必须出现 subject 和 object 的完整
    名称，并保留原文中的条件、适用范围、时间、否定、可能性和数量限制。不能把
    “在某条件下成立”改写成无条件成立。
@@ -108,14 +106,15 @@ RELATION_PROMPT = """从下面的原始语料中抽取开放式关系及其完�
    statement 变假或明显扩大适用范围时，scope_is_restrictive 必须为 true。
 6. 只抽取可复用的教学知识。仅描述当前代码调用了哪个辅助函数、计时器、绘图器、
    累计器、损失类或配置项的实现事实，以及界面点击顺序、云资源操作步骤，不形成关系。
+7. 证据来源测试：假设删掉代码块、练习题和界面操作步骤，叙述正文是否仍明确表达该
+   关系？如果不能，必须省略。不得仅根据代码反推“模型使用某工具/API”。
 8. 正文明确讲授的模型、算法、机制、适用条件之间的关系可以保留；代码只能作为补充
    证据，不能成为关系的唯一来源。
 9. 召回检查：逐句检查叙述正文中的定义、性质、比较、因果、组成、适用条件和限制，
    只要两个端点都在实体清单中，就不要因端点未在本段重新定义而漏掉关系。
-10. 已在实体清单中的 subject/object 必须逐字复制其完整名称；缺失端点必须使用原文中
-   真正承担关系的稳定完整名词短语。statement 必须逐字包含最终输出的两个完整端点。
-   即使原文使用简称、代词或“非凸情况下”等语法变形，也要在忠于原意的前提下写入
-   完整端点；不能用清单中较宽泛的实体顶替缺失端点。
+10. subject 和 object 必须逐字复制实体清单中的完整名称；statement 中也必须逐字包含
+   这两个完整名称。即使原文使用简称、代词或“非凸情况下”等语法变形，也要在忠于
+   原意的前提下把实体清单中的完整名称写入 statement。
 11. stance 表示原文是否支持这条完整 statement，不表示 statement 内部是否含否定。
    本任务抽取的是原文实际陈述的命题，因此始终输出 support；否定事实应写进 statement
    和 predicate，不得因“并非如此”“不收敛”等否定词输出 oppose。
@@ -124,9 +123,9 @@ RELATION_PROMPT = """从下面的原始语料中抽取开放式关系及其完�
 
 输出：
 {{"relations":[{{
-  "subject":"实体清单中的完整名称，或原文中缺失端点的稳定完整名词短语",
+  "subject":"实体清单中的完整名称",
   "predicate":"开放关系谓词",
-  "object":"实体清单中的完整名称，或原文中缺失端点的稳定完整名词短语",
+  "object":"实体清单中的完整名称",
   "statement":"包含全部必要条件的完整关系表述",
   "scope":"限制成立范围的条件或语境；没有则为空字符串",
   "scope_is_restrictive":true,
@@ -173,7 +172,7 @@ def extract(
             claim
             for claim in first.claims
             if _compact(claim.subject) in allowed
-            or _compact(claim.object) in allowed
+            and _compact(claim.object) in allowed
         )
         return ExtractionBatch(
             entities=entities,
@@ -243,11 +242,8 @@ def extract_relations(
     claims: list[ClaimObservation] = []
     rejected = list(batch.rejected)
     for index, claim in enumerate(batch.claims):
-        if (
-            _compact(claim.subject) not in allowed
-            and _compact(claim.object) not in allowed
-        ):
-            rejected.append(f"claim[{index}] 两个端点均不在实体清单")
+        if _compact(claim.subject) not in allowed or _compact(claim.object) not in allowed:
+            rejected.append(f"claim[{index}] 端点不在实体清单")
             continue
         claims.append(claim)
     return tuple(claims), tuple(rejected)
