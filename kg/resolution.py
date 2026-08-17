@@ -11,7 +11,7 @@ from .llm import JSONLLM
 from .models import EntityObservation, Resolution
 
 
-RESOLUTION_PROMPT_VERSION = "entity-identity-ontology-12-candidate-knowledge-aliases"
+RESOLUTION_PROMPT_VERSION = "entity-identity-ontology-13-alias-scope-inheritance"
 
 IDENTITY_KNOWLEDGE_POLICY = """你可以使用可靠的通用知识判断术语的通常含义、同义关系、
 翻译、缩写，以及概念、实现、子类、实例之间的身份边界。原文和语境用于确定当前名称
@@ -218,9 +218,14 @@ resource，不能删去章节编号或载体限定后变成同名知识内容；
                 proposed_reason=reason,
             )
             if confirmation[0] == "same":
-                aliases = accepted_aliases
-                if confirmation[1] == "global_name":
-                    aliases = (observation.name, *aliases)
+                # Alias suggestions inherit the observation surface name's
+                # identity scope. A passage-local referent and its translated
+                # or abbreviated forms must be rejected as one group.
+                aliases = (
+                    (observation.name, *accepted_aliases)
+                    if confirmation[1] == "global_name"
+                    else ()
+                )
                 for alias in aliases:
                     store.add_alias(conn, selected, alias)
                 for alias in alias_candidates:
@@ -263,9 +268,11 @@ resource，不能删去章节编号或载体限定后变成同名知识内容；
             )
             reason = collision_reason or reason
             if collision_decision == "same" and collision_id is not None:
-                aliases = accepted_aliases
-                if identity_scope == "global_name":
-                    aliases = (observation.name, *aliases)
+                aliases = (
+                    (observation.name, *accepted_aliases)
+                    if identity_scope == "global_name"
+                    else ()
+                )
                 for alias in aliases:
                     store.add_alias(conn, collision_id, alias)
                 for alias in alias_candidates:
@@ -448,7 +455,8 @@ def _confirm_same(
 
 必须分别判断“实际指代”和“名称能否成为全局 alias”：
 - 实际指代相同，即使表面名称只是当前 passage 的宽泛用词或角色称呼，也可
-  same，并把 identity_scope 设为 passage_referent；此时不批准全局 alias。
+  same，并把 identity_scope 设为 passage_referent；此时 observation.name 及其携带的
+  accepted_aliases 必须作为同一组局部名称一起拒绝，不批准任何全局 alias。
 - 名称本身是可跨语境安全互换的缩写、全称、翻译、拼写或正式名变体时，设为 global_name。
 - 实际对象明确不同判 new；只有确实无法判断对象边界才判 uncertain。候选 aliases 以及
   “A 被称为 B”“A（B）”等局部文字不能

@@ -1399,13 +1399,14 @@ class PipelineTest(unittest.TestCase):
             source_text="小批量随机梯度下降比梯度下降更快。",
             passage_ids=("P000003",),
             location="P000003",
+            aliases=("gradient descent",),
         )
         llm = FakeLLM(
             {
                 "decision": "same",
                 "candidate_id": batch_id,
                 "canonical_name": "批量梯度下降",
-                "accepted_aliases": [],
+                "accepted_aliases": ["gradient descent"],
                 "reason": "当前观察实际指向全批量变体",
             },
             {
@@ -1442,6 +1443,7 @@ class PipelineTest(unittest.TestCase):
         self.assertEqual(resolved.outcome, "same")
         self.assertEqual(resolved.entity_id, batch_id)
         self.assertNotIn("梯度下降", store.aliases_for(self.conn, batch_id))
+        self.assertNotIn("gradient descent", store.aliases_for(self.conn, batch_id))
         self.assertIn("passage_referent", llm.calls[1][1])
 
     def test_distinct_same_surface_requires_disambiguated_canonical_name(self):
@@ -1567,6 +1569,48 @@ class PipelineTest(unittest.TestCase):
         self.assertEqual(resolved.entity_id, entity_id)
         self.assertEqual(store.counts(self.conn)["entities"], 1)
         self.assertIn("Support Vector Machine", store.aliases_for(self.conn, entity_id))
+
+    def test_colliding_new_passage_referent_rejects_all_observation_aliases(self):
+        existing = EntityObservation(
+            name="优化算法",
+            definition="调整模型参数以优化目标函数的方法",
+            entity_type="algorithm",
+            model_quote="优化算法",
+            source_text="优化算法用于更新参数。",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        entity_id = store.create_entity(self.conn, existing)
+        observed = replace(
+            existing,
+            name="算法",
+            model_quote="算法（algorithm）",
+            source_text="调整模型参数以优化目标函数的算法（algorithm）。",
+            passage_ids=("P000002",),
+            location="P000002",
+            aliases=("algorithm",),
+        )
+        llm = FakeLLM(
+            {
+                "decision": "new",
+                "canonical_name": "优化算法",
+                "accepted_aliases": ["algorithm"],
+                "reason": "首次裁决未识别局部泛称",
+            },
+            {
+                "decision": "same",
+                "identity_scope": "passage_referent",
+                "reason": "当前段落中的算法指优化算法，但不是全局名称",
+            },
+        )
+
+        resolved = resolution.resolve_observation(self.conn, llm, observed)
+        aliases = store.aliases_for(self.conn, entity_id)
+
+        self.assertEqual(resolved.outcome, "same")
+        self.assertEqual(resolved.entity_id, entity_id)
+        self.assertNotIn("算法", aliases)
+        self.assertNotIn("algorithm", aliases)
 
     def test_colliding_new_name_recheck_can_be_uncertain(self):
         existing = EntityObservation(

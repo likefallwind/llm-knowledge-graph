@@ -171,7 +171,7 @@ class PromptVersionsAreBumpedTest(unittest.TestCase):
         self.assertNotIn("relation-judge-passages-1", versions)
         self.assertEqual(
             resolution.RESOLUTION_PROMPT_VERSION,
-            "entity-identity-ontology-12-candidate-knowledge-aliases",
+            "entity-identity-ontology-13-alias-scope-inheritance",
         )
         self.assertEqual(
             extraction.ENTITY_PROMPT_VERSION,
