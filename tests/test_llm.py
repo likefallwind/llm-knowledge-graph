@@ -73,7 +73,7 @@ class LLMTest(unittest.TestCase):
             "https://api.minimaxi.com/v1/text/chatcompletion_v2",
         )
 
-    def test_model_roles_have_separate_defaults_and_overrides(self):
+    def test_model_roles_default_to_m3_and_keep_separate_overrides(self):
         with mock.patch.dict(
             os.environ, {"MINIMAX_API_KEY": "secret"}, clear=True
         ):
@@ -81,6 +81,8 @@ class LLMTest(unittest.TestCase):
             simple_config = LLMConfig.from_env(role="simple")
         self.assertEqual(complex_config.model, DEFAULT_COMPLEX_MODEL)
         self.assertEqual(simple_config.model, DEFAULT_SIMPLE_MODEL)
+        self.assertEqual(complex_config.model, "MiniMax-M3")
+        self.assertEqual(simple_config.model, "MiniMax-M3")
         with mock.patch.dict(
             os.environ,
             {

@@ -132,6 +132,29 @@ class AuditVizTest(unittest.TestCase):
         self.assertEqual(report["algorithmic_loss"], 1)
         self.assertEqual(report["semantic_rejection"], 1)
 
+    def test_generated_scripts_have_no_broken_string_literals(self):
+        """模板是非 raw 的三引号字符串，JS 里的 \\n 必须写成 \\\\n。
+
+        漏写会让 Python 把它变成真实换行，把 JS 字符串字面量拦腰截断，
+        整个 <script> 编译失败——页面只剩空壳，而且不会有任何运行时报错，
+        肉眼很难发现。按行检查引号配对，不必引入 JS 引擎就能抓住这类断裂。
+        """
+        for view in ("semantic", "document", "mixed"):
+            out = viz.write_html(
+                self.conn, self.root / f"{view}.html", view=view
+            )
+            html = out.read_text(encoding="utf-8")
+            for block in _script_blocks(html):
+                for lineno, line in enumerate(block.split("\n"), 1):
+                    stripped = line.replace('\\"', "").replace("\\'", "")
+                    for quote in ('"', "'"):
+                        self.assertEqual(
+                            stripped.count(quote) % 2,
+                            0,
+                            f"{view} 视图第 {lineno} 行 {quote} 未配对，"
+                            f"字符串字面量被换行截断: {line[:160]}",
+                        )
+
     def test_visualization_is_self_contained_and_includes_evidence(self):
         output = viz.write_html(self.conn, self.root / "graph.html")
 
@@ -163,6 +186,23 @@ class AuditVizTest(unittest.TestCase):
         self.assertEqual(
             observation_audit["items"][0]["object"]["entity_name"], "实体乙"
         )
+
+
+def _script_blocks(html: str) -> list[str]:
+    """取出所有可执行 JS 块（跳过 application/json 数据块）。"""
+    blocks = []
+    rest = html
+    while True:
+        start = rest.find("<script")
+        if start < 0:
+            break
+        head_end = rest.find(">", start)
+        head = rest[start:head_end]
+        body_end = rest.find("</script>", head_end)
+        if "application/json" not in head:
+            blocks.append(rest[head_end + 1:body_end])
+        rest = rest[body_end + len("</script>"):]
+    return blocks
 
 
 if __name__ == "__main__":

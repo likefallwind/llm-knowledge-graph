@@ -1,186 +1,142 @@
 # AI Knowledge Graph Agent Guide
 
-## 1. 项目目标
+## 1. 目标与原则
 
-本项目持续阅读人工维护目录中的高质量 AI 语料，从中抽取并逐步合并形成覆盖人工智能主要知识体系的知识图谱，为知识导航和个性化教学提供基础。
+本项目从人工维护的高质量 AI 语料中持续构建可追溯知识图谱，用于知识导航和个性化教学。
 
-核心闭环只有一条：
+当前主流程：
 
 ```text
-Read → Extract → Resolve → Merge → Repeat
+Read → Structure → Extract → Normalize → Resolve → Verify → Merge → Synthesize
 ```
 
-衡量进展时，不以节点和边的数量代替质量。首先保证知识来自可定位语料，其次才扩大覆盖范围。
+始终遵守：
 
-注意，本仓库目的是为了做整个AI领域知识图谱，想要做好这个事情，规则一定要简单，代码易维护和拓展，不要加入过多的工程代码，也不要加入过于琐碎的细节。算法决策不确定时候可以和我讨论
+- 正式知识内容以语料为唯一来源；Entity identity 裁判可以使用可靠通用知识判断两个提及
+  是否指向同一对象，但不能据此新增 Claim、Assertion 或语料未表达的事实。
+- 质量优先于节点、边和完成 chunk 的数量。
+- 保持 SQLite 加少量 Python 模块的学术项目形态，优先简单、可审计、可复现的实现。
+- 不为单个坏样本堆叠专用规则；先修正可泛化的语义边界。
+- 当前实验状态、未完成工作和接手步骤记录在 `TODO.md`，不要写进本文件。
 
-## 2. 必须遵守的知识边界
+## 2. 当前数据模型
 
-LLM 可以阅读、抽取、归类、消歧、规范命名和裁判证据，但不能成为知识来源。
+正式图的核心对象仍是：
 
-必须始终满足：
-
-1. 每个 Entity 至少有一段能在 Source 正文中定位的 Evidence。
-2. 每个 Claim 至少有一段能在 Source 正文中定位、且确实表达该关系的 Evidence。
-3. LLM 凭参数记忆补充、改写或推断出的知识不能入库。
-4. 翻译和规范命名不是新来源，必须保留原始 Source、LLM quote 和程序取得的真实原文。
-5. 共现、章节顺序、超链接和“尤其、涉及、用于”等弱表达不能单独证明类型化关系。
-
-一句话原则：
-
-> LLM 负责理解和判断语料，语料负责提供知识。
-
-## 3. 最小知识模型
-
-只保留四类知识对象：
-
-- `Source`：语料的一个不可变内容版本。
+- `Source`：不可变语料版本。
 - `Entity`：可稳定复指、可独立定义或学习的知识对象。
-- `Claim`：两个规范 Entity 之间的关系三元组。
-- `Evidence`：支持或反对 Entity/Claim 的完整溯源记录，同时保存 LLM quote、Passage 引用和程序取得的真实原文。
+- `Claim`：两个规范 Entity 之间便于导航的紧凑关系投影。
+- `Evidence`：Entity、Claim 或 Assertion 的可定位原文证据。
 
-别名是 Entity 的属性，EntityObservation/ClaimObservation 是语料观察记录，
-`source_progress` 是断点续跑记录；它们都不是新的知识对象。
+schema 10 还保存以下结构与审计数据：
 
-Entity 主类型只能是：
+- `Section` / `Passage`：教材结构与原文定位。
+- `EntityObservation` / `ClaimObservation`：抽取时的原始观察和后续处理状态。
+- `Assertion`：Claim 背后的完整命题，保留条件、范围、数量、时间、否定和极性。
+- 开放 Entity 类型词表、RelationType 词表及其归一记录。
 
-```text
-resource
-criterion
-data
-task
-solution
-concept
-```
+Entity 类型和关系谓词均为开放词表：
 
-类型根据 definition 判断，不按名称字面猜测；无法归入前五类时才使用 `concept`。
+- `resource / criterion / data / task / solution / concept` 是兼容旧语料的种子类型，不是白名单。
+- `is_a / part_of / prerequisite_of` 是种子关系和导航类别，不是 Claim 关系白名单。
+- `relation_kind` 为 `is_a / part_of / prerequisite_of / other`；开放谓词可归入 `other`。
+- 类型是 mention 级观察；Entity 没有单值类型，查询时使用 type profile。
 
-**类型是 mention 级的观察，不是 Entity 的单值属性。** 每次抽取判出的类型记在 `evidence.observed_entity_type` 上；Entity 层的类型表示是这些观察的汇总（type profile，见 `store.type_profile`），`entities` 表没有 `entity_type` 列。
+## 3. 语料与证据边界
 
-这样处理是因为一个词确实可能同时属于多个类型，而且取决于语境：「深度学习」既是一族做法（`solution`），也是一个研究方向（`concept`）。这类词在语言学上叫 dot object，两个义项不互斥、同时成立，所以「给它选一个正确类型」这个问题本身就是错的。
+- 每个 Entity 必须有至少一条可定位的 support Evidence。
+- 每个正式 Claim 和 Assertion 必须有原文证据，并通过关系裁判。
+- 抽取、Claim 和 Assertion 不能凭模型记忆补充原文没有表达的知识；identity 判断和
+  `Entity.definition` 聚合可使用可靠通用知识。原文在 identity 中用于确定指代与义项；
+  在定义聚合中用于锚定义项并支持语料特有的事实、数字、版本、历史事件和应用结果。
+- `model_quote` 保留模型选择的关键引文；正式 `source_text` 必须由程序根据 Passage ID 从 Source 取得。
+- Section 标题、目录距离和 Section 摘要只用于结构、上下文、召回和展示，不能单独证明 Claim。
+- 共现、章节顺序、超链接、主题相近和模型常识不能单独证明关系。
+- 删除代码块、练习题和界面操作后，正文仍应能解释被抽取的知识。
+- 教材临时函数、演示类、局部变量和操作步骤不入图；框架、工具及与领域概念一对一对应的 API 可以作为独立 Entity，但不能冒充概念 alias。
 
-由此产生的约束：
+## 4. Entity、alias 与定义
 
-- 不要把 profile 折叠成单一类型（argmax、多数派、首次观察都不行），它不是投票。
-- profile 同时给 `observations` 和 `sources`：前者反映语料分布，一本书反复使用会刷高；后者反映有多少独立来源这样判。两者含义不同，不要混用。
-- 历史 Evidence 的类型留空，不得用实体旧类型回填——我们不知道当时那次观察判的是什么，回填等于编造观察记录。
-- 需要单值类型的场景（例如将来的导航查询）应当在查询层定阈值，并明确它是一个可调策略，不是数据库里的既成事实。
-
-Claim 关系只能是：
-
-```text
-is_a
-part_of
-prerequisite_of
-```
-
-不要添加 `related_to`。新增关系前必须证明它反复出现、语义边界清楚、对导航或教学确实有用，并同步更新 schema、提示词、验证、测试和文档。
-
-## 4. 定义只有一个来源
-
-六种类型和三种关系的定义写在 `kg/ontology.py`，它是唯一来源。抽取、关系裁判和身份裁决三处提示词都从它渲染，本文和 `design/algorithm.md` 只做摘要和说明，不再各写一遍。
-
-定义一律写成**判定测试 + 排除项 + 正反例**，不写同义改写。同义改写（“是……的一种”“是……的组成部分”）在边界样本上给不出确定答案，正是早期假阳性的来源。
-
-要点摘要：
-
-- `is_a`：实例测试——任取一个 subject，它本身就是一个 object。领域归属和构件关系都不是 `is_a`。两端 `entity_type` 通常相同，但只作自查线索，不作否决理由（见 4.1）。
-- `part_of`：构件、正文明确列出的阶段，或**原文明确陈述的领域归属**（三者之一即可）。
-- `prerequisite_of`：原文明确陈述不先掌握 subject 就无法学习 object。教材先后顺序本身不是证据。
-
-关于领域归属：`深度学习 / 人工智能` 这类子领域关系既过不了实例测试，也不是构件，本体论上通常单列为 `subfield_of`。第一版**不新增这种关系**，暂并入 `part_of`——因为并入后它是 `claims` 表里的一等数据，将来要拆分可以纯本地重判，而拒掉则只剩 `source_progress.result` 里的字符串，恢复必须重跑全部抽取。等真实语料统计出它的实际频次，再按第 3 节的门槛决定是否单列。
-
-修改 `kg/ontology.py` 的语义时，必须同时 bump `extraction.EXTRACTION_PROMPT_VERSION`、`resolution.RESOLUTION_PROMPT_VERSION` 和 `validation.VALIDATION_PROMPT_VERSION`，否则旧的 `done` 片段会被错误跳过。
-
-### 4.1 不要用类型一致性做门槛
-
-`is_a` 在本体论上要求两端同类型，但**不得**把它实现为硬约束——无论是提示词里的“必须”，还是 `kg check` 的检查项。原因有二：
-
-1. 判别力低。`深度学习 is_a 人工智能`（两端多半都是 `concept`）和 `卷积层 is_a 卷积神经网络`（两端都是 `solution`）这两个典型错误，类型一致性一个都拦不住；它只能拦住本来就不会发生的离谱组合。
-2. 误伤代价高且不可见。类型判断本身不可靠，一旦作为门槛，正确的 `is_a` 会被静默丢弃，连 `rejected` 记录都不留。
-
-因此类型一致性只作为模型的自查线索出现在定义里，判定始终以实例测试和排除项为准。
-
-### 4.2 已知弱证据风险
-
-真实 MiniMax M3 冒烟曾把“人工智能，特别是神经网络与深度学习的发展”接受为 `神经网络/深度学习 part_of 人工智能`。**注意这条至今仍是假阳性**：`part_of` 放宽的是“领域归属这种语义可以入图”，不是“弱表达可以入图”。“特别是”只做强调，没有陈述任何归属关系，正确判定是 `insufficient`。该句已作为反例写进 `kg/ontology.py` 的 `part_of` 定义。
-
-## 5. 实体对齐规则
-
-实体对齐只允许三个结果：
+Entity 对齐只有三种结果：
 
 ```text
-same       同一个对象，使用已有 Entity
-new        不同对象，新建 Entity
-uncertain  信息不足，新建独立 Entity，暂不合并
+same       当前观察与已有 Entity 是同一知识对象
+new        是不同知识对象，创建新 Entity
+uncertain  证据不足，保留独立对象，等待后续重判
 ```
 
-工作原则：
+执行约束：
 
-- 精确规范名或别名唯一命中时直接复用。
-- 字符串相似度只召回候选，不能直接决定合并。
-- LLM 必须同时看到新观察、候选定义和已累计 Evidence。
-- `uncertain` 不是错误或拒绝；宁可保留重复实体，也不要误合并。
-- `reconcile` 只能在模型明确返回 `same` 时合并。
-- canonical name 可由 LLM 根据当前观察规范化，但不能借机添加语料没有提供的知识。
+- 字符串相似度只用于召回候选，不能直接决定合并。
+- 同名和唯一精确匹配也只用于候选召回，最终 identity 必须由模型明确判断。
+- identity 裁判必须看到观察定义、原文、候选定义、类型画像和既有 Evidence，并允许使用
+  可靠通用知识判断通常含义、同义关系、翻译、缩写及概念/实现/子类/实例边界。
+- 原文用于确定当前名称实际指向哪个义项，不要求原文重新证明两个通用术语同义。
+- Observation 或 Entity 的 definition 可能只是局部、不完整或带场景的概括，只作义项线索，
+  不能直接充当身份边界。
+- 同名不自动等于同一对象；不同使用场景也不自动等于不同对象。
+- 当前 passage 中的简称、类比或角色映射可以解析到已有 Entity，但不自动成为全局 alias。
+- 只有模型明确接受、且脱离当前上下文仍安全互换的名称才能注册为 alias。resolver 可用可靠
+  通用知识补充标准翻译、英文全称、通行缩写、正式名/简称和拼写变体；不得补充普通近义词、
+  相关概念、实现/API、实例或局部角色。
+- `Entity.definition` 是帮助身份识别的规范概念解释，不要求是严格词典定义。它可由该 Entity
+  的全部 Observation 聚合更新，并用可靠通用知识补全通常含义、上位类别和跨场景稳定特征；
+  用途、性质、实现方式和典型比较可以辅助解释，但不能把一次局部场景写成身份边界。聚合
+  必须记录所引用的 Observation 和 Passage，失败不能覆盖旧定义。
+- 合并只在模型明确返回 `same` 时执行；不得用批量相似度自动合并。
 
-## 6. 数据与运行安全
+## 5. Relation、Assertion 与物化
 
-- 当前最小实现默认写入 `data/knowledge.db`。
-- `data/kg.db` 是旧复杂 schema 的历史数据库，不得自动迁移、覆盖或修改。
-- Source 以 `(source_key, content_hash)` 版本化；相同内容重复运行必须幂等。
-- 教材、Markdown 和 HTML 优先按标题 Section 切分，过大 Section 才继续切
-  Chunk；无标题语料回退到 Passage 分块。目录层级只用于 Source 结构、定位和
-  覆盖检查，不能单独证明知识 Claim。
-- 通过 Passage 校验的 EntityObservation 必须在身份解析前保存，并记录后续
-  `same/new/uncertain` 结果；默认每个 Chunk 最多抽取 50 个 Entity。
-- 相同 `(subject, relation, object)` 只能有一条 Claim；新来源只追加 Evidence。
-- LLM 必须同时输出 `model_quote` 和 1–3 个当前片段中的 Passage ID。
-- `model_quote` 原样保留；程序根据 Passage ID 取得的 `source_text` 也必须保留，两者不得互相覆盖。
-- 当前不实现 quote 与 source text 的精确或模糊匹配；Passage ID 有效即可保留二者。
-- Evidence 必须记录 Source 版本、内容哈希、位置、抽取模型和提示词版本；Claim Evidence 还要记录裁判模型和提示词版本。
-- Claim Evidence 还要原样保留当时的裁判 verdict 和 reason，供未来争议复核。
-- 当前不实现校准队列。未来 LLM 或人类校准应追加引用原始 Evidence 的新记录，不能改写原始 Evidence；稳定引用方式留到校准实验设计时确定。
-- Claim 两端必须是已存在 Entity，不允许自环。
-- `is_a` 和 `prerequisite_of` 不允许形成循环。
-- 失败片段记录为 `failed`，下次运行可重试；不得因为 API 失败写入半条 Claim。
-- 不执行大规模语料运行、删除数据库或覆盖历史结果，除非用户明确要求。
+- 抽取阶段保存完整 `statement`、`scope`、极性、原始谓词和两个原始端点。
+- RelationType 是开放的，但规范名必须简洁、可复用，并具有稳定语义和固定方向。
+- 当前 observation 能映射到某个 RelationType，不代表原始谓词可以注册为全局 relation alias；两项必须独立判断。
+- `uncertain` relation 保持 pending，不创建空、`None` 或猜测出的 RelationType。
+- 关系裁判必须分别判断：
+  1. 原文是否支持完整 Assertion；
+  2. `subject → canonical relation → object` 是否忠实保留核心参与者、含义和方向。
+- Claim 可以省略已由 Assertion 保存的限制，但不能偷换端点、遗漏真正参与关系的第三个对象或改变方向。
+- 只有端点唯一解析、Assertion 得到支持且投影忠实时才物化 Claim。
+- 相同 `(subject, relation_type, object)` 只保存一条 Claim；新证据追加到同一 Claim。
+- Claim 不允许自环；`is_a` 和 `prerequisite_of` 不允许形成有向循环。
 
-## 7. 默认模型
+## 6. 数据库与运行安全
 
-默认直接使用 MiniMax M3：
+- 当前 schema 为 10，默认正式数据库是 `data/knowledge-vnext.db`。
+- `data/knowledge.db` 和 `data/kg.db` 属于旧实验或旧 schema，不自动迁移、覆盖或与 vNext 混用。
+- 新提示词、schema 或高风险算法实验使用 `tmp/` 下的独立数据库；验证通过不等于正式库已更新。
+- Source 按 `(source_key, content_hash)` 版本化；同一处理指纹的已完成 chunk 必须可幂等跳过。
+- 通过 Passage 机械校验的 Observation 在身份解析和关系裁判前持久化。失败 chunk 可以留下未解析 Observation，但不能留下无证据的正式 Claim；统计质量时必须区分 `done`、`failed` 和正式图对象。
+- `summary-workers`、`chunk-workers`、`judge-workers` 是不同阶段的并发设置；SQLite 解析、合并和写入仍由主线程串行执行。
+- `--llm-max-concurrency` 是复杂模型与简单模型共享的单进程请求上限，不能把各 worker 数简单相加当作真实并发。
+- 同一数据库同时只允许一个写进程。长任务使用独立 tmux、日志、数据库和 `.started/.finished/.exit` 标记。
+- 未经用户明确授权，不启动大规模外部 API 运行，不覆盖正式数据库，不删除历史实验。
+
+## 7. 模型与配置
+
+默认模型分工：
 
 ```text
-model: MiniMax-M3
-endpoint: https://api.minimaxi.com/v1/text/chatcompletion_v2
-api key: MINIMAX_API_KEY
+complex model: MiniMax-M3
+simple model:  MiniMax-M2.7
+endpoint:      https://api.minimaxi.com/v1/text/chatcompletion_v2
+api key:       MINIMAX_API_KEY
 ```
 
-除非用户明确指定其他模型或 endpoint，否则不要切换 provider。不得把 API key 写入代码、文档、日志、测试或记忆。
+复杂模型用于抽取、Entity 消歧、Claim 裁判、定义聚合和关系补抽；简单模型用于 Section 摘要及开放类型/关系词表归一。可通过 `KG_COMPLEX_LLM_MODEL`、`KG_SIMPLE_LLM_MODEL`、`KG_LLM_MODEL` 和 `KG_LLM_BASE_URL` 临时覆盖。
 
-## 8. 开发方式
+不得把 API key 写入代码、文档、日志、测试、提交或记忆；除非用户明确指定，不切换 provider。
 
-每次修改前：
+## 8. 开发与验证
 
-1. 阅读 `plan.md`、`design/algorithm.md` 和相关代码。
-2. 查看真实数据库、测试或运行结果后再判断问题。
-3. 区分语料问题、模型判断问题和算法实现问题。
-4. 先问：不增加这个机制，核心闭环是否真的无法工作？
+修改前先阅读相关代码、`design/algorithm.md`、真实数据库和实验输出，区分语料问题、模型判断问题和实现问题。
 
 实现时：
 
-- 保持 SQLite 加少量 Python 模块的学术项目形态。
-- 每个新增字段和算法步骤都应对应一个可验证问题、可复现实验条件或核心不变量。
-- 优先使用可直接阅读的函数、SQL、JSON 导出和小型回归样本，不引入服务层、插件层、任务编排框架或管理后台。
-- 失败样本、模型原始判断和来源文本应可直接检查；不要用自动修补链隐藏实验失败。
-- 不引入 `proposed/published/shadow` 状态机、复杂审核队列、置信度累乘或生产级并发。
-- Parser 对 Passage ID 的存在性和范围检查保持确定性，不查询 LLM。
-- Evidence 的正式 `source_text` 只能由程序从 Passage 取得，不能直接采用模型 quote。
-- 不用提示词掩盖可以机械验证的错误。
-- 不因单条坏数据添加面向个案的规则；优先修正普遍语义边界。
-- 代码行为变化时同步更新 `design/algorithm.md` 和相关测试。
-
-## 9. 验证要求
+- 不引入复杂审核状态机、置信度累乘、额外分类器或生产级任务框架，除非已有实验明确证明必要。
+- Passage ID、外键、空名称、自环、指纹等可机械检查的约束必须由代码验证，不能交给提示词兜底。
+- 行为变化同步更新 `design/algorithm.md` 和相关测试。
+- 提示词或语义规则变化时，更新所有受影响的 prompt/version 常量，确保旧 `done` chunk 不会被错误复用。
+- 保留模型原始判断、失败原因和来源文本，不用自动修补隐藏实验失败。
 
 代码修改至少运行：
 
@@ -190,31 +146,11 @@ python -m compileall -q kg tests
 git diff --check
 ```
 
-涉及数据库或流水线时，还应运行：
+涉及数据库或流水线时运行：
 
 ```bash
-python -m kg --db data/knowledge.db status
-python -m kg --db data/knowledge.db check
+python -m kg --db data/knowledge-vnext.db status
+python -m kg --db data/knowledge-vnext.db check
 ```
 
-涉及 LLM 接口、提示词或响应解析时，应在 `MINIMAX_API_KEY` 可用时做有界真实测试，例如：
-
-```bash
-python -m kg --db data/knowledge.db run sources/catalog.json \
-  --source-limit 1 --max-chunks 1
-```
-
-汇报时必须区分确定性测试、真实模型冒烟和全量语料运行；不能把其中一个说成另一个。
-
-## 10. 第一版范围
-
-第一版需要持续证明：
-
-1. 能批量读取不同来源和版本的语料。
-2. Entity 和 Claim 都保存 LLM quote、有效 Passage 引用和程序取得的真实原文。
-3. 能用 LLM 判断相似名称是 `same/new/uncertain`。
-4. 相同 Claim 能累计多个来源的 Evidence。
-5. 允许孤立和暂时重复的 Entity，并能在后续重判合并。
-6. 核心闭环可幂等、可续跑地持续运行。
-
-主动搜索、覆盖规划、生产并发、权限系统和复杂人工审核都不属于当前核心。
+涉及 LLM、提示词或响应解析时，在用户授权外部数据发送且 `MINIMAX_API_KEY` 可用后，使用 `tmp/` 独立数据库做有界真实测试。汇报必须区分确定性测试、真实模型冒烟、小规模实验和全量运行。

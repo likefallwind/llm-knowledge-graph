@@ -33,7 +33,12 @@ class DefinitionsReachThePromptsTest(unittest.TestCase):
 
     def test_judge_prompt_carries_the_relation_exclusions(self):
         for relation in sorted(RELATIONS):
-            llm = FakeLLM({"verdict": "insufficient", "reason": "r"})
+            llm = FakeLLM({
+                "assertion_verdict": "insufficient",
+                "projection_statement": "甲通过关系指向乙",
+                "projection_faithful": True,
+                "reason": "r",
+            })
             validation.judge_claim(
                 llm,
                 ClaimObservation(
@@ -51,6 +56,42 @@ class DefinitionsReachThePromptsTest(unittest.TestCase):
             for text in ontology.RELATION_BY_NAME[relation].excludes:
                 with self.subTest(relation=relation, exclude=text[:20]):
                     self.assertIn(text, user_prompt)
+
+    def test_open_relation_description_and_projection_gate_reach_judge(self):
+        llm = FakeLLM({
+            "assertion_verdict": "supports",
+            "projection_statement": "整体是组件集合中的成员",
+            "projection_faithful": False,
+            "reason": "完整句有证据，但投影方向相反",
+        })
+        verdict, reason = validation.judge_claim(
+            llm,
+            ClaimObservation(
+                subject="整体",
+                relation="is_member_of",
+                object="组件",
+                model_quote="整体包含组件",
+                source_text="整体包含组件。",
+                passage_ids=("P000001",),
+                location="loc",
+                statement_text="整体包含组件",
+                relation_description="主语是宾语集合中的成员",
+            ),
+        )
+
+        self.assertEqual(verdict, "insufficient")
+        self.assertIn("投影方向相反", reason)
+        self.assertIn("主语是宾语集合中的成员", llm.calls[0][1])
+        self.assertIn("不需要重复\n这些已由 Assertion 保存的限制", llm.calls[0][1])
+        self.assertIn("卷积层的权重", llm.calls[0][1])
+
+    def test_relation_normalizer_version_covers_direct_projection_gate(self):
+        from kg import vocabulary
+
+        self.assertEqual(
+            vocabulary.RELATION_NORMALIZER_VERSION,
+            "open-relation-normalizer-4-direct-projection",
+        )
 
     def test_live_failure_boundaries_remain_explicit(self):
         part_of = ontology.RELATION_BY_NAME["part_of"]
@@ -70,17 +111,16 @@ class DefinitionsReachThePromptsTest(unittest.TestCase):
             any("具体依赖机制" in text for text in prerequisite.excludes)
         )
 
-    def test_resolution_prompt_explains_entity_types(self):
-        prompt_seen: list[str] = []
+    def test_resolution_prompt_uses_knowledge_for_identity(self):
+        calls_seen: list[tuple[str, str]] = []
 
         class RecordingLLM(FakeLLM):
             def complete_json(self, system: str, user: str, **kwargs):
-                prompt_seen.append(user)
+                calls_seen.append((system, user))
                 return super().complete_json(system, user, **kwargs)
 
         conn = db.connect(":memory:")
         self.addCleanup(conn.close)
-        # 先建一个实体，否则唯一精确匹配路径会跳过 LLM 调用。
         conn.execute(
             "INSERT INTO entities(canonical_name,normalized_name,definition)"
             " VALUES ('梯度下降法','梯度下降法','一种优化方法')"
@@ -102,10 +142,19 @@ class DefinitionsReachThePromptsTest(unittest.TestCase):
                 location="loc",
             ),
         )
-        self.assertTrue(prompt_seen, "身份裁决应当调用了 LLM")
-        for item in ontology.ENTITY_TYPE_DEFS:
-            with self.subTest(name=item.name):
-                self.assertIn(item.name, prompt_seen[0])
+        self.assertTrue(calls_seen, "身份裁决应当调用了 LLM")
+        system, prompt = calls_seen[0]
+        self.assertIn("可靠的通用知识", system)
+        self.assertIn("definition 可能只是", system)
+        self.assertIn("原文主要用于义项消歧", prompt)
+        self.assertIn("不得仅因原文没有给出", prompt)
+        self.assertIn("只是辅助线索，不是身份白名单", prompt)
+        self.assertIn("应用场景不同", prompt)
+        self.assertIn("标准名称", prompt)
+        self.assertIn("不得以“候选已有此 alias”为理由循环证明 same", prompt)
+        self.assertIn("值（感官输入）", prompt)
+        self.assertIn("随机梯度下降", prompt)
+        self.assertIn("小批量随机梯度下降", prompt)
 
 
 class PromptVersionsAreBumpedTest(unittest.TestCase):
@@ -122,11 +171,20 @@ class PromptVersionsAreBumpedTest(unittest.TestCase):
         self.assertNotIn("relation-judge-passages-1", versions)
         self.assertEqual(
             resolution.RESOLUTION_PROMPT_VERSION,
-            "entity-identity-ontology-3",
+            "entity-identity-ontology-13-alias-scope-inheritance",
         )
-        self.assertEqual(extraction.ENTITY_PROMPT_VERSION, "open-entities-section-1")
-        self.assertEqual(extraction.RELATION_PROMPT_VERSION, "open-relations-section-1")
-        self.assertEqual(validation.VALIDATION_PROMPT_VERSION, "open-relation-judge-1")
+        self.assertEqual(
+            extraction.ENTITY_PROMPT_VERSION,
+            "open-entities-section-6-tool-boundary",
+        )
+        self.assertEqual(
+            extraction.RELATION_PROMPT_VERSION,
+            "open-relations-assertion-4-recall-protection",
+        )
+        self.assertEqual(
+            validation.VALIDATION_PROMPT_VERSION,
+            "canonical-assertion-judge-5-scoped-projection",
+        )
 
 
 if __name__ == "__main__":

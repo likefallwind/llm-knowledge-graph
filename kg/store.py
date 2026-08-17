@@ -98,6 +98,20 @@ def aliases_for(conn: sqlite3.Connection, entity_id: int) -> list[str]:
     ]
 
 
+def alias_candidates_for(
+    conn: sqlite3.Connection, entity_id: int
+) -> list[str]:
+    """Return unverified names used only to recall identity candidates."""
+    return [
+        str(row["name"])
+        for row in conn.execute(
+            """SELECT name FROM entity_alias_candidates
+               WHERE entity_id=? ORDER BY id""",
+            (entity_id,),
+        )
+    ]
+
+
 def evidence_for_entity(
     conn: sqlite3.Connection, entity_id: int, *, limit: int = 3
 ) -> list[str]:
@@ -170,6 +184,7 @@ def create_entity(
     observation: EntityObservation,
     *,
     canonical_name: str = "",
+    include_observation_name_alias: bool = True,
 ) -> int:
     canonical = canonical_name.strip() or observation.name
     normalized = normalize_name(canonical)
@@ -187,7 +202,12 @@ def create_entity(
             (canonical, normalized, observation.definition),
         )
         entity_id = int(cursor.lastrowid)
-    for alias in (observation.name, *observation.aliases):
+    aliases = (
+        (observation.name, *observation.aliases)
+        if include_observation_name_alias
+        else observation.aliases
+    )
+    for alias in aliases:
         add_alias(conn, entity_id, alias)
     return entity_id
 
@@ -202,6 +222,43 @@ def add_alias(conn: sqlite3.Connection, entity_id: int, name: str) -> bool:
         VALUES (?,?,?)
         """,
         (entity_id, value, normalize_name(value)),
+    )
+    conn.execute(
+        """DELETE FROM entity_alias_candidates
+           WHERE entity_id=? AND normalized_name=?""",
+        (entity_id, normalize_name(value)),
+    )
+    return cursor.rowcount > 0
+
+
+def add_alias_candidate(
+    conn: sqlite3.Connection,
+    entity_id: int,
+    name: str,
+    *,
+    source: str = "knowledge",
+) -> bool:
+    """Persist an unverified recall hint without making it a global alias."""
+    value = name.strip()
+    if not value:
+        return False
+    normalized = normalize_name(value)
+    entity = get_entity(conn, entity_id)
+    if entity is None:
+        return False
+    if normalized == str(entity["normalized_name"]):
+        return False
+    formal = conn.execute(
+        """SELECT 1 FROM entity_aliases
+           WHERE entity_id=? AND normalized_name=?""",
+        (entity_id, normalized),
+    ).fetchone()
+    if formal:
+        return False
+    cursor = conn.execute(
+        """INSERT OR IGNORE INTO entity_alias_candidates
+           (entity_id,name,normalized_name,source) VALUES (?,?,?,?)""",
+        (entity_id, value, normalized, source),
     )
     return cursor.rowcount > 0
 
@@ -225,6 +282,7 @@ def add_evidence(
     observed_entity_type: str = "",
     entity_id: int | None = None,
     claim_id: int | None = None,
+    assertion_id: int | None = None,
 ) -> bool:
     if (entity_id is None) == (claim_id is None):
         raise ValueError("Evidence 必须且只能指向一个 Entity 或 Claim")
@@ -238,20 +296,31 @@ def add_evidence(
             )
         ).encode("utf-8")
     ).hexdigest()
-    target_key = f"entity:{entity_id}" if entity_id is not None else f"claim:{claim_id}"
+    if assertion_id is not None and claim_id is None:
+        raise ValueError("Assertion Evidence 必须同时给出所属 Claim")
+    target_key = (
+        f"entity:{entity_id}"
+        if entity_id is not None
+        else (
+            f"assertion:{assertion_id}"
+            if assertion_id is not None
+            else f"claim:{claim_id}"
+        )
+    )
     cursor = conn.execute(
         """
         INSERT OR IGNORE INTO evidence
-        (target_key,entity_id,claim_id,source_id,excerpt,model_quote,
+        (target_key,entity_id,claim_id,assertion_id,source_id,excerpt,model_quote,
          observed_entity_type,passage_ids,passage_version,extraction_model,
          extraction_prompt_version,validator_model,validator_prompt_version,
          validator_verdict,validator_reason,excerpt_hash,location,polarity)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """,
         (
             target_key,
             entity_id,
             claim_id,
+            assertion_id,
             source_id,
             source_text,
             model_quote,
@@ -270,6 +339,74 @@ def add_evidence(
         ),
     )
     return cursor.rowcount > 0
+
+
+def assertion_key(
+    normalized_text: str,
+    scope_text: str,
+    *,
+    scope_is_restrictive: bool,
+    polarity: str,
+) -> str:
+    payload = {
+        "normalized_text": re.sub(r"\s+", " ", normalized_text).strip(),
+        "scope_text": re.sub(r"\s+", " ", scope_text).strip(),
+        "scope_is_restrictive": bool(scope_is_restrictive),
+        "polarity": polarity,
+    }
+    return hashlib.sha256(
+        json.dumps(
+            payload,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+
+
+def upsert_assertion(
+    conn: sqlite3.Connection,
+    claim_id: int,
+    normalized_text: str,
+    *,
+    scope_text: str = "",
+    scope_is_restrictive: bool = False,
+    polarity: str = "support",
+) -> tuple[int, bool]:
+    text = normalized_text.strip()
+    if not text:
+        raise ValueError("Assertion normalized_text 不能为空")
+    if polarity not in {"support", "oppose"}:
+        raise ValueError(f"Assertion polarity 非法: {polarity}")
+    key = assertion_key(
+        text,
+        scope_text,
+        scope_is_restrictive=scope_is_restrictive,
+        polarity=polarity,
+    )
+    existing = conn.execute(
+        "SELECT id FROM assertions WHERE claim_id=? AND assertion_key=?",
+        (claim_id, key),
+    ).fetchone()
+    if existing:
+        return int(existing["id"]), False
+    cursor = conn.execute(
+        """
+        INSERT INTO assertions
+        (claim_id,assertion_key,normalized_text,scope_text,
+         scope_is_restrictive,polarity)
+        VALUES (?,?,?,?,?,?)
+        """,
+        (
+            claim_id,
+            key,
+            text,
+            scope_text.strip(),
+            int(scope_is_restrictive),
+            polarity,
+        ),
+    )
+    return int(cursor.lastrowid), True
 
 
 def find_claim(
@@ -433,6 +570,8 @@ def merge_entities(
         add_alias(conn, target_id, str(source["canonical_name"]))
         for alias in aliases_for(conn, source_id):
             add_alias(conn, target_id, alias)
+        for alias in alias_candidates_for(conn, source_id):
+            add_alias_candidate(conn, target_id, alias)
 
         evidence_rows = conn.execute(
             "SELECT * FROM evidence WHERE entity_id=?", (source_id,)
@@ -471,6 +610,10 @@ def merge_entities(
             evidence = conn.execute(
                 "SELECT * FROM evidence WHERE claim_id=?", (old_claim_id,)
             ).fetchall()
+            assertion_rows = conn.execute(
+                "SELECT * FROM assertions WHERE claim_id=? ORDER BY id",
+                (old_claim_id,),
+            ).fetchall()
             conn.execute("DELETE FROM evidence WHERE claim_id=?", (old_claim_id,))
             conn.execute("DELETE FROM claims WHERE id=?", (old_claim_id,))
             if new_subject == new_object:
@@ -484,7 +627,21 @@ def merge_entities(
             )
             if new_claim_id is None:
                 continue
+            assertion_map: dict[int, int] = {}
+            for assertion in assertion_rows:
+                new_assertion_id, _ = upsert_assertion(
+                    conn,
+                    new_claim_id,
+                    str(assertion["normalized_text"]),
+                    scope_text=str(assertion["scope_text"]),
+                    scope_is_restrictive=bool(
+                        assertion["scope_is_restrictive"]
+                    ),
+                    polarity=str(assertion["polarity"]),
+                )
+                assertion_map[int(assertion["id"])] = new_assertion_id
             for item in evidence:
+                old_assertion_id = item["assertion_id"]
                 add_evidence(
                     conn,
                     source_id=int(item["source_id"]),
@@ -505,6 +662,11 @@ def merge_entities(
                     validator_verdict=str(item["validator_verdict"]),
                     validator_reason=str(item["validator_reason"]),
                     claim_id=new_claim_id,
+                    assertion_id=(
+                        assertion_map.get(int(old_assertion_id))
+                        if old_assertion_id is not None
+                        else None
+                    ),
                 )
 
         conn.execute("DELETE FROM entities WHERE id=?", (source_id,))
@@ -580,6 +742,18 @@ def integrity_report(conn: sqlite3.Connection) -> dict:
             """
         )
     ]
+    assertion_no_evidence = [
+        int(row["id"])
+        for row in conn.execute(
+            """
+            SELECT a.id FROM assertions a
+            WHERE NOT EXISTS (
+              SELECT 1 FROM evidence v
+              WHERE v.assertion_id=a.id AND v.polarity=a.polarity
+            )
+            """
+        )
+    ]
     broken_observations = [
         int(row["id"])
         for row in conn.execute(
@@ -605,11 +779,13 @@ def integrity_report(conn: sqlite3.Connection) -> dict:
     ]
     return {
         "ok": not fk and not cycles and not no_evidence and not claim_no_evidence
+        and not assertion_no_evidence
         and not broken_observations and not broken_entity_observations,
         "foreign_key_errors": fk,
         "cycles": cycles,
         "entities_without_evidence": no_evidence,
         "claims_without_support": claim_no_evidence,
+        "assertions_without_evidence": assertion_no_evidence,
         "broken_claim_observations": broken_observations,
         "broken_entity_observations": broken_entity_observations,
     }
@@ -623,6 +799,7 @@ def counts(conn: sqlite3.Connection) -> dict[str, int]:
         "entity_observations",
         "relation_types",
         "claims",
+        "assertions",
         "claim_observations",
         "evidence",
     )

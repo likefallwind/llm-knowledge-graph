@@ -54,7 +54,11 @@ def graph_dict(conn: sqlite3.Connection) -> dict[str, Any]:
         SELECT c.id,c.subject_id,c.relation_type_id,c.relation,c.object_id,
                r.relation_kind,r.description AS relation_description,
                s.canonical_name AS subject_name,
-               o.canonical_name AS object_name
+               o.canonical_name AS object_name,
+               (SELECT COUNT(*) FROM assertions a WHERE a.claim_id=c.id)
+                 AS assertion_count,
+               (SELECT COUNT(*) FROM assertions a WHERE a.claim_id=c.id
+                 AND a.scope_is_restrictive=1) AS restrictive_assertion_count
         FROM claims c
         JOIN relation_types r ON r.id=c.relation_type_id
         JOIN entities s ON s.id=c.subject_id
@@ -73,12 +77,33 @@ def graph_dict(conn: sqlite3.Connection) -> dict[str, Any]:
                 "relation_description": str(row["relation_description"]),
                 "object_id": int(row["object_id"]),
                 "object": str(row["object_name"]),
+                "assertion_count": int(row["assertion_count"]),
+                "restrictive_assertion_count": int(
+                    row["restrictive_assertion_count"]
+                ),
             }
         )
+    assertions = [
+        {
+            "id": int(row["id"]),
+            "claim_id": int(row["claim_id"]),
+            "normalized_text": str(row["normalized_text"]),
+            "scope_text": str(row["scope_text"]),
+            "scope_is_restrictive": bool(row["scope_is_restrictive"]),
+            "polarity": str(row["polarity"]),
+        }
+        for row in conn.execute("SELECT * FROM assertions ORDER BY id")
+    ]
     evidence = [
         {
             "id": int(row["id"]),
             "target": str(row["target_key"]),
+            "claim_id": int(row["claim_id"]) if row["claim_id"] is not None else None,
+            "assertion_id": (
+                int(row["assertion_id"])
+                if row["assertion_id"] is not None
+                else None
+            ),
             "source_id": int(row["source_id"]),
             "source": {
                 "name": str(row["source_name"]),
@@ -203,6 +228,7 @@ def graph_dict(conn: sqlite3.Connection) -> dict[str, Any]:
         "sources": sources,
         "entities": entities,
         "claims": claims,
+        "assertions": assertions,
         "evidence": evidence,
         "entity_observations": entity_observations,
         "relation_types": relation_types,

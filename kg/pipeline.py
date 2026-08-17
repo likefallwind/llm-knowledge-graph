@@ -22,7 +22,7 @@ from . import (
     validation,
     vocabulary,
 )
-from .llm import JSONLLM
+from .llm import JSONLLM, is_quota_exhausted
 from .models import (
     ClaimObservation,
     ChunkResult,
@@ -45,13 +45,24 @@ class _ConsecutiveFailurePauser:
     def record_success(self) -> None:
         self.count = 0
 
-    def record_failure(self) -> None:
+    def record_failure(self, *, immediate: bool = False) -> None:
+        """Count one failed Chunk, pausing once failures look like an outage.
+
+        ``immediate`` is for failures that are already conclusive on their own —
+        an exhausted quota needs no corroboration from two more dead Chunks.
+        """
+
         self.count += 1
-        if self.count < CONSECUTIVE_FAILURE_PAUSE_THRESHOLD:
+        if not immediate and self.count < CONSECUTIVE_FAILURE_PAUSE_THRESHOLD:
             return
+        reason = (
+            "额度耗尽"
+            if immediate
+            else f"连续 {CONSECUTIVE_FAILURE_PAUSE_THRESHOLD} 个 Chunk 失败"
+        )
         logger.warning(
-            "连续 %d 个 Chunk 失败，暂停 %d 秒后继续",
-            CONSECUTIVE_FAILURE_PAUSE_THRESHOLD,
+            "%s，暂停 %d 秒后继续",
+            reason,
             CONSECUTIVE_FAILURE_PAUSE_SECONDS,
         )
         time.sleep(CONSECUTIVE_FAILURE_PAUSE_SECONDS)
@@ -133,6 +144,7 @@ def process_catalog(
                 "before_start_chunks": 0,
                 "entities": 0,
                 "claims": 0,
+                "assertions": 0,
                 "evidence": 0,
                 "entity_observations": 0,
                 "claim_observations": 0,
@@ -215,6 +227,7 @@ def process_catalog(
                     for key in (
                         "entities",
                         "claims",
+                        "assertions",
                         "evidence",
                         "entity_observations",
                         "claim_observations",
@@ -241,7 +254,9 @@ def process_catalog(
                     failures.append(failure)
                     if stop_on_error:
                         raise
-                    failure_pauser.record_failure()
+                    failure_pauser.record_failure(
+                        immediate=is_quota_exhausted(exc)
+                    )
             completed.append(source_result)
         except Exception as exc:
             failures.append({"source": spec.name, "error": str(exc)})
@@ -329,27 +344,6 @@ def process_chunk(
     # Grounded observations survive later identity, validation, or model failures.
     conn.commit()
 
-    for observation_id, claim in zip(observation_ids, batch.claims):
-        relation_result = vocabulary.resolve_relation(conn, fast_llm, claim)
-        conn.execute(
-            """UPDATE claim_observations
-               SET relation=?,relation_type_id=?,relation_kind=?,
-                   updated_at=CURRENT_TIMESTAMP WHERE id=?""",
-            (
-                relation_result.canonical_name,
-                relation_result.relation_type_id,
-                relation_result.relation_kind,
-                observation_id,
-            ),
-        )
-        vocabulary.save_relation_resolution(
-            conn,
-            observation_id,
-            claim.raw_relation or claim.relation,
-            relation_result,
-            model=_model_name(fast_llm),
-        )
-
     for observation_id, observation in zip(
         entity_observation_ids, batch.entities
     ):
@@ -368,7 +362,10 @@ def process_chunk(
             model=_model_name(fast_llm),
         )
         entity_id = resolved.entity_id
-        keys = (observation.name, *observation.aliases)
+        # Extraction aliases are suggestions until the identity resolver has
+        # accepted them.  Reusing raw suggestions here would bypass the
+        # resolver for Claim endpoints inside the same Chunk.
+        keys = (observation.name, *store.aliases_for(conn, entity_id))
         for name in keys:
             local_candidates.setdefault(store.reference_key(name), set()).add(
                 entity_id
@@ -396,6 +393,35 @@ def process_chunk(
         if len(entity_ids) == 1
     }
     observations.resolve_endpoint_ids(conn, observation_ids, local=local)
+    # Normalize relations only after endpoint resolution so the normalizer sees
+    # the final canonical endpoint names together with the complete Assertion.
+    relation_results: dict[int, tuple[ClaimObservation, vocabulary.RelationResolution]] = {}
+    for observation_id in observation_ids:
+        row = observations.get_observation(conn, observation_id)
+        if row is None:
+            continue
+        claim = observations.as_claim(conn, row)
+        relation_result = vocabulary.resolve_relation(conn, fast_llm, claim)
+        relation_results[observation_id] = (claim, relation_result)
+        conn.execute(
+            """UPDATE claim_observations
+               SET relation=?,relation_type_id=?,relation_kind=?,
+                   updated_at=CURRENT_TIMESTAMP WHERE id=?""",
+            (
+                relation_result.canonical_name,
+                relation_result.relation_type_id,
+                relation_result.relation_kind,
+                observation_id,
+            ),
+        )
+        vocabulary.save_relation_resolution(
+            conn,
+            observation_id,
+            claim.raw_relation or claim.relation,
+            relation_result,
+            model=_model_name(fast_llm),
+        )
+    observations.prepare_assertions(conn, observation_ids)
     rows = [
         observations.get_observation(conn, observation_id)
         for observation_id in observation_ids
@@ -404,6 +430,7 @@ def process_chunk(
         row
         for row in rows
         if row is not None
+        and str(row["assertion_fingerprint"])
         and observations.current_judgment(
             conn, int(row["id"]), validator_model=extraction_model
         )
@@ -411,7 +438,7 @@ def process_chunk(
     ]
     judgments = _judge_claims(
         llm,
-        [observations.as_claim(row) for row in missing],
+        [observations.as_claim(conn, row) for row in missing],
         workers=judge_workers,
     )
     for row, (verdict, reason) in zip(missing, judgments):
@@ -422,6 +449,18 @@ def process_chunk(
             verdict=verdict,
             reason=reason,
         )
+        observation_id = int(row["id"])
+        relation_entry = relation_results.get(observation_id)
+        expected = "supports" if str(row["polarity"]) == "support" else "contradicts"
+        if verdict == expected and relation_entry is not None:
+            original_claim, relation_result = relation_entry
+            vocabulary.finalize_relation_resolution(
+                conn,
+                observation_id,
+                original_claim.raw_relation or original_claim.relation,
+                relation_result,
+                model=_model_name(fast_llm),
+            )
     # Cache relation judgments independently of whether endpoints exist yet.
     conn.commit()
 
@@ -432,12 +471,17 @@ def process_chunk(
         outcome = materialized["outcome"]
         if outcome == "materialized":
             result.claims += int(materialized["claim_created"])
+            result.assertions += int(materialized["assertion_created"])
             result.evidence += int(materialized["evidence_created"])
-        elif outcome == "pending_endpoint":
+        elif outcome in {"pending_endpoint", "pending_relation"}:
             row = observations.get_observation(conn, observation_id)
             result.pending.append(
                 {
-                    "stage": "endpoint_resolution",
+                    "stage": (
+                        "endpoint_resolution"
+                        if outcome == "pending_endpoint"
+                        else "relation_resolution"
+                    ),
                     "observation_id": observation_id,
                     "subject": str(row["subject_name"]),
                     "relation": str(row["relation"]),

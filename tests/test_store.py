@@ -114,6 +114,49 @@ class StoreTest(unittest.TestCase):
         ).fetchone()[0]
         self.assertEqual(count, 2)
 
+    def test_claim_groups_distinct_scoped_assertions(self):
+        left = self._entity("随机梯度下降法")
+        right = self._entity("全局最优解")
+        claim_id, _, _ = store.upsert_claim(
+            self.conn, left, "收敛到", right,
+            relation_type_id=self.conn.execute(
+                """INSERT INTO relation_types
+                   (canonical_name,normalized_name,description)
+                   VALUES ('收敛到','收敛到','优化过程达到某类解')
+                   RETURNING id"""
+            ).fetchone()[0],
+            relation_kind="other",
+        )
+        first, created = store.upsert_assertion(
+            self.conn,
+            claim_id,
+            "在凸问题且学习率适当时，随机梯度下降法收敛到全局最优解。",
+            scope_text="在凸问题且学习率适当时",
+            scope_is_restrictive=True,
+        )
+        same, same_created = store.upsert_assertion(
+            self.conn,
+            claim_id,
+            "在凸问题且学习率适当时，随机梯度下降法收敛到全局最优解。",
+            scope_text="在凸问题且学习率适当时",
+            scope_is_restrictive=True,
+        )
+        second, second_created = store.upsert_assertion(
+            self.conn,
+            claim_id,
+            "在强凸且采用递减步长时，随机梯度下降法收敛到全局最优解。",
+            scope_text="在强凸且采用递减步长时",
+            scope_is_restrictive=True,
+        )
+
+        self.assertTrue(created)
+        self.assertEqual(first, same)
+        self.assertFalse(same_created)
+        self.assertTrue(second_created)
+        self.assertNotEqual(first, second)
+        self.assertEqual(store.counts(self.conn)["claims"], 1)
+        self.assertEqual(store.counts(self.conn)["assertions"], 2)
+
     def test_self_loops_and_cycles_are_rejected(self):
         a, b, c = (self._entity(name) for name in ("A", "B", "C"))
         self.assertIsNone(store.upsert_claim(self.conn, a, "is_a", a)[0])

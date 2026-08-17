@@ -11,10 +11,12 @@ from .llm import JSONLLM
 from .models import ClaimObservation, EntityObservation, Resolution
 
 
-PROMOTION_REVIEW_VERSION = "endpoint-promotion-1"
-PROMOTION_SYSTEM = """你是待定实体审核器，不是知识来源。
-只能使用给出的 Source 原文判断这些反复出现的端点是否稳定指向一个可独立学习的知识对象。
-禁止用模型记忆补充定义；宁可 uncertain，也不要制造空壳实体或错误别名。只输出 JSON 对象。"""
+PROMOTION_REVIEW_VERSION = "endpoint-promotion-2-knowledge-identity"
+PROMOTION_SYSTEM = f"""你是待定实体审核器。
+判断原文是否足以让一个端点成为正式 Entity，以及为新 Entity 编写 definition 时，只能使用
+给出的 Source 原文，不得用模型记忆补充知识。判断它是否与候选 Entity 是同一身份时遵守：
+{resolution.IDENTITY_KNOWLEDGE_POLICY}
+不要制造空壳实体或错误别名。只输出 JSON 对象。"""
 
 
 def entity_observation_key(
@@ -146,6 +148,9 @@ def observation_key(
         claim.relation_kind,
         store.reference_key(claim.object),
         claim.polarity,
+        claim.statement_text,
+        claim.scope_text,
+        claim.scope_is_restrictive,
         claim.source_text,
         claim.model_quote,
         list(claim.passage_ids),
@@ -194,9 +199,10 @@ def add_claim_observation(
         (observation_key,source_id,section_id,chunk_index,subject_name,
          subject_reference_key,raw_relation,relation,relation_type_id,relation_kind,
          object_name,object_reference_key,
-         polarity,source_text,model_quote,passage_ids,passage_version,location,
+         polarity,statement_text,scope_text,scope_is_restrictive,
+         source_text,model_quote,passage_ids,passage_version,location,
          extraction_model,extraction_prompt_version)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """,
         (
             key,
@@ -212,6 +218,9 @@ def add_claim_observation(
             claim.object,
             store.reference_key(claim.object),
             claim.polarity,
+            claim.statement_text,
+            claim.scope_text,
+            int(claim.scope_is_restrictive),
             claim.source_text,
             claim.model_quote,
             json.dumps(list(claim.passage_ids), ensure_ascii=False),
@@ -237,11 +246,37 @@ def get_observation(
     ).fetchone()
 
 
-def as_claim(row: sqlite3.Row) -> ClaimObservation:
+def as_claim(conn: sqlite3.Connection, row: sqlite3.Row) -> ClaimObservation:
+    subject = str(row["subject_name"])
+    object_name = str(row["object_name"])
+    if row["subject_entity_id"] is not None:
+        entity = store.get_entity(conn, int(row["subject_entity_id"]))
+        if entity is not None:
+            subject = str(entity["canonical_name"])
+    if row["object_entity_id"] is not None:
+        entity = store.get_entity(conn, int(row["object_entity_id"]))
+        if entity is not None:
+            object_name = str(entity["canonical_name"])
+    relation_description = ""
+    if row["relation_type_id"] is not None:
+        relation_row = conn.execute(
+            "SELECT description FROM relation_types WHERE id=?",
+            (int(row["relation_type_id"]),),
+        ).fetchone()
+        if relation_row is not None:
+            relation_description = str(relation_row["description"])
+    if not relation_description:
+        attempt = conn.execute(
+            """SELECT description FROM relation_resolution_attempts
+               WHERE observation_id=? ORDER BY id DESC LIMIT 1""",
+            (int(row["id"]),),
+        ).fetchone()
+        if attempt is not None:
+            relation_description = str(attempt["description"])
     return ClaimObservation(
-        subject=str(row["subject_name"]),
+        subject=subject,
         relation=str(row["relation"]),
-        object=str(row["object_name"]),
+        object=object_name,
         model_quote=str(row["model_quote"]),
         source_text=str(row["source_text"]),
         passage_ids=tuple(json.loads(str(row["passage_ids"]))),
@@ -254,6 +289,11 @@ def as_claim(row: sqlite3.Row) -> ClaimObservation:
             if row["relation_type_id"] is not None
             else None
         ),
+        relation_description=relation_description,
+        statement_text=str(row["statement_text"]),
+        scope_text=str(row["scope_text"]),
+        scope_is_restrictive=bool(row["scope_is_restrictive"]),
+        normalized_statement=str(row["normalized_statement"]),
     )
 
 
@@ -299,6 +339,110 @@ def resolve_endpoint_ids(
     return changed
 
 
+def _replace_endpoint(text: str, raw_name: str, canonical_name: str) -> str:
+    if not text or not raw_name or raw_name == canonical_name:
+        return text
+    # Canonical names can contain the observed form, for example
+    # ``随机梯度下降（SGD）`` contains ``随机梯度下降``.  Preserve already
+    # canonical occurrences so repeated replay/materialization stays idempotent.
+    return canonical_name.join(
+        part.replace(raw_name, canonical_name)
+        for part in text.split(canonical_name)
+    )
+
+
+def prepare_assertions(
+    conn: sqlite3.Connection,
+    observation_ids: Iterable[int] | None = None,
+) -> int:
+    """Build the exact proposition that the final judge will evaluate.
+
+    Extraction preserves a complete source-grounded statement.  This step runs
+    only after both endpoints and a projectable relation proposal exist, then
+    substitutes canonical endpoint labels and fingerprints the final meaning.
+    A changed endpoint/relation therefore invalidates an older cached judgment.
+    """
+    ids = list(observation_ids or ())
+    if observation_ids is not None and not ids:
+        return 0
+    where = "WHERE o.id IN (%s)" % ",".join("?" for _ in ids) if ids else ""
+    rows = conn.execute(
+        f"""
+        SELECT o.*,s.canonical_name AS canonical_subject,
+               t.canonical_name AS canonical_object,
+               (SELECT a.outcome FROM relation_resolution_attempts a
+                WHERE a.observation_id=o.id ORDER BY a.id DESC LIMIT 1)
+                 AS relation_attempt_outcome
+        FROM claim_observations o
+        LEFT JOIN entities s ON s.id=o.subject_entity_id
+        LEFT JOIN entities t ON t.id=o.object_entity_id
+        {where}
+        ORDER BY o.id
+        """,
+        ids,
+    ).fetchall()
+    changed = 0
+    for row in rows:
+        if (
+            row["subject_entity_id"] is None
+            or row["object_entity_id"] is None
+            or (
+                row["relation_type_id"] is None
+                and str(row["relation_attempt_outcome"])
+                    not in {"same", "new"}
+            )
+        ):
+            continue
+        subject = str(row["canonical_subject"])
+        object_name = str(row["canonical_object"])
+        statement = str(row["statement_text"]).strip()
+        scope = str(row["scope_text"]).strip()
+        statement = _replace_endpoint(
+            statement, str(row["subject_name"]), subject
+        )
+        statement = _replace_endpoint(
+            statement, str(row["object_name"]), object_name
+        )
+        scope = _replace_endpoint(scope, str(row["subject_name"]), subject)
+        scope = _replace_endpoint(scope, str(row["object_name"]), object_name)
+        fingerprint_payload = {
+            "subject_id": int(row["subject_entity_id"]),
+            # A new predicate is judged before it receives a database id.
+            # Its canonical name is therefore the stable semantic identity.
+            "relation": store.normalize_name(str(row["relation"])),
+            "object_id": int(row["object_entity_id"]),
+            "statement": statement,
+            "scope": scope,
+            "scope_is_restrictive": bool(row["scope_is_restrictive"]),
+            "polarity": str(row["polarity"]),
+        }
+        fingerprint = hashlib.sha256(
+            json.dumps(
+                fingerprint_payload,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest()
+        if (
+            statement == str(row["normalized_statement"])
+            and fingerprint == str(row["assertion_fingerprint"])
+        ):
+            continue
+        conn.execute(
+            """
+            UPDATE claim_observations
+            SET normalized_statement=?,scope_text=?,assertion_fingerprint=?,
+                claim_id=NULL,assertion_id=NULL,
+                materialization_error='',updated_at=CURRENT_TIMESTAMP
+            WHERE id=?
+            """,
+            (statement, scope, fingerprint, int(row["id"])),
+        )
+        changed += 1
+    return changed
+
+
 def current_judgment(
     conn: sqlite3.Connection,
     observation_id: int,
@@ -306,13 +450,21 @@ def current_judgment(
     validator_model: str,
     validator_prompt_version: str = validation.VALIDATION_PROMPT_VERSION,
 ) -> sqlite3.Row | None:
+    row = get_observation(conn, observation_id)
+    if row is None or not str(row["assertion_fingerprint"]):
+        return None
     return conn.execute(
         """
         SELECT * FROM claim_observation_judgments
         WHERE observation_id=? AND validator_model=?
-          AND validator_prompt_version=?
+          AND validator_prompt_version=? AND assertion_fingerprint=?
         """,
-        (observation_id, validator_model, validator_prompt_version),
+        (
+            observation_id,
+            validator_model,
+            validator_prompt_version,
+            str(row["assertion_fingerprint"]),
+        ),
     ).fetchone()
 
 
@@ -337,16 +489,24 @@ def save_judgment(
     reason: str,
     validator_prompt_version: str = validation.VALIDATION_PROMPT_VERSION,
 ) -> None:
+    row = get_observation(conn, observation_id)
+    fingerprint = (
+        str(row["assertion_fingerprint"])
+        if row is not None and str(row["assertion_fingerprint"])
+        else f"unresolved:{row['observation_key'] if row is not None else observation_id}"
+    )
     conn.execute(
         """
         INSERT OR IGNORE INTO claim_observation_judgments
-        (observation_id,validator_model,validator_prompt_version,verdict,reason)
-        VALUES (?,?,?,?,?)
+        (observation_id,validator_model,validator_prompt_version,
+         assertion_fingerprint,verdict,reason)
+        VALUES (?,?,?,?,?,?)
         """,
         (
             observation_id,
             validator_model,
             validator_prompt_version,
+            fingerprint,
             verdict,
             reason,
         ),
@@ -363,23 +523,30 @@ def materialize(
     row = get_observation(conn, observation_id)
     if not row:
         return {"outcome": "missing"}
-    if row["claim_id"] is not None:
-        existing_claim = conn.execute(
-            "SELECT id FROM claims WHERE id=?", (int(row["claim_id"]),)
+    if row["claim_id"] is not None and row["assertion_id"] is not None:
+        existing_assertion = conn.execute(
+            "SELECT id FROM assertions WHERE id=?", (int(row["assertion_id"]),)
         ).fetchone()
-        if existing_claim:
+        if existing_assertion:
             return {
                 "outcome": "already_materialized",
                 "claim_id": int(row["claim_id"]),
+                "assertion_id": int(row["assertion_id"]),
             }
+    subject_id = row["subject_entity_id"]
+    object_id = row["object_entity_id"]
+    if subject_id is None or object_id is None:
+        return {"outcome": "pending_endpoint"}
+    prepare_assertions(conn, [observation_id])
+    row = get_observation(conn, observation_id)
+    if row is None or not str(row["assertion_fingerprint"]):
+        return {"outcome": "pending_assertion"}
     judgment = current_judgment(
         conn,
         observation_id,
         validator_model=validator_model,
         validator_prompt_version=validator_prompt_version,
     )
-    if not judgment:
-        judgment = latest_judgment(conn, observation_id)
     if not judgment:
         return {"outcome": "pending_judgment"}
     expected = "supports" if row["polarity"] == "support" else "contradicts"
@@ -389,11 +556,8 @@ def materialize(
             "verdict": str(judgment["verdict"]),
             "reason": str(judgment["reason"]),
         }
-    subject_id = row["subject_entity_id"]
-    object_id = row["object_entity_id"]
-    if subject_id is None or object_id is None:
-        return {"outcome": "pending_endpoint"}
-
+    if row["relation_type_id"] is None:
+        return {"outcome": "pending_relation"}
     relation_type_id = row["relation_type_id"]
     relation_name = str(row["relation"])
     relation_kind = str(row["relation_kind"])
@@ -444,6 +608,15 @@ def materialize(
     else:
         claim_id, created = int(existing["id"]), False
 
+    assertion_id, assertion_created = store.upsert_assertion(
+        conn,
+        claim_id,
+        str(row["normalized_statement"]),
+        scope_text=str(row["scope_text"]),
+        scope_is_restrictive=bool(row["scope_is_restrictive"]),
+        polarity=str(row["polarity"]),
+    )
+
     evidence_created = store.add_evidence(
         conn,
         source_id=int(row["source_id"]),
@@ -460,12 +633,21 @@ def materialize(
         validator_verdict=str(judgment["verdict"]),
         validator_reason=str(judgment["reason"]),
         claim_id=claim_id,
+        assertion_id=assertion_id,
     )
-    _save_materialization(conn, observation_id, claim_id=claim_id, error="")
+    _save_materialization(
+        conn,
+        observation_id,
+        claim_id=claim_id,
+        assertion_id=assertion_id,
+        error="",
+    )
     return {
         "outcome": "materialized",
         "claim_id": claim_id,
+        "assertion_id": assertion_id,
         "claim_created": created,
+        "assertion_created": assertion_created,
         "evidence_created": evidence_created,
     }
 
@@ -475,20 +657,23 @@ def _save_materialization(
     observation_id: int,
     *,
     claim_id: int | None,
+    assertion_id: int | None = None,
     error: str,
 ) -> None:
     conn.execute(
         """
         UPDATE claim_observations
-        SET claim_id=?,materialization_error=?,updated_at=CURRENT_TIMESTAMP
+        SET claim_id=?,assertion_id=?,materialization_error=?,
+            updated_at=CURRENT_TIMESTAMP
         WHERE id=?
         """,
-        (claim_id, error, observation_id),
+        (claim_id, assertion_id, error, observation_id),
     )
 
 
 def resolve_and_materialize_cached(conn: sqlite3.Connection) -> dict[str, int]:
     resolved = resolve_endpoint_ids(conn)
+    prepare_assertions(conn)
     materialized = 0
     for row in conn.execute(
         """
@@ -529,6 +714,15 @@ def replay_pending(
 ) -> dict[str, Any]:
     model = _model_name(llm)
     resolved_before = resolve_endpoint_ids(conn)
+    prepare_assertions(conn)
+    promotion = promote_candidates(
+        conn,
+        llm,
+        threshold=promote_threshold,
+        limit=limit,
+    )
+    resolved_after = resolve_endpoint_ids(conn)
+    prepare_assertions(conn)
     rows = conn.execute(
         "SELECT * FROM claim_observations ORDER BY id"
     ).fetchall()
@@ -536,13 +730,16 @@ def replay_pending(
         row
         for row in rows
         if row["claim_id"] is None
-        and latest_judgment(conn, int(row["id"])) is None
+        and str(row["assertion_fingerprint"])
+        and current_judgment(
+            conn, int(row["id"]), validator_model=model
+        ) is None
     ]
     if limit is not None:
         pending_judgment = pending_judgment[: max(0, limit)]
     judged = 0
     for row in pending_judgment:
-        verdict, reason = validation.judge_claim(llm, as_claim(row))
+        verdict, reason = validation.judge_claim(llm, as_claim(conn, row))
         save_judgment(
             conn,
             int(row["id"]),
@@ -552,14 +749,6 @@ def replay_pending(
         )
         judged += 1
     conn.commit()
-
-    promotion = promote_candidates(
-        conn,
-        llm,
-        threshold=promote_threshold,
-        limit=limit,
-    )
-    resolved_after = resolve_endpoint_ids(conn)
     materialized = 0
     blocked = 0
     for row in conn.execute(
@@ -660,7 +849,8 @@ def promote_candidates(
             PROMOTION_SYSTEM,
             """这个名称已在至少 %d 个独立 Passage 中作为 Claim 端点出现。
 判断这些原文是否足以确认它是一个稳定、可复指、可独立学习的 Entity。
-若与候选 Entity 相同，可返回 same；字符串相似本身不是同一实体证据。
+若与候选 Entity 相同，可基于可靠通用知识返回 same；原文用于确定当前端点的义项，
+字符串相似本身不是同一实体证据，应用场景不同也不是拆分理由。
 若创建新 Entity，definition 必须能由给出的 source_text 直接支持，并选择 1-3 个真实的 source_id + passage_id 组合。
 返回：
 {
@@ -669,7 +859,8 @@ def promote_candidates(
   "canonical_name": "规范名称",
   "definition": "仅依据原文的定义",
   "type_labels": ["1-3 个开放类别词，可为空"],
-  "aliases": ["原文支持的别名"],
+  "aliases": ["创建 new 时原文支持的别名"],
+  "accepted_aliases": ["判 same 时，仅从待定名称中选择可跨语境安全互换的全局别名"],
   "evidence_refs": [{"source_id": 1, "passage_id": "P000001"}],
   "reason": "简短理由"
 }
@@ -745,8 +936,19 @@ def _apply_promotion_decision(
         allowed = {int(item["id"]) for item in similar}
         if selected not in allowed:
             return "uncertain", None, reason or "same 返回了非法 candidate_id"
-        for name in candidate["names"]:
-            store.add_alias(conn, selected, str(name))
+        aliases_raw = payload.get("accepted_aliases", [])
+        proposed = {
+            store.normalize_name(str(name)): str(name)
+            for name in candidate["names"]
+            if str(name).strip()
+        }
+        if isinstance(aliases_raw, list):
+            for name in aliases_raw:
+                if not isinstance(name, str):
+                    continue
+                accepted = proposed.get(store.normalize_name(name))
+                if accepted:
+                    store.add_alias(conn, selected, accepted)
         return "same", selected, reason
     if decision != "new":
         return "uncertain", None, reason or "证据不足"

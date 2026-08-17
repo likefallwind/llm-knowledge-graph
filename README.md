@@ -1,6 +1,9 @@
 # AI 全领域知识图谱（最小实现）
 
-这是 `plan.md` 的可运行实现。系统只把语料作为知识来源，LLM 只负责抽取、实体身份判断和关系证据裁决。
+这是 `plan.md` 的可运行实现。正式 Claim、Assertion 和语料特有事实只以语料为来源；LLM
+负责抽取、实体身份判断和关系证据裁决。Entity identity 与用于身份识别的规范概念解释可
+使用可靠通用知识判断术语义项、对象边界和通常含义，但不能据此新增语料未表达的关系或
+具体事实。
 
 vNext 把 KGGen 的开放抽取与 Tree-KG 的教材结构先验合并到同一条、仍然可审计的闭环中：
 
@@ -13,6 +16,8 @@ Read → Structure → Extract Entities → Extract Relations → Normalize → 
 - 正式图仍只有四类知识对象：`Source`、`Entity`、`Claim`、`Evidence`；Section、Observation 和开放词表是结构/审计数据。
 - 实体类型和关系类型均开放抽取并全局归一。旧六类实体类型和三个核心关系只作为种子，不是白名单。
 - `relation_kind` 保留 `is_a / part_of / prerequisite_of / other` 四种导航类别；`other` 下可以保存任意有原文证据的开放谓词。
+- 关系候选不按字符串相似度截断，也不为三种种子关系保留特殊席位：只使用名称精确命中和已有 Claim 支撑的开放 RelationType。精确命中仍须结合完整 Assertion 复判。
+- 新 RelationType 和 relation alias 只在最终关系证据裁判支持后写入；无法形成忠实 `subject → predicate → object` 投影的观察留作审计但不入图。
 - 教材目录持久化为 Section 树，自底向上生成仅由 Passage 支持的摘要。目录用于上下文、候选召回和展示，不自动生成 Claim。
 - Entity 和 Claim 没有 `proposed / published / shadow` 状态机。通过 Passage
   校验的 EntityObservation 和 ClaimObservation 都会先永久保存；实体身份判断
@@ -23,9 +28,15 @@ Read → Structure → Extract Entities → Extract Relations → Normalize → 
 - Evidence 记录文档版本、位置、模型和提示词版本，为未来 LLM/人类校准保留可能性；当前不实现校准队列。
 - 相同 `(subject, relation, object)` 只保存一个 Claim，不同 Source 的 Evidence 自动累计。
 - 实体对齐只有 `same / new / uncertain`。`uncertain` 会保留独立实体，之后可用 `reconcile` 重新判断。
+- 名称、字符串相似度、局部类型和 definition 都只是 identity 候选与义项线索；即使唯一
+  精确同名也由 LLM 基于通用知识做最终判断，原文主要用于确定当前提及的义项。
+- identity 候选召回使用 observation 的名称和待审核 aliases，对已有 Entity 的规范名和已
+  验证 aliases 取相似度最高的前 10 个；这些字符串只负责召回。resolver 可补充最多五个
+  可靠通用知识中的标准翻译、英文全称、通行缩写或名称变体，明确审核后才注册。
 - `Entity.definition` 不由第一次抽取永久决定。主流程结束时，同一 Entity 的全部
-  EntityObservation 会作为唯一语料聚合出规范定义，并保存所引用的 Observation、
-  Passage、模型和提示词版本；原始观察不覆盖。
+  EntityObservation 用于锚定当前义项和具体语料事实，定义整理器可使用可靠通用知识补全
+  通常含义、上位类别和跨场景稳定特征，形成用于身份识别的规范概念解释。聚合结果保存所
+  引用的 Observation、Passage、模型和提示词版本；原始观察不覆盖。
 - `is_a` 和 `prerequisite_of` 写入前检查循环；孤立 Entity 合法。
 
 旧项目数据位于被忽略的 `data/kg.db`，schema 8 试验数据也采用了不同的抽取语义。vNext 不迁移或修改旧库；新数据库默认是 `data/knowledge-vnext.db`。
@@ -40,9 +51,8 @@ PDF 读取优先使用系统的 `pdftotext`。没有该命令时可安装可选�
 python -m pip install -e '.[pdf,yaml]'
 ```
 
-流水线按任务复杂度使用两个模型：原有的实体/关系抽取、实体消歧、关系证据裁判、
-定义聚合及关系补抽使用 MiniMax-M3；目录摘要与开放类型/关系词表归一使用
-MiniMax-M2.7。两者共用同一个兼容客户端和 API key：
+流水线的实体/关系抽取、实体消歧、关系证据裁判、定义聚合、关系补抽、目录摘要及
+开放类型/关系词表归一默认全部使用 MiniMax-M3。各角色共用同一个兼容客户端和 API key：
 
 ```bash
 export MINIMAX_API_KEY='...'
@@ -53,7 +63,7 @@ export MINIMAX_API_KEY='...'
 ```text
 endpoint: https://api.minimaxi.com/v1/text/chatcompletion_v2
 complex model: MiniMax-M3
-simple model: MiniMax-M2.7
+simple model: MiniMax-M3
 ```
 
 如需临时经过兼容网关，可设置 `KG_LLM_BASE_URL`。`KG_COMPLEX_LLM_MODEL` 和
@@ -114,9 +124,11 @@ Entity 对齐、Claim 物化和全部 SQLite 写入仍保持串行，避免改�
 失败计数清零，避免服务限额错误瞬间扩散到全部剩余 Chunk。
 两者默认均为 1；小批次建议先使用 `--chunk-workers 2 --judge-workers 2`。
 
-`kg run` 默认在片段处理结束后，为拥有至少两条 EntityObservation 且观察集合发生
-变化的 Entity 聚合定义。定义必须引用当前 Entity 的真实 Observation ID 和 Passage
-ID；无效引用或模型失败不会覆盖旧定义。相同观察指纹、模型和提示词版本会直接跳过。
+`kg run` 默认在片段处理结束后，为拥有至少一条 EntityObservation 且观察集合发生
+变化的 Entity 聚合概念解释。原文负责锚定义项和具体事实，可靠通用知识只补全通常含义、
+上位类别和跨场景稳定特征；用途、性质、实现方式和典型比较可以作为辅助解释，但不能把
+一次局部场景写成概念身份边界。结果必须引用当前 Entity 的真实 Observation ID 和
+Passage ID；无效引用或模型失败不会覆盖旧定义。相同观察指纹、模型和提示词版本会直接跳过。
 长实验可用 `--definition-limit N` 限制本轮数量，之后继续运行即可断点续做；仅在明确
 需要跳过该阶段时使用 `--skip-definition-synthesis`。
 

@@ -69,6 +69,64 @@ class DefinitionSynthesisTest(unittest.TestCase):
         self.conn.commit()
         return entity_id, ids
 
+    def test_prompt_uses_general_knowledge_without_losing_source_boundary(self):
+        prompt = definitions.SYSTEM_PROMPT + definitions.USER_PROMPT
+
+        self.assertIn("可靠的通用知识", prompt)
+        self.assertIn("通常含义", prompt)
+        self.assertIn("source_text", prompt)
+        self.assertIn("原文中特有的事实", prompt)
+        self.assertIn("不得让一次局部", prompt)
+        self.assertNotIn("每个实质性陈述都必须", prompt)
+        self.assertNotIn("不得使用模型记忆补充任何事实", prompt)
+
+    def test_default_synthesizes_entity_with_one_observation(self):
+        item = self._observation("卷积神经网络可用于处理图像", "P000003", 0)
+        entity_id = store.create_entity(self.conn, item)
+        observation_id, _ = observations.add_entity_observation(
+            self.conn,
+            source_id=self.source_id,
+            chunk_index=0,
+            observation=item,
+            extraction_model="FakeLLM",
+        )
+        observations.save_entity_resolution(
+            self.conn,
+            observation_id,
+            Resolution(entity_id, "new"),
+            resolver_model="FakeLLM",
+        )
+        self.conn.commit()
+        llm = FakeLLM(
+            {
+                "definition": (
+                    "卷积神经网络是一类使用卷积运算提取局部特征的神经网络，"
+                    "常用于处理图像等网格结构数据。"
+                ),
+                "supporting_observations": [
+                    {
+                        "observation_id": observation_id,
+                        "passage_ids": ["P000003"],
+                        "support": "锚定为用于图像处理的卷积神经网络义项",
+                    }
+                ],
+                "rejected_candidates": ["只写图像用途会遮蔽通常含义"],
+                "limitation": "卷积运算和局部特征由可靠通用知识补足。",
+            }
+        )
+
+        result = definitions.synthesize_pending(
+            self.conn, llm, entity_ids=[entity_id]
+        )
+
+        self.assertEqual(len(result["processed"]), 1)
+        self.assertFalse(result["failures"])
+        self.assertIn(
+            "使用卷积运算",
+            store.get_entity(self.conn, entity_id)["definition"],
+        )
+        llm.assert_finished()
+
     def test_regenerates_once_when_first_payload_fails_validation(self):
         entity_id, observation_ids = self._entity_with_two_observations()
         citation = {
@@ -190,6 +248,65 @@ class DefinitionSynthesisTest(unittest.TestCase):
             ).fetchone()[0],
             0,
         )
+
+    def test_old_prompt_version_does_not_suppress_regeneration(self):
+        entity_id, observation_ids = self._entity_with_two_observations()
+        items = definitions._observations(self.conn, entity_id)
+        fingerprint = definitions.observation_fingerprint(items)
+        self.conn.execute(
+            """
+            INSERT INTO entity_definition_syntheses
+            (entity_id,observation_fingerprint,synthesizer_model,prompt_version,
+             definition,supporting_observations,rejected_candidates,limitation)
+            VALUES (?,?,?,?,?,?,?,?)
+            """,
+            (
+                entity_id,
+                fingerprint,
+                "FakeLLM",
+                "entity-definition-observations-2",
+                "旧版过窄定义",
+                "[]",
+                "[]",
+                "",
+            ),
+        )
+        self.conn.commit()
+        llm = FakeLLM(
+            {
+                "definition": "卷积神经网络是一类使用卷积运算处理网格结构数据的神经网络。",
+                "supporting_observations": [
+                    {
+                        "observation_id": observation_ids[1],
+                        "passage_ids": ["P000002"],
+                        "support": "锚定卷积神经网络义项",
+                    }
+                ],
+                "rejected_candidates": ["旧定义只强调局部用途"],
+                "limitation": "通常含义由可靠通用知识补足。",
+            }
+        )
+
+        result = definitions.synthesize_pending(
+            self.conn, llm, entity_ids=[entity_id]
+        )
+
+        self.assertEqual(len(result["processed"]), 1)
+        versions = self.conn.execute(
+            """
+            SELECT prompt_version FROM entity_definition_syntheses
+            WHERE entity_id=? ORDER BY id
+            """,
+            (entity_id,),
+        ).fetchall()
+        self.assertEqual(
+            [row["prompt_version"] for row in versions],
+            [
+                "entity-definition-observations-2",
+                definitions.DEFINITION_PROMPT_VERSION,
+            ],
+        )
+        llm.assert_finished()
 
 
 if __name__ == "__main__":

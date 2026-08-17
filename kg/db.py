@@ -6,7 +6,7 @@ from pathlib import Path
 
 DEFAULT_DB = Path("data/knowledge-vnext.db")
 SCHEMA = Path(__file__).with_name("schema.sql")
-SCHEMA_VERSION = "9"
+SCHEMA_VERSION = "10"
 
 
 def connect(path: str | Path = DEFAULT_DB) -> sqlite3.Connection:

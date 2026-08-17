@@ -106,6 +106,7 @@ def graph_report(conn: sqlite3.Connection) -> dict[str, Any]:
             UNION ALL SELECT 'entity_observations',COUNT(*) FROM entity_observations
             UNION ALL SELECT 'relation_types',COUNT(*) FROM relation_types
             UNION ALL SELECT 'claims',COUNT(*) FROM claims
+            UNION ALL SELECT 'assertions',COUNT(*) FROM assertions
             UNION ALL SELECT 'claim_observations',COUNT(*) FROM claim_observations
             UNION ALL SELECT 'evidence',COUNT(*) FROM evidence
             """
@@ -176,6 +177,11 @@ def graph_report(conn: sqlite3.Connection) -> dict[str, Any]:
     claim_evidence = int(
         conn.execute("SELECT COUNT(*) FROM evidence WHERE claim_id IS NOT NULL").fetchone()[0]
     )
+    assertion_evidence = int(
+        conn.execute(
+            "SELECT COUNT(*) FROM evidence WHERE assertion_id IS NOT NULL"
+        ).fetchone()[0]
+    )
     return {
         "counts": counts,
         "relations": relations,
@@ -188,6 +194,9 @@ def graph_report(conn: sqlite3.Connection) -> dict[str, Any]:
         "evidence_density": {
             "per_entity": round(entity_evidence / max(1, counts.get("entities", 0)), 3),
             "per_claim": round(claim_evidence / max(1, counts.get("claims", 0)), 3),
+            "per_assertion": round(
+                assertion_evidence / max(1, counts.get("assertions", 0)), 3
+            ),
         },
         "isolated_entities": sum(
             1 for entity_id in entity_ids if degree.get(entity_id, 0) == 0

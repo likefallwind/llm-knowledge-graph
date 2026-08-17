@@ -16,7 +16,7 @@ import json_repair
 
 DEFAULT_MINIMAX_BASE_URL = "https://api.minimaxi.com/v1"
 DEFAULT_COMPLEX_MODEL = "MiniMax-M3"
-DEFAULT_SIMPLE_MODEL = "MiniMax-M2.7"
+DEFAULT_SIMPLE_MODEL = "MiniMax-M3"
 DEFAULT_MAX_CONCURRENCY = 6
 # Compatibility: the primary/complex pipeline remains the default client.
 DEFAULT_MINIMAX_MODEL = DEFAULT_COMPLEX_MODEL
@@ -24,7 +24,14 @@ DEFAULT_MINIMAX_MODEL = DEFAULT_COMPLEX_MODEL
 # MiniMax 在 HTTP 200 的响应体里用 base_resp.status_code 表达业务错误，
 # 其中限流（2062）和内部错误与 HTTP 429/5xx 是同一类问题，必须同样重试。
 # 只有鉴权、余额和参数错误重试也不会变，直接抛出让调用方尽快看到。
-TERMINAL_RESPONSE_STATUS = frozenset({1004, 1008, 2013, 2049})
+TERMINAL_RESPONSE_STATUS = frozenset({1004, 1008, 2013, 2049, 2067})
+
+# 额度耗尽是"预算花完"，不是瞬时故障：这里的秒级退避怎么等都不会恢复，
+# 额度要么被人工补充，要么等计费周期重置。所以本层直接放弃，
+# 由 pipeline 做分钟级长暂停后再继续下一个 Chunk。
+#   1008 账户余额不足
+#   2067 Token Plan 用量上限
+QUOTA_EXHAUSTED_STATUS = frozenset({1008, 2067})
 
 
 class LLMResponseError(RuntimeError):
@@ -200,6 +207,26 @@ class ChatCompletionsJSONLLM:
 # Compatibility aliases for existing callers.
 MiniMaxM3LLM = ChatCompletionsJSONLLM
 OpenAICompatibleLLM = ChatCompletionsJSONLLM
+
+
+def is_quota_exhausted(error: BaseException | None) -> bool:
+    """Report whether ``error`` or anything it wraps is an exhausted-quota error.
+
+    Callers see the exception raised deep inside extraction or judging, so the
+    whole ``__cause__``/``__context__`` chain is walked.  Detection stays on the
+    status code; the human-readable message is not matched.
+    """
+
+    seen: set[int] = set()
+    while error is not None and id(error) not in seen:
+        seen.add(id(error))
+        if (
+            isinstance(error, LLMResponseError)
+            and error.status_code in QUOTA_EXHAUSTED_STATUS
+        ):
+            return True
+        error = error.__cause__ or error.__context__
+    return False
 
 
 def _normalize_api_key(value: str) -> str:

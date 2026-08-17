@@ -14,8 +14,8 @@ from .models import (
 )
 
 
-ENTITY_PROMPT_VERSION = "open-entities-section-1"
-RELATION_PROMPT_VERSION = "open-relations-section-1"
+ENTITY_PROMPT_VERSION = "open-entities-section-6-tool-boundary"
+RELATION_PROMPT_VERSION = "open-relations-assertion-4-recall-protection"
 EXTRACTION_PROMPT_VERSION = (
     f"{ENTITY_PROMPT_VERSION}+{RELATION_PROMPT_VERSION}"
 )
@@ -28,13 +28,45 @@ SYSTEM_PROMPT = """你是语料约束的知识抽取器。
 ENTITY_PROMPT = """从下面的语料片段抽取 EntityObservation。
 
 Entity 必须是在本片段中有稳定名称、可复指，并有实质性定义或知识含义的对象。
-类型标签是开放的：使用原文语境中简洁、可复用的类别词，可为空，不得为了满足
+类型标签是开放的：基于原文准确、可复用的类别词，可为空，不得为了满足
 预设词表而扭曲实体。每个实体最多给出 3 个 type_labels。
+
+准入边界：
+- 可以抽取正文明确介绍或解释、脱离当前示例后仍有独立教学意义的概念、方法、模型、
+  数据集。
+- 不要抽取只在当前代码示例中存在的局部变量、临时函数、演示类、占位符、文件名、
+  图片名、图表编号、公式片段、辅助计时/绘图/累计工具、界面按钮、操作菜单或命令输出。
+- 不要把练习题中的假设对象、提问本身或某次演示操作当作 Entity。
+- 不要抽取只在示例中出现的固定数值、超参数、配置项、文件路径、数据集子集或单个样本。
+- definition 必须描述对象本身，不能只描述它在当前示例中的一次操作或某个固定数值。
+- 证据来源测试：假设删掉代码块、练习题和界面操作步骤，读者是否仍能仅根据叙述正文
+  识别并解释该对象？如果不能，必须省略。代码只能作为正文已介绍概念的补充证据，
+  不能单独产生 Entity。这条测试用于概念类对象；工具与代码对象改用下面三层判定。
+
+工具与代码对象的三层判定：
+1. 工具系统本身准入，作为独立 Entity。判定：它是否是一个有独立名称、可脱离本书
+   指称的框架、库或平台。例如 PyTorch、TensorFlow、MXNet、Gluon、Keras 准入。
+2. 概念的代码写法准入，作为独立 Entity，**不要写进某个概念的 aliases**。判定：这个
+   名字是否是一个经典的写法，比如 nn.Linear 等。
+3. 教材为讲解临时定义的辅助物，一律不准入。判定：
+   它是否只对应一组对象，或不对应任何概念。例如 教材中train_ch6、
+   fancy_func、d2l.Timer、d2l.Animator、d2l.Accumulator、Stopping 按钮、
+   Image→Create 操作同样不准入。
+第 2 层与第 3 层的分界只有一条：是否是教材临时定义的。
+
+- 召回保护：叙述正文明确陈述定义、性质、比较、因果、组成、适用条件或限制时，构成
+  这些知识陈述所需的全部具名领域对象都应抽取。某对象在当前段落没有被重新完整定义，
+  但正文明确陈述了它的性质或它与其他对象的比较，也已经具有实质性知识含义，不得
+  因此省略。例如正文比较随机梯度下降与梯度下降时，两者都应准入。
+- 上一条召回保护只适用于陈述事实的叙述正文，不适用于代码块、练习题、问句和界面
+  操作步骤；不得借召回保护重新引入实现辅助对象。
 
 规则：
 1. evidence.passage_ids 必须选择片段中真实存在的段落 ID，最多 3 个。
 2. evidence.quote 是你认为最关键的引文。应尽量忠实引用，但允许轻微省略或改写。
-3. aliases 只列出本片段表达过的别名。
+3. aliases 只列出本片段表达过的别名。英文术语、缩写和中文变体仍然是别名，
+   例如 SGD、CNN、突触权重。框架 API 名不是别名，按准入边界第 2 层
+   单独作为 Entity 输出。
 4. 这一阶段不要输出关系。
 5. 最多输出 {max_entities} 个实体。
 
@@ -59,7 +91,7 @@ Entity 必须是在本片段中有稳定名称、可复指，并有实质性定�
 {text}
 ---"""
 
-RELATION_PROMPT = """从下面的原始语料中抽取开放式 subject-predicate-object 关系。
+RELATION_PROMPT = """从下面的原始语料中抽取开放式关系及其完整 Assertion。
 
 实体已经由上一阶段识别。subject 和 object 必须使用实体清单中的完整名称；不要重新
 抽实体。predicate 使用原文关系的简洁、可复用表达，不受预设关系词表限制。
@@ -68,14 +100,37 @@ RELATION_PROMPT = """从下面的原始语料中抽取开放式 subject-predicat
 1. 只能依据原始 Passage，目录和摘要只提供定位上下文，不能单独证明关系。
 2. evidence.passage_ids 必须来自下面真实存在的 Passage，最多 3 个。
 3. 共现、章节相邻、主题相似或模型常识不能构成关系。
-4. 不确定时省略；最多输出 {max_claims} 条。
+4. statement 必须是一条可独立判断真假的完整陈述，必须出现 subject 和 object 的完整
+   名称，并保留原文中的条件、适用范围、时间、否定、可能性和数量限制。不能把
+   “在某条件下成立”改写成无条件成立。
+5. scope 摘出会限制关系成立范围的前提或语境；没有则为空字符串。去掉 scope 会使
+   statement 变假或明显扩大适用范围时，scope_is_restrictive 必须为 true。
+6. 只抽取可复用的教学知识。仅描述当前代码调用了哪个辅助函数、计时器、绘图器、
+   累计器、损失类或配置项的实现事实，以及界面点击顺序、云资源操作步骤，不形成关系。
+7. 证据来源测试：假设删掉代码块、练习题和界面操作步骤，叙述正文是否仍明确表达该
+   关系？如果不能，必须省略。不得仅根据代码反推“模型使用某工具/API”。
+8. 正文明确讲授的模型、算法、机制、适用条件之间的关系可以保留；代码只能作为补充
+   证据，不能成为关系的唯一来源。
+9. 召回检查：逐句检查叙述正文中的定义、性质、比较、因果、组成、适用条件和限制，
+   只要两个端点都在实体清单中，就不要因端点未在本段重新定义而漏掉关系。
+10. subject 和 object 必须逐字复制实体清单中的完整名称；statement 中也必须逐字包含
+   这两个完整名称。即使原文使用简称、代词或“非凸情况下”等语法变形，也要在忠于
+   原意的前提下把实体清单中的完整名称写入 statement。
+11. stance 表示原文是否支持这条完整 statement，不表示 statement 内部是否含否定。
+   本任务抽取的是原文实际陈述的命题，因此始终输出 support；否定事实应写进 statement
+   和 predicate，不得因“并非如此”“不收敛”等否定词输出 oppose。
+12. predicate 的方向必须与 statement 完全一致，并在输出前核对主客体方向。
+13. 不确定时省略；最多输出 {max_claims} 条。
 
 输出：
 {{"relations":[{{
   "subject":"实体清单中的完整名称",
   "predicate":"开放关系谓词",
   "object":"实体清单中的完整名称",
-  "stance":"support|oppose",
+  "statement":"包含全部必要条件的完整关系表述",
+  "scope":"限制成立范围的条件或语境；没有则为空字符串",
+  "scope_is_restrictive":true,
+  "stance":"support",
   "evidence":{{"passage_ids":["P000001"],"quote":"关键引文"}}
 }}]}}
 
@@ -287,6 +342,9 @@ def parse_payload(
         subject = _string(raw, "subject")
         relation = _string(raw, "predicate") or _string(raw, "relation")
         object_ = _string(raw, "object")
+        statement_text = _string(raw, "statement")
+        scope_text = _string(raw, "scope")
+        scope_is_restrictive = raw.get("scope_is_restrictive", False)
         polarity = _string(raw, "stance") or "support"
         if not relation or len(relation) > 120:
             rejected.append(f"claim[{index}] 缺少或过长 relation")
@@ -294,8 +352,34 @@ def parse_payload(
         if polarity not in POLARITIES:
             rejected.append(f"claim[{index}] 非法 stance: {polarity!r}")
             continue
+        # A freshly extracted complete statement is, by contract, the
+        # proposition asserted by its cited source.  Logical negation belongs
+        # in the statement/predicate; it is not opposing evidence for itself.
+        # Keep ``oppose`` in the storage model for later/manual evidence, while
+        # normalizing model confusion at the extraction boundary.
+        polarity = "support"
         if not subject or not object_ or _compact(subject) == _compact(object_):
             rejected.append(f"claim[{index}] 端点为空或自环")
+            continue
+        if not statement_text:
+            rejected.append(f"claim[{index}] 缺少完整 statement")
+            continue
+        compact_statement = _compact(statement_text)
+        if (
+            _compact(subject) not in compact_statement
+            or _compact(object_) not in compact_statement
+        ):
+            rejected.append(
+                f"claim[{index}] statement 未完整包含两个端点: "
+                f"subject={subject!r}, object={object_!r}, "
+                f"statement={statement_text[:240]!r}"
+            )
+            continue
+        if not isinstance(scope_is_restrictive, bool):
+            rejected.append(f"claim[{index}] scope_is_restrictive 不是布尔值")
+            continue
+        if scope_is_restrictive and not scope_text:
+            rejected.append(f"claim[{index}] 限制性 scope 不能为空")
             continue
         grounded = _resolve_evidence(raw.get("evidence"), passage_by_id)
         if isinstance(grounded, str):
@@ -313,6 +397,9 @@ def parse_payload(
                 location=source_location,
                 polarity=polarity,
                 raw_relation=relation,
+                statement_text=statement_text,
+                scope_text=scope_text,
+                scope_is_restrictive=scope_is_restrictive,
             )
         )
     if len(raw_entities) > max_entities:

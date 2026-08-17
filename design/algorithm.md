@@ -42,7 +42,8 @@ Read → Extract → Resolve → Merge → Repeat
 9. 不确定的实体身份不触发合并；不确定的关系不写入。
 10. 有效 ClaimObservation 不因端点未解析或语义证据不足而删除。
 11. 相同模型与提示词版本不重复裁判同一 Observation。
-12. Entity 的聚合定义只能引用当前 Entity 的 EntityObservation 及其 Passage；
+12. Entity 的聚合概念解释必须引用当前 Entity 的 EntityObservation 及其 Passage 来锚定
+    义项和语料特有事实；可使用可靠通用知识补全通常含义、上位类别和跨场景稳定特征。
     Observation 集合变化后，旧聚合结果不再作为当前缓存。
 
 `kg check` 检查外键、无证据对象和关系循环。语义正确性仍需要语料约束和关系裁判共同保证。
@@ -151,14 +152,16 @@ SHA256(chunk)
 
 ### 5.1 MiniMax M3 输入
 
-每个未完成片段进行一次抽取调用。系统提示词明确：
+每个未完成片段先抽取 EntityObservation，再基于实体清单抽取开放关系。两个抽取提示词都明确：
 
 - 只能依据当前片段；
 - 不能用模型记忆补充知识；
 - 没有有效 Passage 依据的对象或关系必须省略；
 - 只输出 JSON。
 
-六种 `entity_type` 和三种 `relation` 的定义由 `kg.ontology` 渲染进用户提示词，格式为**判定测试 + 排除项 + 正反例**。`kg/ontology.py` 是这些定义的唯一来源，抽取、关系裁判（第 8 节）和身份裁决（第 6.4 节）共用它，避免同一条定义在多处分叉。渲染后的定义块约占提示词 3000 字符。
+Entity 类型和 RelationType 均为开放词表；旧类型和核心关系只用于兼容与导航。关系裁判
+继续严格依据原文，Entity identity 裁判和第 6.7 节的规范概念解释则允许在语料锚定下
+使用可靠通用知识判断对象边界和通常含义。
 
 抽取结果包含：
 
@@ -237,11 +240,11 @@ Entity 必须同时满足：
 
 1. `name` 非空。
 2. `definition` 至少四个字符。
-3. `entity_type` 属于六种主类型。
+3. `type_labels` 至多三个简洁开放类别词，也可以为空。
 4. Evidence 引用当前 Chunk 中 1–3 个有效 Passage。
 5. 同一片段内规范化名称不重复。
 
-类型由模型根据 definition 判定；机械层只验证类型词表，不根据名称重新猜类型。
+类型由模型按当前 mention 的语境观察；机械层只规范字符串，不根据名称重新猜类型。
 
 模型意外返回超过上限的 Entity 时按原顺序截断；ClaimObservation 单独保存，
 不要求为了即时物化而把端点强行包装为无定义的 Entity。
@@ -313,31 +316,39 @@ normalize(name) = collapse_whitespace(normalize(name))
 
 ### 6.2 精确匹配
 
-先在 canonical name 和 aliases 上查询规范化名称：
+先在 canonical name 和 aliases 上查询规范化名称。命中只负责召回，不直接决定身份：
 
 ```text
-0 个命中：进入候选召回
-1 个命中：直接 same
-多个命中：视为歧义，进入候选召回
+0 个命中：继续普通候选召回
+1 个命中：作为最高优先候选交给 LLM
+多个命中：全部作为歧义候选交给 LLM
 ```
 
-精确唯一匹配不调用 LLM。
+即使 canonical name 唯一精确匹配，也必须由 LLM 基于知识和当前义项做最终判断；同名可能
+是不同对象，局部类型一致也不能替代 identity 判断。
 
 ### 6.3 候选召回
 
-当前第一版对所有 Entity 的 canonical name 和 aliases 计算 `SequenceMatcher` 相似度：
+当前第一版用观察的 name 和待审核 aliases，对所有 Entity 的 canonical name 和已验证
+aliases 计算 `SequenceMatcher` 相似度：
 
 ```text
-score(o, e) = max(similarity(normalize(o.name), normalize(name))
-                  for name in canonical_and_aliases(e))
+score(o, e) = max(similarity(normalize(query_name), normalize(entity_name))
+                  for query_name in [o.name, *o.aliases]
+                  for entity_name in canonical_and_aliases(e))
 ```
 
 若一方去空格后的名称包含另一方，score 至少提升到 `0.55`。
 
+若候选的 canonical name 或已验证 alias 直接出现在观察的 definition 或 model quote
+中，score 至少提升到 `0.72`。这用于召回原文宽泛称呼背后的实际指代，例如定义明确
+出现「键」但 observation name 是教学类比中的「非自主性提示」。字符串命中仍只负责
+召回，不构成身份或 alias 证据，也不增加模型调用。
+
 普通解析保留：
 
 ```text
-score >= 0.35 的前 5 个候选
+score >= 0.35 的前 10 个候选
 ```
 
 相似度只负责召回，绝不自动合并。
@@ -346,9 +357,22 @@ score >= 0.35 的前 5 个候选
 
 MiniMax M3 看到：
 
-- 新观察的名称、definition、类型、model quote 和程序取得的 source text；
+- 新观察的名称、待审核 aliases、definition、类型、model quote 和程序取得的 source text；
 - 每个候选的 canonical name、aliases、definition、类型；
 - 候选最近最多三条 Entity Evidence。
+
+模型可以使用可靠通用知识判断术语的通常含义、同义关系、翻译、缩写及概念、实现、子类、
+实例之间的身份边界。原文、definition、model quote 和 source text 用于识别当前义项，
+不是要求语料重新证明两个术语同义；局部 definition 也不是预先成立的身份边界。表面名称
+只在当前 passage 指向某个候选时，仍可将 observation
+关联该候选；是否把表面名称登记为全局 alias 继续使用原有 alias 裁决，不由局部指代
+自动推出。
+模型可另行返回最多五个 `knowledge_aliases`，只用于可靠通用知识中跨语境安全互换的标准
+翻译、英文全称、通行缩写、正式名/简称或拼写变体。它们持久化到
+`entity_alias_candidates`，只参与候选召回，不参与精确解析，也不是正式全局 alias。
+普通近义词、相关概念、实现/API、实例和局部角色不得建议。只有原文 observation 提供的
+名称经 resolver 身份裁决和独立确认后，才写入 `entity_aliases`；后续 observation 命中
+knowledge alias 并确认 `same + global_name` 时，该真实观察名称才升级为正式 alias。
 
 输出：
 
@@ -361,10 +385,15 @@ uncertain(canonical_name)
 执行规则：
 
 - `same` 只有 candidate_id 确实来自候选集合时才复用实体。
+- tentative `same` 继续经过原有独立身份否证；确认实际指代相同但名称仅为局部用词时，
+  关联候选但不登记该表面名称为 alias。该分支不增加新的模型调用。
 - `new` 新建实体。
 - `uncertain` 也新建独立实体，不建立合并状态或审核队列。
 - 非法 decision 或非法 candidate_id 降级为 `uncertain`。
-- `new/uncertain` 返回的 canonical name 若已指向现有实体，退回观察名，避免通过名称冲突偷偷合并。
+- `new/uncertain` 的 canonical name 使用可靠通用知识中的标准名称，并结合 observation
+  当前义项保留真正的最小身份限定；不得为了避开冲突虚构子类或版本。若返回名称冲突而
+  原始观察名本身无冲突，可退回原始名称；
+  两者都冲突时拒绝该无效结果，不能记录 `new/uncertain` 却偷偷复用已有 Entity。
 
 ### 6.5 后续重判
 
@@ -374,7 +403,8 @@ uncertain(canonical_name)
 score >= 0.55
 ```
 
-模型再次看到双方 definition、aliases 和后来累计的 Evidence。只有明确返回 `same` 才合并；`new` 保持分离，`uncertain` 保持分离。
+模型再次看到双方 definition、aliases 和后来累计的 Evidence，并使用同一套通用知识优先
+的 identity 原则。只有明确返回 `same` 才合并；`new` 保持分离，`uncertain` 保持分离。
 有界 `--limit` 优先检查字符串召回分数最高的候选对，避免实体插入顺序决定
 本轮审查对象；相似度仍只负责排序，不能决定合并。
 
@@ -424,16 +454,19 @@ GROUP BY observed_entity_type
 
 需要单值类型的下游场景（如导航查询）应在查询层定阈值，并明确那是可调策略而非既成事实。
 
-### 6.7 基于全部 Observation 的定义聚合
+### 6.7 基于全部 Observation 的概念解释聚合
 
 Entity 初次创建时暂存第一次 Observation 的定义，使单条观察也能形成可读对象；这个
-值不是最终定义。一次 `run` 完成片段处理后，主流程选择拥有至少两条
+值不是最终解释。一次 `run` 完成片段处理后，主流程选择拥有至少一条
 EntityObservation、且当前观察集合尚无同模型同版本聚合结果的 Entity，将该 Entity
 的全部 Observation 一次性提供给定义整理模型。
 
-输出定义只回答「它是什么」，使用「上位类别 + 区分性特征」；地位、流行度、影响力
-和宣传性评价即使有原文支持也不能进入定义。每条实质性陈述必须由返回的一至五个
-Observation 支持。程序确定性检查：
+输出是一至两句话、用于帮助身份识别的规范概念解释，不要求是严格词典定义。第一句优先
+说明通常含义；第二句可以补充有助于识别的用途、性质、实现方式或典型比较。模型可使用
+可靠通用知识补全上位类别和跨场景稳定特征，但必须与全部 Observation 一致；原文特有的
+事实、数字、版本、历史事件和应用结果仍需 Observation 直接支持，不得把一次局部场景写成
+概念身份边界。返回的一至五个 Observation 用于锚定义项并支持语料中的具体事实。程序
+确定性检查：
 
 1. Observation ID 必须属于当前 Entity；
 2. Passage ID 必须属于对应 Observation；
@@ -465,7 +498,19 @@ Claim；不重新抽取 Source，也不重复当前版本的关系裁判。
 
 ## 8. 关系证据裁判
 
-Passage 解析后的每个 Claim Evidence 单独交给 MiniMax M3。裁判同时看到 model quote 和 source text，但提示词明确规定 source text 是唯一权威证据。裁判只能返回：
+关系归一不再按字符串相似度取 top-k，也不为三种种子关系预留候选位。候选由两部分组成：
+
+- 当前名称精确命中的 RelationType/已验证 alias；
+- 已经有 Claim 证据支撑的全部开放 RelationType。
+
+名称精确命中也不能绕过上下文。归一器必须先按 `subject → predicate → object` 依次
+口头化，并核对真正承担关系的主语和宾语；若真实参与者其实是端点的参数、输出、组成
+部分或作者等第三个对象，则返回 `non_projectable`。`uncertain` 和
+`non_projectable` 都保留在 `relation_resolution_attempts` 中，但不进入后续裁判。
+
+`same` 和 `new` 也只是待验证方案：此时不新增 RelationType，不写全局 alias。Passage
+解析后的每个可投影 Claim Evidence 再单独交给 MiniMax M3。裁判同时看到 model quote
+和 source text，但提示词明确规定 source text 是唯一权威证据。裁判只能返回：
 
 ```text
 supports
@@ -486,7 +531,7 @@ insufficient
 
 ```text
 stance=support 且 verdict=supports
-    → 新建/复用 Claim，追加 support Evidence
+    → 确认 RelationType/alias，再新建或复用 Claim，追加 support Evidence
 
 stance=oppose 且 verdict=contradicts 且 Claim 已存在
     → 追加 oppose Evidence
@@ -666,6 +711,19 @@ failed
   只回滚未提交部分，已保存的原文证据不丢失，然后记录失败原因。
 - LLM 没回答不等于知识为假；失败不能产生拒绝关系或虚假知识。
 
+失败之后是否继续,按失败形态分两类:
+
+- **连续 3 个片段失败**视为 API 短时故障,暂停 600 秒后继续下一个片段。
+  单个片段偶发失败不暂停,直接标 `failed` 留待下次重跑。
+- **额度耗尽**(`base_resp.status_code` 1008 账户余额不足、2067 Token Plan
+  用量上限)第一次出现就暂停 600 秒,不必等凑满 3 次:这个错误自身已经足够确定,
+  再消耗两个片段去确认没有意义。它同时被排除在秒级退避之外,因为预算花完不是
+  瞬时故障,额度只会被人工补充或等计费周期重置。
+
+两类暂停都只作用于当前 `run` 调用内部的片段循环。窗口(单次 `run`)之间不累积,
+也不改变退出码——`run` 只要有失败片段就返回非零,**外层脚本若对非零 fail-fast,
+后续窗口仍会被跳过**,这一层需要调用方自己决定。
+
 ## 12. 默认 LLM 调用
 
 默认配置：
@@ -727,12 +785,20 @@ for spec in load_catalog(catalog):
                 local_entities[observed_entity.names] = entity_id
 
             resolve_observation_endpoints(observations, local_entities)
-            for observation in observations:
+            relation_proposals = normalize_open_relations(
+                observations,
+                candidates=exact_matches_plus_supported_relation_catalog,
+            )
+            for observation, relation_proposal in relation_proposals:
+                if relation_proposal in {uncertain, non_projectable}:
+                    save_relation_attempt(observation, relation_proposal)
+                    continue
                 verdict = cached_or_judge_relation_evidence(observation)
                 save_append_only_judgment(observation, verdict)
                 if endpoints_ready(observation) and verdict_matches_stance(
                     verdict, observation.stance
                 ):
+                    finalize_relation_type_and_verified_alias(relation_proposal)
                     claim_id = upsert_claim_with_cycle_check(
                         observation.subject_id,
                         observation.relation,
