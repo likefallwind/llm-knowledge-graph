@@ -1146,6 +1146,44 @@ class PipelineTest(unittest.TestCase):
         candidate = next(item for item in candidates if item["id"] == entity_id)
         self.assertEqual(candidate["score"], 1.0)
 
+    def test_candidate_embedding_excludes_quotes_and_source_text(self):
+        existing = EntityObservation(
+            name="Support Vector Machine",
+            definition="A maximum-margin classifier",
+            entity_type="method",
+            aliases=("SVM",),
+            model_quote="EXISTING_QUOTE_MUST_NOT_BE_EMBEDDED",
+            source_text="EXISTING_SOURCE_MUST_NOT_BE_EMBEDDED",
+            passage_ids=("P000001",),
+            location="P000001",
+        )
+        store.create_entity(self.conn, existing)
+        incoming = EntityObservation(
+            name="支持向量机",
+            definition="最大化分类间隔的分类器",
+            entity_type="method",
+            aliases=("SVM",),
+            model_quote="INCOMING_QUOTE_MUST_NOT_BE_EMBEDDED",
+            source_text="INCOMING_SOURCE_MUST_NOT_BE_EMBEDDED",
+            passage_ids=("P000002",),
+            location="P000002",
+        )
+
+        with mock.patch(
+            "kg.embeddings.cosine_scores", return_value=[0.9]
+        ) as scorer:
+            resolution.candidate_entities(
+                self.conn, incoming.name, observation=incoming
+            )
+
+        query, passages = scorer.call_args.args
+        embedded = "\n".join((query, *passages))
+        self.assertIn("支持向量机", query)
+        self.assertIn("SVM", query)
+        self.assertIn("最大化分类间隔的分类器", query)
+        self.assertIn("Support Vector Machine", passages[0])
+        self.assertNotIn("MUST_NOT_BE_EMBEDDED", embedded)
+
     def test_candidate_recall_returns_ten_by_default(self):
         for index in range(12):
             item = EntityObservation(
@@ -1367,8 +1405,7 @@ class PipelineTest(unittest.TestCase):
         )
 
         candidate = next(item for item in candidates if item["id"] == key_id)
-        self.assertTrue(candidate["mentioned_in_observation"])
-        self.assertGreaterEqual(candidate["score"], 0.72)
+        self.assertGreater(candidate["score"], 0.0)
 
     def test_contextual_surface_name_links_without_global_alias(self):
         general = EntityObservation(

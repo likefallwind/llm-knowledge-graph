@@ -3,15 +3,14 @@ from __future__ import annotations
 import json
 import sqlite3
 from dataclasses import replace
-from difflib import SequenceMatcher
-from typing import Any
+from typing import Any, Sequence
 
-from . import store
+from . import embeddings, store
 from .llm import JSONLLM
 from .models import EntityObservation, Resolution
 
 
-RESOLUTION_PROMPT_VERSION = "entity-identity-ontology-13-alias-scope-inheritance"
+RESOLUTION_PROMPT_VERSION = "entity-identity-ontology-14-multilingual-e5-recall"
 
 IDENTITY_KNOWLEDGE_POLICY = """你可以使用可靠的通用知识判断术语的通常含义、同义关系、
 翻译、缩写，以及概念、实现、子类、实例之间的身份边界。原文和语境用于确定当前名称
@@ -34,7 +33,6 @@ def candidate_entities(
     *,
     observation: EntityObservation | None = None,
     limit: int = 10,
-    threshold: float = 0.35,
     exclude_id: int | None = None,
 ) -> list[dict[str, Any]]:
     query_names = [name]
@@ -45,12 +43,12 @@ def candidate_entities(
         for value in dict.fromkeys(query_names)
         if value.strip()
     ]
-    semantic_text = ""
-    if observation is not None:
-        semantic_text = store.normalize_name(
-            " ".join((observation.definition, observation.model_quote))
-        ).replace(" ", "")
-    candidates: list[dict[str, Any]] = []
+    query_text = _entity_embedding_text(
+        name,
+        observation.aliases if observation is not None else (),
+        observation.definition if observation is not None else "",
+    )
+    rows: list[tuple[sqlite3.Row, list[str], list[str], list[str], str]] = []
     for row in store.list_entities(conn):
         entity_id = int(row["id"])
         if entity_id == exclude_id:
@@ -62,45 +60,55 @@ def candidate_entities(
             *formal_aliases,
             *alias_candidates,
         ]
-        score = max(
-            SequenceMatcher(None, query, store.normalize_name(value)).ratio()
-            for query in queries
-            for value in names
-        )
-        compact_queries = [query.replace(" ", "") for query in queries]
-        compact_names = [store.normalize_name(value).replace(" ", "") for value in names]
-        if any(
-            query in value or value in query
-            for query in compact_queries
-            for value in compact_names
-        ):
-            score = max(score, 0.55)
-        mentioned_names = [
-            value
-            for value in compact_names
-            if value and semantic_text and value in semantic_text
-        ]
-        if mentioned_names:
-            # Definitions and quotes often reveal the actual referent even when
-            # the passage uses a broad or analogical surface name.  This is
-            # deterministic candidate recall, not identity evidence by itself.
-            score = max(score, 0.72)
-        if score >= threshold:
-            candidates.append(
-                {
-                    "id": entity_id,
-                    "canonical_name": str(row["canonical_name"]),
-                    "aliases": formal_aliases,
-                    "candidate_aliases": alias_candidates,
-                    "definition": str(row["definition"]),
-                    "type_profile": store.type_profile(conn, entity_id),
-                    "evidence": store.evidence_for_entity(conn, entity_id),
-                    "score": round(score, 4),
-                    "mentioned_in_observation": bool(mentioned_names),
-                }
+        rows.append(
+            (
+                row,
+                formal_aliases,
+                alias_candidates,
+                names,
+                _entity_embedding_text(
+                    str(row["canonical_name"]),
+                    (*formal_aliases, *alias_candidates),
+                    str(row["definition"]),
+                ),
             )
+        )
+
+    scores = embeddings.cosine_scores(query_text, [item[4] for item in rows])
+    candidates: list[dict[str, Any]] = []
+    for (row, formal_aliases, alias_candidates, names, _), score in zip(
+        rows, scores
+    ):
+        normalized_names = {store.normalize_name(value) for value in names}
+        if any(query in normalized_names for query in queries):
+            score = 1.0
+        entity_id = int(row["id"])
+        candidates.append(
+            {
+                "id": entity_id,
+                "canonical_name": str(row["canonical_name"]),
+                "aliases": formal_aliases,
+                "candidate_aliases": alias_candidates,
+                "definition": str(row["definition"]),
+                "type_profile": store.type_profile(conn, entity_id),
+                "evidence": store.evidence_for_entity(conn, entity_id),
+                "score": round(score, 4),
+            }
+        )
     candidates.sort(key=lambda item: (-float(item["score"]), int(item["id"])))
     return candidates[:limit]
+
+
+def _entity_embedding_text(
+    name: str, aliases: Sequence[str], definition: str
+) -> str:
+    parts = [f"名称：{name.strip()}"]
+    clean_aliases = [value.strip() for value in aliases if value.strip()]
+    if clean_aliases:
+        parts.append("别名：" + "；".join(dict.fromkeys(clean_aliases)))
+    if definition.strip():
+        parts.append("解释：" + definition.strip())
+    return "\n".join(parts)
 
 
 def resolve_observation(
@@ -616,7 +624,6 @@ def reconcile(
             conn,
             str(entity["canonical_name"]),
             exclude_id=source_id,
-            threshold=0.55,
         ):
             pair = tuple(sorted((source_id, int(candidate["id"]))))
             score = float(candidate["score"])

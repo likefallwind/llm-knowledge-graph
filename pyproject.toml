@@ -8,7 +8,10 @@ version = "0.1.0"
 description = "A minimal, corpus-grounded AI knowledge graph pipeline"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["json-repair>=0.61,<1"]
+dependencies = [
+    "json-repair>=0.61,<1",
+    "sentence-transformers>=5.2,<7",
+]
 
 [project.optional-dependencies]
 pdf = ["pypdf>=5"]

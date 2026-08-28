@@ -862,7 +862,7 @@ def promote_candidates(
             skipped_cached += 1
             continue
         similar = resolution.candidate_entities(
-            conn, str(candidate["name"]), limit=5, threshold=0.35
+            conn, str(candidate["name"]), limit=5
         )
         evidence_payload = [
             {

@@ -28,10 +28,11 @@ Read → Structure → Extract Entities → Extract Relations → Normalize → 
 - Evidence 记录文档版本、位置、模型和提示词版本，为未来 LLM/人类校准保留可能性；当前不实现校准队列。
 - 相同 `(subject, relation, object)` 只保存一个 Claim，不同 Source 的 Evidence 自动累计。
 - 实体对齐只有 `same / new / uncertain`。`uncertain` 会保留独立实体，之后可用 `reconcile` 重新判断。
-- 名称、字符串相似度、局部类型和 definition 都只是 identity 候选与义项线索；即使唯一
+- 名称的语义相似度、局部类型和 definition 都只是 identity 候选与义项线索；即使唯一
   精确同名也由 LLM 基于通用知识做最终判断，原文主要用于确定当前提及的义项。
-- identity 候选召回使用 observation 的名称和待审核 aliases，对已有 Entity 的规范名和已
-  验证 aliases 取相似度最高的前 10 个；这些字符串只负责召回。resolver 可补充最多五个
+- identity 候选召回使用中英多语言 Embedding，只编码 observation 的名称、待审核 aliases
+  和 definition，并对已有 Entity 的规范名、aliases 和 definition 取最相近的前 10 个；
+  不把三元组或原文放入 Embedding。这些文本只负责召回。resolver 可补充最多五个
   可靠通用知识中的标准翻译、英文全称、通行缩写或名称变体，明确审核后才注册。
 - `Entity.definition` 不由第一次抽取永久决定。主流程结束时，同一 Entity 的全部
   EntityObservation 用于锚定当前义项和具体语料事实，定义整理器可使用可靠通用知识补全
@@ -43,7 +44,14 @@ Read → Structure → Extract Entities → Extract Relations → Normalize → 
 
 ## 环境
 
-Python 3.11+，没有必需的第三方 Python 依赖。
+Python 3.11+。安装项目及必需依赖：
+
+```bash
+python -m pip install -e .
+```
+
+实体候选召回默认使用 `intfloat/multilingual-e5-small`，支持中英文跨语言匹配。模型在首次
+召回时下载；可通过 `KG_EMBEDDING_MODEL` 覆盖模型名。
 
 PDF 读取优先使用系统的 `pdftotext`。没有该命令时可安装可选依赖：
 
