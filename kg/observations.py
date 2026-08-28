@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sqlite3
 from collections import defaultdict
 from typing import Any, Iterable
@@ -339,16 +340,45 @@ def resolve_endpoint_ids(
     return changed
 
 
-def _replace_endpoint(text: str, raw_name: str, canonical_name: str) -> str:
-    if not text or not raw_name or raw_name == canonical_name:
+def _replace_endpoints(
+    text: str, replacements: Iterable[tuple[str, str]]
+) -> str:
+    """Replace endpoint labels once without rewriting inserted canonical names."""
+    if not text:
         return text
-    # Canonical names can contain the observed form, for example
-    # ``随机梯度下降（SGD）`` contains ``随机梯度下降``.  Preserve already
-    # canonical occurrences so repeated replay/materialization stays idempotent.
-    return canonical_name.join(
-        part.replace(raw_name, canonical_name)
-        for part in text.split(canonical_name)
+    pairs = [
+        (raw_name, canonical_name)
+        for raw_name, canonical_name in replacements
+        if raw_name and raw_name != canonical_name
+    ]
+    if not pairs:
+        return text
+
+    # Protect canonical labels already present so replay is idempotent even when
+    # one endpoint's canonical label contains the other endpoint's raw label,
+    # e.g. ``编码器（编码器-解码器架构）`` and ``解码器``.
+    protected: dict[str, str] = {}
+    for index, canonical_name in enumerate(
+        sorted({canonical for _, canonical in pairs}, key=len, reverse=True)
+    ):
+        token = f"\x00kg-canonical-{index}\x00"
+        if canonical_name in text:
+            text = text.replace(canonical_name, token)
+            protected[token] = canonical_name
+
+    raw_mapping: dict[str, str] = {}
+    for raw_name, canonical_name in pairs:
+        raw_mapping.setdefault(raw_name, canonical_name)
+    pattern = re.compile(
+        "|".join(
+            re.escape(raw_name)
+            for raw_name in sorted(raw_mapping, key=len, reverse=True)
+        )
     )
+    text = pattern.sub(lambda match: raw_mapping[match.group(0)], text)
+    for token, canonical_name in protected.items():
+        text = text.replace(token, canonical_name)
+    return text
 
 
 def prepare_assertions(
@@ -397,14 +427,12 @@ def prepare_assertions(
         object_name = str(row["canonical_object"])
         statement = str(row["statement_text"]).strip()
         scope = str(row["scope_text"]).strip()
-        statement = _replace_endpoint(
-            statement, str(row["subject_name"]), subject
+        endpoint_replacements = (
+            (str(row["subject_name"]), subject),
+            (str(row["object_name"]), object_name),
         )
-        statement = _replace_endpoint(
-            statement, str(row["object_name"]), object_name
-        )
-        scope = _replace_endpoint(scope, str(row["subject_name"]), subject)
-        scope = _replace_endpoint(scope, str(row["object_name"]), object_name)
+        statement = _replace_endpoints(statement, endpoint_replacements)
+        scope = _replace_endpoints(scope, endpoint_replacements)
         fingerprint_payload = {
             "subject_id": int(row["subject_entity_id"]),
             # A new predicate is judged before it receives a database id.

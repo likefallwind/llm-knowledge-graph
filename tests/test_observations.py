@@ -169,6 +169,50 @@ class ClaimObservationTest(unittest.TestCase):
         self.assertEqual(second["scope_text"], "使用随机梯度下降（SGD）时")
         self.assertNotIn("（SGD）（SGD）", second["scope_text"])
 
+    def test_assertion_preparation_is_idempotent_when_endpoints_overlap(self):
+        source_id = self._source(
+            "overlapping-canonical-names",
+            "编码器的隐状态用于初始化解码器。",
+        )
+        encoder_id = self._entity(source_id, "编码器（编码器-解码器架构）")
+        decoder_id = self._entity(source_id, "解码器（编码器-解码器架构）")
+        store.add_alias(self.conn, encoder_id, "编码器")
+        store.add_alias(self.conn, decoder_id, "解码器")
+        claim = ClaimObservation(
+            subject="编码器",
+            relation="prerequisite_of",
+            object="解码器",
+            model_quote="编码器的隐状态用于初始化解码器",
+            source_text="编码器的隐状态用于初始化解码器。",
+            passage_ids=("P000001",),
+            location="P000001",
+            statement_text="编码器的隐状态用于初始化解码器。",
+            scope_text="在使用编码器的隐状态初始化解码器时",
+            scope_is_restrictive=True,
+        )
+        observation_id, _ = observations.add_claim_observation(
+            self.conn,
+            source_id=source_id,
+            chunk_index=0,
+            claim=claim,
+            extraction_model="FakeLLM",
+        )
+        observations.resolve_endpoint_ids(self.conn, [observation_id])
+
+        observations.prepare_assertions(self.conn, [observation_id])
+        first = observations.get_observation(self.conn, observation_id)
+        first_fingerprint = first["assertion_fingerprint"]
+        for _ in range(5):
+            observations.prepare_assertions(self.conn, [observation_id])
+        final = observations.get_observation(self.conn, observation_id)
+
+        self.assertEqual(final["assertion_fingerprint"], first_fingerprint)
+        self.assertEqual(
+            final["scope_text"],
+            "在使用编码器（编码器-解码器架构）的隐状态初始化"
+            "解码器（编码器-解码器架构）时",
+        )
+
     def test_promotion_counts_distinct_passages_not_duplicate_observations(self):
         source_id = self._source("c", "候选方法是基础方法的一种。")
         self._entity(source_id, "基础方法")
