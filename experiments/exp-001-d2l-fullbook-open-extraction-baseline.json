@@ -1,0 +1,56 @@
+{
+  "experiment_id": "EXP-001",
+  "name": "D2L 全书开放抽取基线",
+  "slug": "exp-001-d2l-fullbook-open-extraction-baseline",
+  "status": "frozen",
+  "snapshot_created_at": "2026-08-28T17:27:02+08:00",
+  "artifact_directory": "data/experiments/exp-001-d2l-fullbook-open-extraction-baseline",
+  "source": {
+    "source_key": "d2l-zh-official",
+    "name": "动手学深度学习（D2L 中文版）",
+    "uri": "https://github.com/d2l-ai/d2l-zh",
+    "version": "e6b18ccea71451a55fcd861d7b96fddf2587b09a",
+    "content_hash": "9b57a1cead18be493ddbf26a62d09031a85c3a7261306648c1a5c2fc93a68e76",
+    "language": "zh",
+    "content_characters": 1451366
+  },
+  "pipeline": {
+    "schema_version": "9",
+    "generation_git_revision": null,
+    "generation_revision_note": "数据库早于实验登记，无法从库内可靠还原精确 Git revision",
+    "schema_compatible_exporter_revision": "20dc7f0",
+    "snapshot_worktree_revision": "42ff715",
+    "baseline_semantics": [
+      "开放式实体与关系抽取",
+      "关系类型未做全局低频合并",
+      "实体候选召回早于 multilingual-e5 Embedding 改动"
+    ]
+  },
+  "counts": {
+    "sources": 1,
+    "sections": 1088,
+    "passages": 9034,
+    "entities": 3817,
+    "entity_aliases": 8376,
+    "entity_observations": 11671,
+    "entity_definition_syntheses": 1496,
+    "relation_types": 2365,
+    "claims": 6901,
+    "claim_observations": 10786,
+    "claim_observation_judgments": 9361,
+    "evidence": 17297
+  },
+  "artifacts": {
+    "graph.db": {
+      "bytes": 96403456,
+      "sha256": "db49d7a90da473fb15d10ad4dd338e9c099a94689a95f4c3fe31c77657a926b4",
+      "sqlite_integrity_check": "ok"
+    },
+    "graph.json": {
+      "bytes": 64702451,
+      "sha256": "f0ba5b26fdd00cf0e000899f1f6ab3dabd7dc41707c9db970e506e0c19bf7c57",
+      "contains_source_body": false,
+      "export_format_revision": "20dc7f0:kg/export.py"
+    }
+  }
+}
