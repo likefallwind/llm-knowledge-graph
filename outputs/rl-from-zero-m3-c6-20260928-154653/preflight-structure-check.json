@@ -1,0 +1,14 @@
+{
+  "chunks": 324,
+  "passages": 2920,
+  "headings": 188,
+  "exact_passage_slices": true,
+  "physical_pages_preserved": true,
+  "first": "section Chapter 1: Introduction; page 23, chars 23-48 – section Chapter 1: Introduction; page 23, chars 1212-1659",
+  "last": "section Index; page 547, chars 1841759-1841837 – section Index; page 548, chars 1843560-1843693",
+  "content_sha256": "041139e0412a1b0818a78120690e1e7ceb3777f4f64c0b5909ab5f2c917f4da3",
+  "pdf_sha256": "2dd0d71d9ee883fbeb99f9b888c65ac3255fae2512203d11b18e838befffe9a6",
+  "database_exists_before_launch": false,
+  "seed_database": null,
+  "git_commit": "7b9ad3f764ce5a95f7203ae5a0f453025b680df6"
+}

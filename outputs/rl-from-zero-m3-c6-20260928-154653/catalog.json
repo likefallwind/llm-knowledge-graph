@@ -1,0 +1,14 @@
+{
+  "sources": [
+    {
+      "key": "sutton-barto-2e-en-full-structured-v1",
+      "name": "Reinforcement Learning: An Introduction (2nd edition)",
+      "type": "textbook",
+      "language": "en",
+      "path": "book.txt",
+      "headings_path": "headings.json",
+      "content_sha256": "041139e0412a1b0818a78120690e1e7ceb3777f4f64c0b5909ab5f2c917f4da3",
+      "expected_chunks": 324
+    }
+  ]
+}

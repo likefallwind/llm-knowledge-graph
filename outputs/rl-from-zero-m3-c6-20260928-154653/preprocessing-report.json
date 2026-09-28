@@ -1,0 +1,27 @@
+{
+  "total_chunks": 324,
+  "chapters": 17,
+  "numbered_sections": 166,
+  "parts": 3,
+  "back_matter_sections": 2,
+  "total_sections": 188,
+  "removed_headers": 490,
+  "original_pdf_page_count": 548,
+  "first_evidence_page": 23,
+  "original_text_sha256": "8d11ea0c63bef9832ca89a66101fc19f63750ea8331a167d1647d949c402f1db",
+  "prepared_text_sha256": "041139e0412a1b0818a78120690e1e7ceb3777f4f64c0b5909ab5f2c917f4da3",
+  "pdf_sha256": "2dd0d71d9ee883fbeb99f9b888c65ac3255fae2512203d11b18e838befffe9a6",
+  "checks": {
+    "all_toc_headings_matched": true,
+    "no_cross_section_chunks": true,
+    "exact_passage_slices": true,
+    "physical_page_positions_preserved": true
+  },
+  "notes": [
+    "Headings follow the original TOC and are matched on their printed page.",
+    "Body and back matter retained; front matter is excluded with page delimiters preserved.",
+    "No generated formula repairs; original PDF and extracted text remain the audit reference.",
+    "Section 5.4 title is recovered from the TOC because plot text interleaves its last word.",
+    "Old pilot chunk indices are not reusable after correcting section boundaries."
+  ]
+}

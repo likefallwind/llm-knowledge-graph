@@ -1,0 +1,7 @@
+{
+  "at": "2026-09-28T07:48:25.242701+00:00",
+  "embedding_ok": true,
+  "api_ok": true,
+  "model": "MiniMax-M3",
+  "endpoint": "https://api.minimaxi.com/v1/text/chatcompletion_v2"
+}
