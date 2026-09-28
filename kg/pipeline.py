@@ -9,7 +9,7 @@ from collections import deque
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 
 from . import (
     definitions,
@@ -27,6 +27,7 @@ from .models import (
     ClaimObservation,
     ChunkResult,
     ExtractionBatch,
+    LoadedSource,
     SourcePassage,
     TextChunk,
 )
@@ -39,8 +40,11 @@ CONSECUTIVE_FAILURE_PAUSE_SECONDS = 600
 
 
 class _ConsecutiveFailurePauser:
-    def __init__(self) -> None:
+    def __init__(self, pause_seconds: float | None = None) -> None:
         self.count = 0
+        self.pause_seconds = (
+            CONSECUTIVE_FAILURE_PAUSE_SECONDS if pause_seconds is None else pause_seconds
+        )
 
     def record_success(self) -> None:
         self.count = 0
@@ -63,9 +67,9 @@ class _ConsecutiveFailurePauser:
         logger.warning(
             "%s，暂停 %d 秒后继续",
             reason,
-            CONSECUTIVE_FAILURE_PAUSE_SECONDS,
+            self.pause_seconds,
         )
-        time.sleep(CONSECUTIVE_FAILURE_PAUSE_SECONDS)
+        time.sleep(self.pause_seconds)
         self.count = 0
 
 
@@ -90,6 +94,11 @@ def process_catalog(
     summary_limit: int | None = None,
     summary_workers: int = 1,
     simple_llm: JSONLLM | None = None,
+    source_keys: list[str] | None = None,
+    work_selection: set[tuple[int, int, str]] | None = None,
+    source_cache: dict[str, LoadedSource] | None = None,
+    on_progress: Callable[[int, int, str], None] | None = None,
+    failure_pause_seconds: float | None = None,
 ) -> dict[str, Any]:
     if chunk_workers < 1:
         raise ValueError("chunk_workers 必须至少为 1")
@@ -97,22 +106,46 @@ def process_catalog(
         raise ValueError("max_entities 和 max_claims 必须至少为 1")
     fast_llm = simple_llm or llm
     specs = sources.load_catalog(catalog_path)
+    if source_keys:
+        missing = set(source_keys) - {spec.key for spec in specs}
+        if missing:
+            raise ValueError(f"未知 source key: {sorted(missing)}")
+        specs = [spec for spec in specs if spec.key in source_keys]
     if source_limit is not None:
         specs = specs[: max(0, source_limit)]
     completed: list[dict[str, Any]] = []
     failures: list[dict[str, Any]] = []
-    remaining_chunks = max_chunks
+    selection = work_selection if work_selection is not None else set()
+    selected_source_ids: set[int] = set()
     for spec in specs:
-        if remaining_chunks is not None and remaining_chunks <= 0:
-            break
+        if max_chunks is not None and len(selection) >= max_chunks:
+            admitted_ids = {item[0] for item in selection}
+            existing_ids = {
+                int(row[0]) for row in conn.execute(
+                    "SELECT id FROM sources WHERE source_key=?", (spec.key,)
+                )
+            }
+            if not admitted_ids.intersection(existing_ids):
+                continue
         try:
-            loaded = sources.load_source(spec)
+            if source_cache is not None and spec.key in source_cache:
+                loaded = source_cache[spec.key]
+            else:
+                loaded = sources.load_source(spec)
+                if source_cache is not None:
+                    source_cache[spec.key] = loaded
             source_id, is_new_version = store.add_source(conn, loaded)
+            selected_source_ids.add(source_id)
             chunks = sources.chunk_text(
                 loaded.content,
                 max_chars=chunk_chars,
                 overlap_chars=overlap_chars,
+                **({"headings": spec.headings} if spec.headings is not None else {}),
             )
+            if not chunks:
+                raise ValueError(f"语料没有可处理的 Chunk: {spec.name}")
+            if spec.expected_chunks is not None and len(chunks) != spec.expected_chunks:
+                raise ValueError(f"Chunk 数量 {len(chunks)} 与 expected_chunks={spec.expected_chunks} 不符")
             all_passages = {
                 passage.passage_id: passage
                 for chunk in chunks
@@ -135,6 +168,10 @@ def process_catalog(
                     limit=summary_limit,
                     workers=summary_workers,
                 )
+                if summary_result["failed"]:
+                    raise RuntimeError(
+                        f"Section 摘要失败 {summary_result['failed']} 个；补跑成功后再抽取"
+                    )
             source_result = {
                 "source": spec.name,
                 "source_id": source_id,
@@ -151,34 +188,36 @@ def process_catalog(
                 "entity_cap_hit_chunks": [],
                 "rejected": [],
                 "section_summaries": summary_result,
+                "expected_chunks": len(chunks),
+                "source_key": spec.key,
+                "content_sha256": loaded.content_hash,
             }
             work_items: list[tuple[TextChunk, str]] = []
+            current_hashes = {}
             for chunk in chunks:
+                section_id = structure.section_id_for_passages(
+                    conn, source_id, (item.passage_id for item in chunk.passages),
+                )
+                context = structure.context_for_section(conn, section_id)
+                current_hashes[chunk.index] = _processing_hash(
+                    chunk.content_hash, model=_model_name(llm),
+                    simple_model=_model_name(fast_llm), max_entities=max_entities,
+                    max_claims=max_claims, section_context=context,
+                )
                 if chunk.index < max(0, start_chunk):
                     source_result["before_start_chunks"] += 1
                     continue
-                if remaining_chunks is not None and remaining_chunks <= 0:
-                    break
-                processing_hash = _processing_hash(
-                    chunk.content_hash,
-                    model=_model_name(llm),
-                    simple_model=_model_name(fast_llm),
-                    max_entities=max_entities,
-                    max_claims=max_claims,
-                )
+                processing_hash = current_hashes[chunk.index]
                 if store.progress_done(
                     conn, source_id, chunk.index, processing_hash
                 ):
                     source_result["skipped_chunks"] += 1
                     continue
-                if remaining_chunks is not None:
-                    remaining_chunks -= 1
-                section_id = structure.section_id_for_passages(
-                    conn,
-                    source_id,
-                    (item.passage_id for item in chunk.passages),
-                )
-                context = structure.context_for_section(conn, section_id)
+                task_key = (source_id, chunk.index, processing_hash)
+                if task_key not in selection:
+                    if max_chunks is not None and len(selection) >= max_chunks:
+                        continue
+                    selection.add(task_key)
                 contextual_chunk = replace(
                     chunk,
                     location=(
@@ -187,7 +226,7 @@ def process_catalog(
                 )
                 work_items.append((contextual_chunk, processing_hash))
 
-            failure_pauser = _ConsecutiveFailurePauser()
+            failure_pauser = _ConsecutiveFailurePauser(failure_pause_seconds)
             for chunk, processing_hash, batch, extraction_error in (
                 _extract_chunks_ordered(
                     llm,
@@ -223,6 +262,8 @@ def process_catalog(
                         result=result.as_dict(),
                     )
                     failure_pauser.record_success()
+                    if on_progress:
+                        on_progress(source_id, chunk.index, "done")
                     source_result["processed_chunks"] += 1
                     for key in (
                         "entities",
@@ -252,11 +293,17 @@ def process_catalog(
                         "error": str(exc),
                     }
                     failures.append(failure)
+                    if on_progress:
+                        on_progress(source_id, chunk.index, "failed")
                     if stop_on_error:
                         raise
                     failure_pauser.record_failure(
                         immediate=is_quota_exhausted(exc)
                     )
+            source_result["done_chunks"] = sum(
+                store.progress_done(conn, source_id, chunk.index, current_hashes[chunk.index])
+                for chunk in chunks
+            )
             completed.append(source_result)
         except Exception as exc:
             failures.append({"source": spec.name, "error": str(exc)})
@@ -269,8 +316,15 @@ def process_catalog(
         "remaining": 0,
     }
     if synthesize_definitions:
+        entity_ids = sorted({
+            int(row[0]) for source_id in selected_source_ids
+            for row in conn.execute(
+                "SELECT DISTINCT entity_id FROM entity_observations "
+                "WHERE source_id=? AND entity_id IS NOT NULL", (source_id,)
+            )
+        })
         definition_synthesis = definitions.synthesize_pending(
-            conn, llm, limit=definition_limit
+            conn, llm, entity_ids=entity_ids, limit=definition_limit
         )
         definition_failures = [
             {"stage": "definition_synthesis", **item}
@@ -589,6 +643,7 @@ def _processing_hash(
     simple_model: str,
     max_entities: int,
     max_claims: int,
+    section_context: str = "",
 ) -> str:
     config = {
         "chunk_hash": chunk_hash,
@@ -606,6 +661,8 @@ def _processing_hash(
         "max_entities": max_entities,
         "max_claims": max_claims,
     }
+    if section_context:
+        config["section_context"] = section_context
     return hashlib.sha256(
         json.dumps(config, sort_keys=True).encode("utf-8")
     ).hexdigest()

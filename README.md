@@ -80,6 +80,94 @@ simple model: MiniMax-M3
 
 ## 运行
 
+### 统一入口：新建、增量与恢复
+
+所有语料统一使用 `kg run`（或 `python -m kg run`），不再为每本书复制运行脚本。
+目录配置描述输入；参数描述模型、预算、并发和输出位置。适用于教材、文档、课程、
+HTML、Markdown、纯文本和已有读取器支持的其他材料。
+
+首次从空库建立独立图谱：
+
+```bash
+python -m kg --db outputs/my-corpus/graph.db run examples/sources.json \
+  --fresh --max-passes 3 \
+  --summary-workers 2 --chunk-workers 2 --judge-workers 2 \
+  --llm-max-concurrency 4
+```
+
+`--fresh` 要求目标数据库不存在，绝不删除或覆盖已有库。恢复时使用同一数据库和
+同一目录配置，去掉 `--fresh`，其余参数保持一致。要增量加入新材料，则对已有数据库
+传入新的目录配置。默认不会复制 D2L 或任何种子数据库。
+
+常用参数：
+
+- `--source-key KEY`：按目录中的 key 选材料，可重复指定；无需依赖排列顺序。
+- `--complex-model`、`--simple-model`、`--base-url`：覆盖环境变量中的模型配置；
+  API key 仍只从环境变量读取，不能放入命令参数或目录文件。
+- `--max-passes 3`：一次调用最多三轮；仅有失败时补跑，成功块按当前处理指纹跳过。
+- `--request-retries 3`、`--request-timeout 600`：单次 API 请求的重试次数和超时秒数。
+- `--retry-delay 10`：补跑轮次之间的等待；`--failure-pause-seconds 600`：
+  连续失败或额度耗尽后的等待。额度耗尽仍需恢复额度，脚本不会自动解决账户问题。
+- `--run-dir PATH`：运行记录根目录，默认是数据库旁的 `<数据库文件名>.runs/`。
+  每次调用创建独立子目录，保留历史记录；恢复依赖数据库，不依赖运行目录名称。
+- 原有 `--max-chunks`、`--start-chunk`、摘要/定义限量及跳过参数继续可用。
+  `--max-chunks` 限制整个调用选中的不同块，补跑不会额外扩张这个预算；
+  `--summary-limit` 是每轮每个来源的限额，`--definition-limit` 是每轮限额。
+  定义聚合只选择本次处理来源关联的实体，但仍使用该实体的全部观察。
+
+每次调用保存 `manifest.json`、`status.json`、`run.log`、`pass-N.json`、
+`final-check.json`、`summary.json` 和 `.exit`。只有完整成功才生成 `.finished`。
+`manifest.json` 记录目录哈希、参数和实际模型，结果记录来源文本哈希和预期/完成块数。
+
+退出码：`0` 完整完成；`1` 补跑后仍失败或完整性检查失败；`2` 配置/启动异常；
+`3` 按限量、起始偏移或跳过阶段运行的部分结果。设置限量即保守标为 `partial`，
+即使本轮碰巧处理完，也不宣称全流程完成；去掉限量再运行可验收并复用已完成结果。
+Section 摘要失败会阻止该材料进入抽取，补跑摘要成功后继续。最终还检查当前处理指纹
+对应的完成数量、定义剩余任务、项目完整性及 SQLite `quick_check`。
+
+同一数据库的统一入口通过旁路文件锁排斥第二个运行进程；旧专用脚本和其他直接写库
+命令不受这个锁约束，因此不要同时运行。进程中断后重新执行命令即可恢复，
+这不是进程自动重启服务。强制断电或 SIGKILL 可能留下旧 `running` 状态；
+不要将状态文件或进程存在当作完成证据。
+
+### 配置输入与可选目录标注
+
+目录中的路径相对于目录文件解析。普通材料只需：
+
+```json
+{
+  "sources": [
+    {"key": "my-document", "name": "我的材料", "type": "document",
+     "path": "document.md", "language": "zh"}
+  ]
+}
+```
+
+对已经校核过目录结构的 PDF 转换文本，可额外配置 `headings_path`、
+`content_sha256` 和 `expected_chunks`，无需修改 Python：
+
+```json
+{
+  "sources": [
+    {"key": "prepared-document", "name": "已校核材料", "type": "document",
+     "path": "prepared.txt", "headings_path": "headings.json",
+     "expected_chunks": 324}
+  ]
+}
+```
+
+这里的 324 只是示例，应换成该材料在当前切块参数下核对的数量，也可以省略。
+`headings.json` 是 `[{"marker": "原文中的标题", "level": 1, "title": "目录标题"}]`。
+配置后仅这些精确匹配的标记作为标题；未配置时使用通用标题识别。
+文本中的 `\f` 分页符（包括开头的分页符）会保留，用于物理页码定位。
+可选 `content_sha256` 校验读取后的正文：移除 NUL，裁去首尾空格、制表符和换行，
+保留分页符。哈希或预期块数不一致会报错，不带着不匹配输入继续抽取。
+
+PDF 自动识别仍需抽查目录、公式和页码；统一入口不会把任意 PDF 的自动解析视为
+已经人工校核。历史实验目录及其冻结代码保留原样，新任务统一走上述入口。
+由于当前指纹加入了实际章节上下文，旧库中带章节上下文的块首次经新入口运行时可能
+重新处理；更换模型、提示词或切块配置也可能触发重新处理。
+
 初始化并查看状态：
 
 ```bash

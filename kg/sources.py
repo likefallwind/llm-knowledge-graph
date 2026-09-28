@@ -43,6 +43,14 @@ def load_catalog(path: str | Path) -> list[SourceSpec]:
             raise ValueError(
                 f"sources[{index}] 需要 name、type，以及 path 或 uri"
             )
+        expected_chunks = raw.get("expected_chunks")
+        if expected_chunks is not None and (
+            type(expected_chunks) is not int or expected_chunks < 1
+        ):
+            raise ValueError("expected_chunks 必须是正整数")
+        content_sha256 = str(raw.get("content_sha256", ""))
+        if content_sha256 and not re.fullmatch(r"[0-9a-f]{64}", content_sha256):
+            raise ValueError("content_sha256 必须是 64 位小写十六进制 SHA256")
         specs.append(
             SourceSpec(
                 key=key,
@@ -52,9 +60,37 @@ def load_catalog(path: str | Path) -> list[SourceSpec]:
                 path=resolved_path,
                 version=str(raw.get("version", "")).strip(),
                 language=str(raw.get("language", "")).strip(),
+                headings=_load_headings(raw.get("headings_path"), catalog_path.parent),
+                content_sha256=content_sha256,
+                expected_chunks=expected_chunks,
             )
         )
+    if not specs:
+        raise ValueError("语料目录不能为空")
+    if len({spec.key for spec in specs}) != len(specs):
+        raise ValueError("语料目录的 key 不能重复")
     return specs
+
+
+def _load_headings(value: object, base: Path) -> dict[str, tuple[int, str]] | None:
+    if value is None:
+        return None
+    rows = json.loads((base / str(value)).read_text(encoding="utf-8"))
+    if not isinstance(rows, list):
+        raise ValueError("目录标注必须是 JSON 数组")
+    result = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            raise ValueError("目录标注项必须是对象")
+        marker, level, title = row.get("marker"), row.get("level"), row.get("title")
+        if (type(level) is not int or not 1 <= level <= 6
+                or not isinstance(marker, str) or not marker.strip()
+                or not isinstance(title, str) or not title.strip()):
+            raise ValueError("目录标注需要非空 marker/title 和 1..6 的 level")
+        if marker in result:
+            raise ValueError(f"重复目录标记: {marker}")
+        result[marker] = (level, title)
+    return result
 
 
 def _load_mapping(path: Path) -> dict[str, Any]:
@@ -92,10 +128,12 @@ def load_source(spec: SourceSpec, *, timeout: float = 60.0) -> LoadedSource:
         else:
             text = raw.decode(charset, errors="replace")
             content = _html_to_text(text) if content_type == "text/html" else text
-    content = content.replace("\x00", "").strip()
-    if not content:
+    content = content.replace("\x00", "").strip(" \t\r\n")
+    if not content.strip():
         raise ValueError(f"语料为空: {spec.name}")
     digest = hashlib.sha256(content.encode("utf-8")).hexdigest()
+    if spec.content_sha256 and digest != spec.content_sha256:
+        raise ValueError(f"语料 SHA256 与配置不符: {spec.name}")
     return LoadedSource(
         spec=spec,
         content=content,
@@ -219,12 +257,13 @@ def chunk_text(
     max_chars: int = 8000,
     overlap_chars: int = 500,
     max_passage_chars: int = 1200,
+    headings: dict[str, tuple[int, str]] | None = None,
 ) -> list[TextChunk]:
     if max_chars < 200:
         raise ValueError("max_chars 至少为 200")
     if overlap_chars < 0 or overlap_chars >= max_chars:
         raise ValueError("overlap_chars 必须满足 0 <= overlap < max_chars")
-    passages = segment_text(text, max_chars=max_passage_chars)
+    passages = segment_text(text, max_chars=max_passage_chars, headings=headings)
     chunks: list[TextChunk] = []
     groups: list[list[SourcePassage]] = []
     for passage in passages:
@@ -298,7 +337,10 @@ def _append_section_chunks(
         start_index = next_index if next_index < end_index else end_index
 
 
-def segment_text(text: str, *, max_chars: int = 1200) -> list[SourcePassage]:
+def segment_text(
+    text: str, *, max_chars: int = 1200,
+    headings: dict[str, tuple[int, str]] | None = None,
+) -> list[SourcePassage]:
     """Split immutable Source text into stable, prompt-addressable passages."""
     if max_chars < 200:
         raise ValueError("max_passage_chars 至少为 200")
@@ -320,7 +362,9 @@ def segment_text(text: str, *, max_chars: int = 1200) -> list[SourcePassage]:
         if passage_start >= passage_end:
             continue
         passage_text = text[passage_start:passage_end]
-        heading = _heading(passage_text)
+        heading = (
+            _heading(passage_text) if headings is None else headings.get(passage_text.strip())
+        )
         if heading is not None:
             level, title = heading
             section_stack[level - 1 :] = [title]

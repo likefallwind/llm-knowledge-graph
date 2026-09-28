@@ -221,6 +221,8 @@ def _candidate_entity_ids(
     min_observations: int,
 ) -> list[int]:
     requested = sorted({int(item) for item in entity_ids or ()})
+    if entity_ids is not None and not requested:
+        return []
     where = ""
     params: list[Any] = []
     if requested:

@@ -27,6 +27,9 @@ class SourceSpec:
     path: Path | None = None
     version: str = ""
     language: str = ""
+    headings: dict[str, tuple[int, str]] | None = None
+    content_sha256: str = ""
+    expected_chunks: int | None = None
 
 
 @dataclass(frozen=True)

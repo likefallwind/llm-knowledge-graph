@@ -69,6 +69,16 @@ class DefinitionSynthesisTest(unittest.TestCase):
         self.conn.commit()
         return entity_id, ids
 
+    def test_explicit_empty_selection_leaves_pending_entities_untouched(self):
+        entity_id, _ = self._entity_with_two_observations()
+        previous = store.get_entity(self.conn, entity_id)["definition"]
+        client = FakeLLM()
+        result = definitions.synthesize_pending(self.conn, client, entity_ids=[])
+        self.assertEqual(result["processed"], [])
+        self.assertEqual(result["failures"], [])
+        self.assertEqual(client.calls, [])
+        self.assertEqual(store.get_entity(self.conn, entity_id)["definition"], previous)
+
     def test_prompt_uses_general_knowledge_without_losing_source_boundary(self):
         prompt = definitions.SYSTEM_PROMPT + definitions.USER_PROMPT
 

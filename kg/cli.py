@@ -14,6 +14,7 @@ from . import (
     observations,
     pipeline,
     resolution,
+    runner,
     store,
     viz,
 )
@@ -48,6 +49,17 @@ def _parser() -> argparse.ArgumentParser:
 
     run = sub.add_parser("run", help="批量读取目录并运行核心闭环")
     run.add_argument("catalog", help="JSON/YAML 人工维护语料目录")
+    run.add_argument("--source-key", action="append", help="只处理指定 key；可重复指定")
+    run.add_argument("--fresh", action="store_true", help="要求目标数据库不存在，确保从空库启动")
+    run.add_argument("--run-dir", help="运行记录根目录；每次调用创建独立子目录")
+    run.add_argument("--max-passes", type=int, default=3, help="失败补跑总轮数（默认 3）")
+    run.add_argument("--retry-delay", type=float, default=10, help="补跑轮次间隔秒数")
+    run.add_argument("--failure-pause-seconds", type=float, default=600, help="连续失败或额度耗尽后的暂停秒数")
+    run.add_argument("--complex-model", help="覆盖复杂模型名称")
+    run.add_argument("--simple-model", help="覆盖简单模型名称")
+    run.add_argument("--base-url", help="覆盖兼容模型服务地址")
+    run.add_argument("--request-timeout", type=float, default=600)
+    run.add_argument("--request-retries", type=int, default=3)
     run.add_argument("--source-limit", type=int)
     run.add_argument(
         "--start-chunk",
@@ -63,7 +75,7 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument(
         "--summary-limit",
         type=int,
-        help="本次最多生成多少个 Section 摘要；默认不限",
+        help="每轮每个来源最多生成多少个 Section 摘要；默认不限",
     )
     run.add_argument(
         "--summary-workers",
@@ -106,7 +118,7 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument(
         "--definition-limit",
         type=int,
-        help="本次最多聚合多少个待更新 Entity；默认不限",
+        help="每轮最多聚合多少个待更新 Entity；默认不限",
     )
 
     synthesize = sub.add_parser(
@@ -219,6 +231,10 @@ def _status(conn) -> dict:
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
+        if args.command == "run":
+            result, code = runner.run(args)
+            _json(result)
+            return code
         conn = db.connect(args.db)
         if args.command == "init":
             _json({"database": str(Path(args.db)), "counts": store.counts(conn)})
@@ -257,30 +273,6 @@ def main(argv: list[str] | None = None) -> int:
         simple_llm = MiniMaxM3LLM(
             LLMConfig.from_env(role="simple"), limiter=limiter
         )
-        if args.command == "run":
-            result = pipeline.process_catalog(
-                conn,
-                llm,
-                args.catalog,
-                source_limit=args.source_limit,
-                start_chunk=args.start_chunk,
-                max_chunks=args.max_chunks,
-                chunk_chars=args.chunk_chars,
-                overlap_chars=args.overlap_chars,
-                max_entities=args.max_entities,
-                max_claims=args.max_claims,
-                chunk_workers=args.chunk_workers,
-                judge_workers=args.judge_workers,
-                stop_on_error=args.stop_on_error,
-                synthesize_definitions=not args.skip_definition_synthesis,
-                definition_limit=args.definition_limit,
-                summarize_sections=not args.skip_section_summaries,
-                summary_limit=args.summary_limit,
-                summary_workers=args.summary_workers,
-                simple_llm=simple_llm,
-            )
-            _json(result)
-            return 1 if result["failures"] else 0
         if args.command == "synthesize-definitions":
             result = definitions.synthesize_pending(
                 conn,
