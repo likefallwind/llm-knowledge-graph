@@ -60,6 +60,8 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--base-url", help="覆盖兼容模型服务地址")
     run.add_argument("--request-timeout", type=float, default=600)
     run.add_argument("--request-retries", type=int, default=3)
+    run.add_argument("--relation-workers", type=int, default=1,
+                     help="同一块内关系归一请求并发数；按原顺序处理结果（默认 1）")
     run.add_argument("--source-limit", type=int)
     run.add_argument(
         "--start-chunk",

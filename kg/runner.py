@@ -43,7 +43,7 @@ def database_lock(path: Path):
 
 def run(args):
     """Return (report, exit code): 0 complete, 1 failed, 3 partial."""
-    for name in ('max_passes', 'summary_workers', 'chunk_workers', 'judge_workers',
+    for name in ('max_passes', 'summary_workers', 'chunk_workers', 'judge_workers', 'relation_workers',
                  'llm_max_concurrency', 'max_entities', 'max_claims'):
         if getattr(args, name) < 1:
             raise ValueError(f'{name} 必须至少为 1')
@@ -101,6 +101,7 @@ def run(args):
             options = {name: getattr(args, name) for name in (
                 'source_limit', 'start_chunk', 'max_chunks', 'chunk_chars', 'overlap_chars',
                 'max_entities', 'max_claims', 'chunk_workers', 'judge_workers',
+                'relation_workers',
                 'stop_on_error', 'definition_limit', 'summary_limit', 'summary_workers',
                 'failure_pause_seconds',
             )}

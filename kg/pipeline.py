@@ -87,6 +87,7 @@ def process_catalog(
     max_claims: int = 30,
     chunk_workers: int = 1,
     judge_workers: int = 1,
+    relation_workers: int = 1,
     stop_on_error: bool = False,
     synthesize_definitions: bool = False,
     definition_limit: int | None = None,
@@ -100,8 +101,8 @@ def process_catalog(
     on_progress: Callable[[int, int, str], None] | None = None,
     failure_pause_seconds: float | None = None,
 ) -> dict[str, Any]:
-    if chunk_workers < 1:
-        raise ValueError("chunk_workers 必须至少为 1")
+    if chunk_workers < 1 or relation_workers < 1:
+        raise ValueError("chunk_workers 和 relation_workers 必须至少为 1")
     if max_entities < 1 or max_claims < 1:
         raise ValueError("max_entities 和 max_claims 必须至少为 1")
     fast_llm = simple_llm or llm
@@ -250,6 +251,7 @@ def process_catalog(
                         max_entities=max_entities,
                         max_claims=max_claims,
                         judge_workers=judge_workers,
+                        relation_workers=relation_workers,
                         batch=batch,
                         simple_llm=fast_llm,
                     )
@@ -352,6 +354,7 @@ def process_chunk(
     max_entities: int = 50,
     max_claims: int = 30,
     judge_workers: int = 1,
+    relation_workers: int = 1,
     batch: ExtractionBatch | None = None,
     simple_llm: JSONLLM | None = None,
 ) -> ChunkResult:
@@ -450,12 +453,16 @@ def process_chunk(
     # Normalize relations only after endpoint resolution so the normalizer sees
     # the final canonical endpoint names together with the complete Assertion.
     relation_results: dict[int, tuple[ClaimObservation, vocabulary.RelationResolution]] = {}
+    relation_inputs = []
     for observation_id in observation_ids:
         row = observations.get_observation(conn, observation_id)
         if row is None:
             continue
         claim = observations.as_claim(conn, row)
-        relation_result = vocabulary.resolve_relation(conn, fast_llm, claim)
+        relation_inputs.append((observation_id, claim))
+    for observation_id, claim, relation_result in _normalize_relations_ordered(
+        conn, fast_llm, relation_inputs, workers=relation_workers,
+    ):
         relation_results[observation_id] = (claim, relation_result)
         conn.execute(
             """UPDATE claim_observations
@@ -550,6 +557,51 @@ def process_chunk(
     observations.resolve_and_materialize_cached(conn)
     conn.commit()
     return result
+
+
+def _normalize_relations_ordered(
+    conn: sqlite3.Connection,
+    llm: JSONLLM,
+    items: list[tuple[int, ClaimObservation]],
+    *,
+    workers: int,
+) -> Iterator[tuple[int, ClaimObservation, vocabulary.RelationResolution]]:
+    """Parallelize requests only; preserve observation order and stage boundaries."""
+    if workers < 1:
+        raise ValueError("relation_workers 必须至少为 1")
+    if workers == 1 or len(items) < 2:
+        for observation_id, claim in items:
+            yield observation_id, claim, vocabulary.resolve_relation(conn, llm, claim)
+        return
+
+    # No RelationType/alias/Claim is finalized during this stage. Each request
+    # sees exactly the candidates it would see in the serial loop, including
+    # raw-name-specific exact matches. The SQLite connection stays here.
+    jobs = [
+        (observation_id, claim, vocabulary._relation_candidates(
+            conn, claim.raw_relation or claim.relation,
+        )) for observation_id, claim in items
+    ]
+
+    def run(job):
+        observation_id, claim, candidates = job
+        started = time.monotonic()
+        logger.info("Relation normalization request started observation=%s", observation_id)
+        try:
+            result = vocabulary.resolve_relation_with_candidates(llm, claim, candidates)
+            return observation_id, claim, result
+        finally:
+            logger.info("Relation normalization request ended observation=%s seconds=%.3f",
+                        observation_id, time.monotonic() - started)
+
+    logger.info("Relation normalization batch size=%s workers=%s", len(jobs), workers)
+    executor = ThreadPoolExecutor(max_workers=workers)
+    try:
+        # map raises the first error in INPUT order, not completion order.
+        # Writes and all subsequent judging/finalization remain in the caller.
+        yield from executor.map(run, jobs)
+    finally:
+        executor.shutdown(wait=True, cancel_futures=True)
 
 
 def _extract_chunks_ordered(

@@ -73,8 +73,15 @@ def _relation_candidates(conn: sqlite3.Connection, name: str) -> list[dict]:
 def resolve_relation(
     conn: sqlite3.Connection, llm: JSONLLM, claim: ClaimObservation
 ) -> RelationResolution:
+    candidates = _relation_candidates(conn, claim.raw_relation or claim.relation)
+    return resolve_relation_with_candidates(llm, claim, candidates)
+
+
+def resolve_relation_with_candidates(
+    llm: JSONLLM, claim: ClaimObservation, candidates: list[dict],
+) -> RelationResolution:
+    """Pure model judgment over a main-thread snapshot; no database access."""
     raw = claim.raw_relation or claim.relation
-    candidates = _relation_candidates(conn, raw)
     payload = llm.complete_json(
         SYSTEM,
         """归一开放关系谓词。候选是图中已有证据支撑的开放关系，以及名称精确命中的
@@ -129,7 +136,7 @@ decision 只判断当前 observation 是否能映射到候选关系。register_a
         except (TypeError, ValueError):
             selected = -1
         if selected in candidate_ids:
-            row = conn.execute("SELECT * FROM relation_types WHERE id=?", (selected,)).fetchone()
+            row = next(item for item in candidates if int(item["id"]) == selected)
             return RelationResolution(
                 selected, str(row["canonical_name"]), str(row["relation_kind"]),
                 "same", reason, register_alias, candidate_ids,

@@ -105,6 +105,9 @@ python -m kg --db outputs/my-corpus/graph.db run examples/sources.json \
 - `--complex-model`、`--simple-model`、`--base-url`：覆盖环境变量中的模型配置；
   API key 仍只从环境变量读取，不能放入命令参数或目录文件。
 - `--max-passes 3`：一次调用最多三轮；仅有失败时补跑，成功块按当前处理指纹跳过。
+- `--relation-workers 6`：同一块内关系归一请求并行；默认 1 保持串行。与其他阶段
+  共用 `--llm-max-concurrency`，结果仍按原始顺序处理，SQLite 仍只在主线程读写。
+  此参数不改变处理指纹，恢复时可调整，不使已完成块失效。
 - `--request-retries 3`、`--request-timeout 600`：单次 API 请求的重试次数和超时秒数。
 - `--retry-delay 10`：补跑轮次之间的等待；`--failure-pause-seconds 600`：
   连续失败或额度耗尽后的等待。额度耗尽仍需恢复额度，脚本不会自动解决账户问题。
