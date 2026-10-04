@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest import mock
 
 from kg import cli, db, runner, sources
-from kg.llm import LLMConfig
+from kg.llm import LLMConfig, LLMResponseError
 from tests.helpers import FakeLLM
 
 
@@ -74,6 +74,24 @@ class RunnerTest(unittest.TestCase):
         self.assertEqual(len(client.calls), 3)
         self.assertTrue((Path(report['run_dir']) / 'pass-2.json').exists())
         self.assertFalse((Path(report['run_dir']) / '.finished').exists())
+
+    def test_unresolved_api_failure_stops_pipeline_before_later_work(self):
+        class QuotaFailure(FakeLLM):
+            def complete_json(self, *args, **kwargs):
+                self.calls.append(('quota', ''))
+                raise LLMResponseError({'status_code': 2067})
+
+        client = QuotaFailure({'entities': [], 'claims': []})
+        with self.assertRaises(LLMResponseError):
+            self.execute(
+                client,
+                '--max-passes', '1',
+                '--api-retry-delay', '0',
+                '--skip-section-summaries',
+            )
+        histories = list((self.root / 'graph.db.runs').glob('*'))
+        self.assertEqual(len(histories), 1)
+        self.assertFalse((histories[0] / '.finished').exists())
 
     def test_summary_failure_blocks_extraction_until_retry_succeeds(self):
         client = FakeLLM({'entities': [], 'claims': []})

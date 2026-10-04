@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import threading
@@ -12,6 +13,9 @@ from dataclasses import dataclass
 from typing import Any, Callable, Iterator, Protocol
 
 import json_repair
+
+
+logger = logging.getLogger(__name__)
 
 
 DEFAULT_MINIMAX_BASE_URL = "https://api.minimaxi.com/v1"
@@ -27,8 +31,8 @@ DEFAULT_MINIMAX_MODEL = DEFAULT_COMPLEX_MODEL
 TERMINAL_RESPONSE_STATUS = frozenset({1004, 1008, 2013, 2049, 2067})
 
 # 额度耗尽是"预算花完"，不是瞬时故障：这里的秒级退避怎么等都不会恢复，
-# 额度要么被人工补充，要么等计费周期重置。所以本层直接放弃，
-# 由 pipeline 做分钟级长暂停后再继续下一个 Chunk。
+# 额度要么被人工补充，要么等计费周期重置。因此 transport 层在短重试用尽后
+# 使用分钟级退避；请求成功前不会把缺少结果的工作交给 pipeline。
 #   1008 账户余额不足
 #   2067 Token Plan 用量上限
 QUOTA_EXHAUSTED_STATUS = frozenset({1008, 2067})
@@ -47,6 +51,10 @@ class LLMResponseError(RuntimeError):
     @property
     def retryable(self) -> bool:
         return self.status_code not in TERMINAL_RESPONSE_STATUS
+
+
+class APIRetryExhaustedError(RuntimeError):
+    """A bounded transport retry budget ended before the request succeeded."""
 
 
 class JSONLLM(Protocol):
@@ -85,6 +93,8 @@ class LLMConfig:
     model: str
     timeout: float = 600.0
     retries: int = 3
+    api_retry_delay: float = 600.0
+    max_api_retries: int = 0
 
     @property
     def endpoint(self) -> str:
@@ -177,31 +187,60 @@ class ChatCompletionsJSONLLM:
         raise AssertionError("unreachable")
 
     def _send(self, request: urllib.request.Request) -> dict[str, Any]:
-        for attempt in range(self.config.retries + 1):
-            try:
-                with self.limiter.slot():
-                    with urllib.request.urlopen(
-                        request, timeout=self.config.timeout
-                    ) as response:
-                        data = json.loads(response.read().decode("utf-8"))
-                _validate_response(data)
-                return data
-            except LLMResponseError as exc:
-                if not exc.retryable or attempt >= self.config.retries:
-                    raise
-            except urllib.error.HTTPError as exc:
-                retryable = exc.code == 429 or exc.code >= 500
-                if not retryable or attempt >= self.config.retries:
-                    detail = exc.read().decode("utf-8", errors="replace")[:1000]
-                    raise RuntimeError(
-                        f"LLM HTTP {exc.code}: {detail}"
-                    ) from exc
-            except (urllib.error.URLError, TimeoutError) as exc:
-                if attempt >= self.config.retries:
-                    reason = getattr(exc, "reason", str(exc))
-                    raise RuntimeError(f"LLM 连接失败: {reason}") from exc
-            time.sleep(min(2**attempt, 8))
-        raise AssertionError("unreachable")
+        api_retry_count = 0
+        while True:
+            last_api_error: BaseException | None = None
+            for attempt in range(self.config.retries + 1):
+                try:
+                    with self.limiter.slot():
+                        with urllib.request.urlopen(
+                            request, timeout=self.config.timeout
+                        ) as response:
+                            data = json.loads(response.read().decode("utf-8"))
+                    _validate_response(data)
+                    return data
+                except LLMResponseError as exc:
+                    if not is_retryable_api_error(exc):
+                        raise
+                    last_api_error = exc
+                    if is_quota_exhausted(exc):
+                        break
+                except urllib.error.HTTPError as exc:
+                    if not is_retryable_api_error(exc):
+                        detail = exc.read().decode("utf-8", errors="replace")[:1000]
+                        raise RuntimeError(
+                            f"LLM HTTP {exc.code}: {detail}"
+                        ) from exc
+                    last_api_error = exc
+                except (urllib.error.URLError, TimeoutError) as exc:
+                    last_api_error = exc
+                if attempt < self.config.retries:
+                    time.sleep(min(2**attempt, 8))
+
+            # The short request retries above handle a single transient blip.
+            # A provider outage or exhausted quota gets a longer cooldown and
+            # the exact same request is retried before the pipeline can advance.
+            if last_api_error is None:
+                raise AssertionError("unreachable")
+            if (
+                self.config.max_api_retries > 0
+                and api_retry_count >= self.config.max_api_retries
+            ):
+                if isinstance(last_api_error, (urllib.error.URLError, TimeoutError)):
+                    reason = getattr(last_api_error, "reason", str(last_api_error))
+                    raise APIRetryExhaustedError(
+                        f"LLM 连接失败，API 重试次数已用尽: {reason}"
+                    ) from last_api_error
+                raise APIRetryExhaustedError(
+                    "API 重试次数已用尽: " + str(last_api_error)
+                ) from last_api_error
+            api_retry_count += 1
+            logger.warning(
+                "API 暂态错误，等待 %.0f 秒后重试同一请求（第 %s 次）",
+                self.config.api_retry_delay,
+                api_retry_count,
+            )
+            time.sleep(self.config.api_retry_delay)
 
 
 # Compatibility aliases for existing callers.
@@ -226,6 +265,70 @@ def is_quota_exhausted(error: BaseException | None) -> bool:
         ):
             return True
         error = error.__cause__ or error.__context__
+    return False
+
+
+def is_retryable_api_error(error: BaseException | None) -> bool:
+    """Return whether an error represents a transient provider/API outage.
+
+    This is orchestration policy only. It deliberately excludes malformed JSON,
+    invalid evidence, unresolved endpoints, and semantic verdicts: those are
+    handled as bounded task failures rather than retried forever.
+    """
+
+    # Walk typed exception links only.  Matching a message here would make a
+    # semantic/validation error containing words such as ``quota`` or
+    # ``timeout`` look like a transport outage and could cause an infinite
+    # retry loop.
+    pending: list[BaseException] = [error] if isinstance(error, BaseException) else []
+    seen: set[int] = set()
+    while pending:
+        current = pending.pop()
+        if id(current) in seen:
+            continue
+        seen.add(id(current))
+
+        if isinstance(current, LLMResponseError):
+            # These are the provider status codes observed in this pipeline:
+            # 1008/2067 quota exhaustion and 2062 rate limiting.  Keep this
+            # allow-list explicit; unknown provider codes must not be guessed.
+            if current.status_code in {1008, 2062, 2067}:
+                return True
+        elif isinstance(current, urllib.error.HTTPError):
+            if current.code == 408 or current.code == 429 or 500 <= current.code <= 599:
+                return True
+        elif isinstance(current, (urllib.error.URLError, TimeoutError, ConnectionError)):
+            return True
+
+        if current.__cause__ is not None:
+            pending.append(current.__cause__)
+        if current.__context__ is not None:
+            pending.append(current.__context__)
+    return False
+
+
+def is_unresolved_api_error(error: BaseException | None) -> bool:
+    """Return whether a bounded API failure must abort the current pipeline stage.
+
+    Plain ``TimeoutError`` or ``RuntimeError`` values from a test/different
+    JSONLLM implementation remain ordinary bounded task failures.  The
+    provider response type and the explicit transport exhaustion marker are
+    the evidence that the pipeline must not continue with partial context.
+    """
+
+    pending: list[BaseException] = [error] if isinstance(error, BaseException) else []
+    seen: set[int] = set()
+    while pending:
+        current = pending.pop()
+        if id(current) in seen:
+            continue
+        seen.add(id(current))
+        if isinstance(current, (LLMResponseError, APIRetryExhaustedError)):
+            return True
+        if current.__cause__ is not None:
+            pending.append(current.__cause__)
+        if current.__context__ is not None:
+            pending.append(current.__context__)
     return False
 
 

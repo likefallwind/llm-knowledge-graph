@@ -5,7 +5,7 @@ import json
 import sqlite3
 from typing import Any, Iterable
 
-from .llm import JSONLLM
+from .llm import JSONLLM, is_unresolved_api_error
 
 
 DEFINITION_PROMPT_VERSION = "entity-definition-observations-3-knowledge-assisted"
@@ -100,6 +100,8 @@ def synthesize_pending(
             )
         except Exception as exc:
             conn.rollback()
+            if is_unresolved_api_error(exc):
+                raise
             row = conn.execute(
                 "SELECT canonical_name FROM entities WHERE id=?", (entity_id,)
             ).fetchone()

@@ -13,7 +13,11 @@ import time
 from uuid import uuid4
 
 from . import db, pipeline, sources, store
-from .llm import LLMConfig, LLMConcurrencyLimiter, MiniMaxM3LLM
+from .llm import (
+    LLMConfig,
+    LLMConcurrencyLimiter,
+    MiniMaxM3LLM,
+)
 
 
 def _now():
@@ -48,7 +52,8 @@ def run(args):
         if getattr(args, name) < 1:
             raise ValueError(f'{name} 必须至少为 1')
     for name in ('source_limit', 'max_chunks', 'summary_limit', 'definition_limit',
-                 'start_chunk', 'retry_delay', 'request_retries', 'failure_pause_seconds'):
+                 'start_chunk', 'retry_delay', 'api_retry_delay', 'request_retries',
+                 'failure_pause_seconds', 'max_api_retries'):
         value = getattr(args, name)
         if value is not None and value < 0:
             raise ValueError(f'{name} 不能为负数')
@@ -67,6 +72,8 @@ def run(args):
             config, model=getattr(args, role + '_model') or config.model,
             base_url=args.base_url or config.base_url,
             timeout=args.request_timeout, retries=args.request_retries,
+            api_retry_delay=args.api_retry_delay,
+            max_api_retries=args.max_api_retries,
         ))
     database = Path(args.db).resolve()
     run_root = Path(args.run_dir).resolve() if args.run_dir else database.parent / (database.name + '.runs')
@@ -88,8 +95,9 @@ def run(args):
                 started_at=_now(), database=str(database), catalog=str(catalog),
                 catalog_sha256=hashlib.sha256(catalog.read_bytes()).hexdigest(),
                 options=vars(args),
-                models=[dict(model=c.model, base_url=c.base_url, timeout=c.timeout,
-                             retries=c.retries) for c in configs],
+            models=[dict(model=c.model, base_url=c.base_url, timeout=c.timeout,
+                         retries=c.retries, api_retry_delay=c.api_retry_delay,
+                         max_api_retries=c.max_api_retries) for c in configs],
                 code_sha256={p.name: hashlib.sha256(p.read_bytes()).hexdigest()
                              for p in sorted(Path(__file__).parent.glob('*.py'))},
             )
@@ -129,6 +137,8 @@ def run(args):
                     break
                 if attempt < args.max_passes:
                     time.sleep(args.retry_delay)
+                    continue
+                break
             integrity = store.integrity_report(conn)
             quick_check = [row[0] for row in conn.execute('PRAGMA quick_check')]
             _save(run_dir / 'final-check.json', dict(integrity=integrity, quick_check=quick_check))

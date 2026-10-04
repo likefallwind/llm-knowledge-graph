@@ -2,13 +2,17 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import sqlite3
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Iterable
 
-from .llm import JSONLLM
+from .llm import JSONLLM, is_unresolved_api_error
 from .models import SourcePassage
+
+
+logger = logging.getLogger(__name__)
 
 
 SUMMARY_PROMPT_VERSION = "section-bottom-up-1"
@@ -166,7 +170,10 @@ def summarize_source(
     ) -> None:
         nonlocal processed, failed
         if isinstance(result, Exception):
+            if is_unresolved_api_error(result):
+                raise result
             failed += 1
+            logger.warning("Section 摘要请求失败: %s", result)
             return
         summary, cited = result
         try:
@@ -189,6 +196,7 @@ def summarize_source(
         except Exception:
             conn.rollback()
             failed += 1
+            logger.exception("Section 摘要结果写入失败")
 
     for depth in sorted(rows_by_depth, reverse=True):
         if limit is not None and processed >= limit:

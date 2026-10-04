@@ -54,7 +54,24 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--run-dir", help="运行记录根目录；每次调用创建独立子目录")
     run.add_argument("--max-passes", type=int, default=3, help="失败补跑总轮数（默认 3）")
     run.add_argument("--retry-delay", type=float, default=10, help="补跑轮次间隔秒数")
-    run.add_argument("--failure-pause-seconds", type=float, default=600, help="连续失败或额度耗尽后的暂停秒数")
+    run.add_argument(
+        "--api-retry-delay",
+        type=float,
+        default=600,
+        help="API 暂态错误重试间隔秒数（默认 600，即 10 分钟）",
+    )
+    run.add_argument(
+        "--max-api-retries",
+        type=int,
+        default=0,
+        help="API 暂态错误最大重试次数；0 表示持续重试直到恢复（默认 0）",
+    )
+    run.add_argument(
+        "--failure-pause-seconds",
+        type=float,
+        default=600,
+        help="连续普通失败后的暂停秒数；API 暂态错误使用 --api-retry-delay",
+    )
     run.add_argument("--complex-model", help="覆盖复杂模型名称")
     run.add_argument("--simple-model", help="覆盖简单模型名称")
     run.add_argument("--base-url", help="覆盖兼容模型服务地址")

@@ -22,7 +22,7 @@ from . import (
     validation,
     vocabulary,
 )
-from .llm import JSONLLM, is_quota_exhausted
+from .llm import JSONLLM, is_quota_exhausted, is_unresolved_api_error
 from .models import (
     ClaimObservation,
     ChunkResult,
@@ -281,6 +281,13 @@ def process_catalog(
                     source_result["rejected"].extend(result.rejected)
                 except Exception as exc:
                     conn.rollback()
+                    logger.warning("Chunk %s 处理失败: %s", chunk.index, exc)
+                    # An API outage must stop the stage before later chunks
+                    # make decisions with an incomplete candidate graph.  The
+                    # transport layer normally resolves this before reaching
+                    # here; this guard handles a bounded API retry budget.
+                    if stop_on_error or is_unresolved_api_error(exc):
+                        raise
                     store.save_progress(
                         conn,
                         source_id,
@@ -309,7 +316,7 @@ def process_catalog(
             completed.append(source_result)
         except Exception as exc:
             failures.append({"source": spec.name, "error": str(exc)})
-            if stop_on_error:
+            if stop_on_error or is_unresolved_api_error(exc):
                 raise
     definition_synthesis: dict[str, Any] = {
         "processed": [],

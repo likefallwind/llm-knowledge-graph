@@ -5,22 +5,55 @@ import os
 import json
 import threading
 import time
+import urllib.error
 import unittest
 from unittest import mock
 
 from kg.llm import (
+    APIRetryExhaustedError,
     DEFAULT_COMPLEX_MODEL,
     DEFAULT_MINIMAX_BASE_URL,
     DEFAULT_MINIMAX_MODEL,
     DEFAULT_SIMPLE_MODEL,
     LLMConcurrencyLimiter,
     LLMConfig,
+    LLMResponseError,
     MiniMaxM3LLM,
+    is_retryable_api_error,
+    is_unresolved_api_error,
     parse_json_object,
 )
 
 
 class LLMTest(unittest.TestCase):
+    def test_retryable_api_error_classification(self):
+        self.assertTrue(is_retryable_api_error(LLMResponseError({"status_code": 2067})))
+        self.assertTrue(is_retryable_api_error(LLMResponseError({"status_code": 2062})))
+        self.assertTrue(is_retryable_api_error(
+            urllib.error.HTTPError("https://example.invalid", 529, "overloaded", {}, None)
+        ))
+        self.assertTrue(is_retryable_api_error(TimeoutError("read timed out")))
+        self.assertTrue(is_retryable_api_error(urllib.error.URLError("connection refused")))
+        self.assertFalse(is_retryable_api_error(LLMResponseError({"status_code": 1004})))
+        self.assertFalse(is_retryable_api_error(
+            urllib.error.HTTPError("https://example.invalid", 401, "unauthorized", {}, None)
+        ))
+        self.assertFalse(is_retryable_api_error(ValueError("JSON 输出无效；quota 字段缺失")))
+        self.assertFalse(is_retryable_api_error(RuntimeError("Claim 证据裁决为 insufficient")))
+        self.assertTrue(is_unresolved_api_error(APIRetryExhaustedError("budget")))
+        self.assertFalse(is_unresolved_api_error(TimeoutError("worker timeout")))
+
+    def test_retryable_api_error_walks_typed_exception_chain(self):
+        wrapped_transport = RuntimeError("worker failed")
+        wrapped_transport.__cause__ = TimeoutError("socket timed out")
+        self.assertTrue(is_retryable_api_error(wrapped_transport))
+
+        wrapped_validation = RuntimeError("worker failed")
+        wrapped_validation.__cause__ = ValueError("timeout 字段格式无效")
+        self.assertFalse(is_retryable_api_error(wrapped_validation))
+
+    def test_retryable_api_error_does_not_guess_unknown_provider_status(self):
+        self.assertFalse(is_retryable_api_error(LLMResponseError({"status_code": 2999})))
     @staticmethod
     def _response(content: str):
         item = mock.MagicMock()
@@ -216,11 +249,43 @@ class LLMTest(unittest.TestCase):
     @mock.patch("kg.llm.time.sleep")
     @mock.patch("kg.llm.urllib.request.urlopen")
     def test_client_gives_up_after_exhausting_rate_limit_retries(self, urlopen, sleep):
-        urlopen.side_effect = [self._body_error(2062) for _ in range(4)]
+        urlopen.side_effect = [self._body_error(2062) for _ in range(2)]
+        client = MiniMaxM3LLM(
+            LLMConfig(
+                base_url="https://gateway.example/v1",
+                api_key="secret",
+                model="MiniMax-M3",
+                retries=0,
+                api_retry_delay=0,
+                max_api_retries=1,
+            )
+        )
 
         with self.assertRaisesRegex(RuntimeError, "2062"):
-            self._client().complete_json("system", "user")
-        self.assertEqual(urlopen.call_count, 4)
+            client.complete_json("system", "user")
+        self.assertEqual(urlopen.call_count, 2)
+        self.assertEqual(sleep.call_count, 1)
+
+    @mock.patch("kg.llm.time.sleep")
+    @mock.patch("kg.llm.urllib.request.urlopen")
+    def test_quota_waits_before_same_request_is_retried(self, urlopen, sleep):
+        urlopen.side_effect = [
+            self._body_error(2067, "Token Plan 用量上限"),
+            self._response('{"ok": true}'),
+        ]
+        client = MiniMaxM3LLM(
+            LLMConfig(
+                base_url="https://gateway.example/v1",
+                api_key="secret",
+                model="MiniMax-M3",
+                retries=0,
+                api_retry_delay=600,
+            )
+        )
+
+        self.assertEqual(client.complete_json("system", "user"), {"ok": True})
+        self.assertEqual(urlopen.call_count, 2)
+        sleep.assert_called_once_with(600)
 
     @mock.patch("kg.llm.urllib.request.urlopen")
     def test_client_regenerates_once_when_validation_fails(self, urlopen):
