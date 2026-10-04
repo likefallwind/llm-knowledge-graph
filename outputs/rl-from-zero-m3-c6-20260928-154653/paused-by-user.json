@@ -1,0 +1,10 @@
+{
+  "paused_at": "2026-09-29T14:36:15.965765+08:00",
+  "reason": "User requested stopping MiniMax usage until explicit resume instruction",
+  "progress": {
+    "done": 137,
+    "failed": 10
+  },
+  "quick_check": "ok",
+  "resume_database": "outputs/rl-from-zero-m3-c6-20260928-154653/graph.db"
+}

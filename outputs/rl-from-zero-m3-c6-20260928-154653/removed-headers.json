@@ -1,0 +1,1962 @@
+[
+  {
+    "pdf_page": 24,
+    "text": "2                                                                   Chapter 1: Introduction"
+  },
+  {
+    "pdf_page": 25,
+    "text": "1.1. Reinforcement Learning                                                              3"
+  },
+  {
+    "pdf_page": 26,
+    "text": "4                                                                    Chapter 1: Introduction"
+  },
+  {
+    "pdf_page": 27,
+    "text": "1.2. Examples                                                                               5"
+  },
+  {
+    "pdf_page": 28,
+    "text": "6                                                                    Chapter 1: Introduction"
+  },
+  {
+    "pdf_page": 29,
+    "text": "1.4. Limitations and Scope                                                                7"
+  },
+  {
+    "pdf_page": 30,
+    "text": "8                                                                    Chapter 1: Introduction"
+  },
+  {
+    "pdf_page": 31,
+    "text": "1.5. An Extended Example: Tic-Tac-Toe                                                    9"
+  },
+  {
+    "pdf_page": 32,
+    "text": "10                                                                        Chapter 1: Introduction"
+  },
+  {
+    "pdf_page": 33,
+    "text": "1.5. An Extended Example: Tic-Tac-Toe                                                    11"
+  },
+  {
+    "pdf_page": 34,
+    "text": "12                                                                    Chapter 1: Introduction"
+  },
+  {
+    "pdf_page": 35,
+    "text": "1.7. Early History of Reinforcement Learning                                             13"
+  },
+  {
+    "pdf_page": 36,
+    "text": "14                                                                  Chapter 1: Introduction"
+  },
+  {
+    "pdf_page": 37,
+    "text": "1.7. Early History of Reinforcement Learning                                              15"
+  },
+  {
+    "pdf_page": 38,
+    "text": "16                                                                 Chapter 1: Introduction"
+  },
+  {
+    "pdf_page": 39,
+    "text": "1.7. Early History of Reinforcement Learning                                               17"
+  },
+  {
+    "pdf_page": 40,
+    "text": "18                                                                   Chapter 1: Introduction"
+  },
+  {
+    "pdf_page": 41,
+    "text": "1.7. Early History of Reinforcement Learning                                              19"
+  },
+  {
+    "pdf_page": 42,
+    "text": "20                                                                   Chapter 1: Introduction"
+  },
+  {
+    "pdf_page": 43,
+    "text": "1.7. Early History of Reinforcement Learning                                                    21"
+  },
+  {
+    "pdf_page": 44,
+    "text": "22                                                                 Chapter 1: Introduction"
+  },
+  {
+    "pdf_page": 48,
+    "text": "26                                                          Chapter 2: Multi-armed Bandits"
+  },
+  {
+    "pdf_page": 49,
+    "text": "2.2. Action-value Methods                                                                  27"
+  },
+  {
+    "pdf_page": 50,
+    "text": "28                                                                                           Chapter 2: Multi-armed Bandits"
+  },
+  {
+    "pdf_page": 51,
+    "text": "2.3. The 10-armed Testbed                                                                          29"
+  },
+  {
+    "pdf_page": 52,
+    "text": "30                                                         Chapter 2: Multi-armed Bandits"
+  },
+  {
+    "pdf_page": 53,
+    "text": "2.4. Incremental Implementation                                                           31"
+  },
+  {
+    "pdf_page": 54,
+    "text": "32                                                             Chapter 2: Multi-armed Bandits"
+  },
+  {
+    "pdf_page": 55,
+    "text": "2.5. Tracking a Nonstationary Problem                                                   33"
+  },
+  {
+    "pdf_page": 56,
+    "text": "34                                                                Chapter 2: Multi-armed Bandits"
+  },
+  {
+    "pdf_page": 57,
+    "text": "2.7. Upper-Confidence-Bound Action Selection                                               35"
+  },
+  {
+    "pdf_page": 58,
+    "text": "36                                                            Chapter 2: Multi-armed Bandits"
+  },
+  {
+    "pdf_page": 59,
+    "text": "2.8. Gradient Bandit Algorithms                                                                 37"
+  },
+  {
+    "pdf_page": 60,
+    "text": "38                                                                  Chapter 2: Multi-armed Bandits"
+  },
+  {
+    "pdf_page": 61,
+    "text": "2.8. Gradient Bandit Algorithms                                                           39"
+  },
+  {
+    "pdf_page": 62,
+    "text": "40                                                                              Chapter 2: Multi-armed Bandits"
+  },
+  {
+    "pdf_page": 63,
+    "text": "2.9. Associative Search (Contextual Bandits)                                               41"
+  },
+  {
+    "pdf_page": 64,
+    "text": "42                                                                     Chapter 2: Multi-armed Bandits"
+  },
+  {
+    "pdf_page": 65,
+    "text": "2.10. Summary                                                                            43"
+  },
+  {
+    "pdf_page": 66,
+    "text": "44                                                          Chapter 2: Multi-armed Bandits"
+  },
+  {
+    "pdf_page": 67,
+    "text": "2.10. Summary                                                                          45"
+  },
+  {
+    "pdf_page": 70,
+    "text": "48                                                          Chapter 3: Finite Markov Decision Processes"
+  },
+  {
+    "pdf_page": 71,
+    "text": "3.1. The Agent–Environment Interface                                                     49"
+  },
+  {
+    "pdf_page": 72,
+    "text": "50                                             Chapter 3: Finite Markov Decision Processes"
+  },
+  {
+    "pdf_page": 73,
+    "text": "3.1. The Agent–Environment Interface                                                      51"
+  },
+  {
+    "pdf_page": 74,
+    "text": "52                                                          Chapter 3: Finite Markov Decision Processes"
+  },
+  {
+    "pdf_page": 75,
+    "text": "3.2. Goals and Rewards                                                                              53"
+  },
+  {
+    "pdf_page": 76,
+    "text": "54                                                         Chapter 3: Finite Markov Decision Processes"
+  },
+  {
+    "pdf_page": 77,
+    "text": "3.3. Returns and Episodes                                                                  55"
+  },
+  {
+    "pdf_page": 78,
+    "text": "56                                               Chapter 3: Finite Markov Decision Processes"
+  },
+  {
+    "pdf_page": 79,
+    "text": "3.4. Unified Notation for Episodic and Continuing Tasks                                     57"
+  },
+  {
+    "pdf_page": 80,
+    "text": "58                                              Chapter 3: Finite Markov Decision Processes"
+  },
+  {
+    "pdf_page": 81,
+    "text": "3.5. Policies and Value Functions                                                              59"
+  },
+  {
+    "pdf_page": 83,
+    "text": "3.5. Policies and Value Functions                                                                   61"
+  },
+  {
+    "pdf_page": 84,
+    "text": "62                                                     Chapter 3: Finite Markov Decision Processes"
+  },
+  {
+    "pdf_page": 85,
+    "text": "3.6. Optimal Policies and Optimal Value Functions                                          63"
+  },
+  {
+    "pdf_page": 86,
+    "text": "64                                                        Chapter 3: Finite Markov Decision Processes"
+  },
+  {
+    "pdf_page": 87,
+    "text": "3.6. Optimal Policies and Optimal Value Functions                                                65"
+  },
+  {
+    "pdf_page": 88,
+    "text": "66                                             Chapter 3: Finite Markov Decision Processes"
+  },
+  {
+    "pdf_page": 89,
+    "text": "3.7. Optimality and Approximation                                                         67"
+  },
+  {
+    "pdf_page": 90,
+    "text": "68                                             Chapter 3: Finite Markov Decision Processes"
+  },
+  {
+    "pdf_page": 91,
+    "text": "3.8. Summary                                                                             69"
+  },
+  {
+    "pdf_page": 92,
+    "text": "70                                              Chapter 3: Finite Markov Decision Processes"
+  },
+  {
+    "pdf_page": 93,
+    "text": "3.8. Summary                                                                              71"
+  },
+  {
+    "pdf_page": 96,
+    "text": "74                                                         Chapter 4: Dynamic Programming"
+  },
+  {
+    "pdf_page": 97,
+    "text": "4.1. Policy Evaluation (Prediction)                                                        75"
+  },
+  {
+    "pdf_page": 98,
+    "text": "76                                                        Chapter 4: Dynamic Programming"
+  },
+  {
+    "pdf_page": 99,
+    "text": "4.2. Policy Improvement                                                                          77"
+  },
+  {
+    "pdf_page": 100,
+    "text": "78                                                                     Chapter 4: Dynamic Programming"
+  },
+  {
+    "pdf_page": 101,
+    "text": "4.2. Policy Improvement                                                                    79"
+  },
+  {
+    "pdf_page": 102,
+    "text": "80                                                         Chapter 4: Dynamic Programming"
+  },
+  {
+    "pdf_page": 103,
+    "text": "4.3. Policy Iteration                                                                                                                                                                                                    81"
+  },
+  {
+    "pdf_page": 104,
+    "text": "82                                                        Chapter 4: Dynamic Programming"
+  },
+  {
+    "pdf_page": 105,
+    "text": "4.4. Value Iteration                                                                      83"
+  },
+  {
+    "pdf_page": 106,
+    "text": "84                                                             Chapter 4: Dynamic Programming"
+  },
+  {
+    "pdf_page": 107,
+    "text": "4.5. Asynchronous Dynamic Programming                                                                   85"
+  },
+  {
+    "pdf_page": 108,
+    "text": "86                                                        Chapter 4: Dynamic Programming"
+  },
+  {
+    "pdf_page": 109,
+    "text": "4.7. Efficiency of Dynamic Programming                                                       87"
+  },
+  {
+    "pdf_page": 110,
+    "text": "88                                                        Chapter 4: Dynamic Programming"
+  },
+  {
+    "pdf_page": 111,
+    "text": "4.8. Summary                                                                             89"
+  },
+  {
+    "pdf_page": 112,
+    "text": "90                                                     Chapter 4: Dynamic Programming"
+  },
+  {
+    "pdf_page": 114,
+    "text": "92                                                                     Chapter 5: Monte Carlo Methods"
+  },
+  {
+    "pdf_page": 115,
+    "text": "5.1. Monte Carlo Prediction                                                                93"
+  },
+  {
+    "pdf_page": 116,
+    "text": "94                                                              Chapter 5: Monte Carlo Methods"
+  },
+  {
+    "pdf_page": 117,
+    "text": "5.1. Monte Carlo Prediction                                                                        95"
+  },
+  {
+    "pdf_page": 118,
+    "text": "96                                                          Chapter 5: Monte Carlo Methods"
+  },
+  {
+    "pdf_page": 119,
+    "text": "5.3. Monte Carlo Control                                                                 97"
+  },
+  {
+    "pdf_page": 120,
+    "text": "98                                                           Chapter 5: Monte Carlo Methods"
+  },
+  {
+    "pdf_page": 121,
+    "text": "5.3. Monte Carlo Control                                                                        99"
+  },
+  {
+    "pdf_page": 123,
+    "text": "5.4. Monte Carlo Control without Exploring Starts                                            101"
+  },
+  {
+    "pdf_page": 124,
+    "text": "102                                                           Chapter 5: Monte Carlo Methods"
+  },
+  {
+    "pdf_page": 125,
+    "text": "5.5. O↵-policy Prediction via Importance Sampling                                        103"
+  },
+  {
+    "pdf_page": 126,
+    "text": "104                                                                 Chapter 5: Monte Carlo Methods"
+  },
+  {
+    "pdf_page": 127,
+    "text": "5.5. O↵-policy Prediction via Importance Sampling                                         105"
+  },
+  {
+    "pdf_page": 128,
+    "text": "106                                                                  Chapter 5: Monte Carlo Methods"
+  },
+  {
+    "pdf_page": 129,
+    "text": "5.5. O↵-policy Prediction via Importance Sampling                                                                            107"
+  },
+  {
+    "pdf_page": 130,
+    "text": "108                                                        Chapter 5: Monte Carlo Methods"
+  },
+  {
+    "pdf_page": 131,
+    "text": "5.7. O↵-policy Monte Carlo Control                                                         109"
+  },
+  {
+    "pdf_page": 132,
+    "text": "110                                                         Chapter 5: Monte Carlo Methods"
+  },
+  {
+    "pdf_page": 133,
+    "text": "5.7. O↵-policy Monte Carlo Control                                                    111"
+  },
+  {
+    "pdf_page": 134,
+    "text": "112                                                                Chapter 5: Monte Carlo Methods"
+  },
+  {
+    "pdf_page": 135,
+    "text": "5.9. Per-decision Importance Sampling                                                           113"
+  },
+  {
+    "pdf_page": 136,
+    "text": "114                                                                         Chapter 5: Monte Carlo Methods"
+  },
+  {
+    "pdf_page": 137,
+    "text": "5.10. Summary                                                                            115"
+  },
+  {
+    "pdf_page": 138,
+    "text": "116                                                        Chapter 5: Monte Carlo Methods"
+  },
+  {
+    "pdf_page": 139,
+    "text": "5.10. Summary                                                                         117"
+  },
+  {
+    "pdf_page": 142,
+    "text": "120                                                      Chapter 6: Temporal-Di↵erence Learning"
+  },
+  {
+    "pdf_page": 143,
+    "text": "6.1. TD Prediction                                                                                          121"
+  },
+  {
+    "pdf_page": 144,
+    "text": "122                                                        Chapter 6: Temporal-Di↵erence Learning"
+  },
+  {
+    "pdf_page": 145,
+    "text": "  6.1. TD Prediction                                                                                           123"
+  },
+  {
+    "pdf_page": 146,
+    "text": "124                                                Chapter 6: Temporal-Di↵erence Learning"
+  },
+  {
+    "pdf_page": 147,
+    "text": "       6.2. Advantages of TD Prediction Methods                                                                                                      125"
+  },
+  {
+    "pdf_page": 148,
+    "text": "126                                                   Chapter 6: Temporal-Di↵erence Learning"
+  },
+  {
+    "pdf_page": 149,
+    "text": "6.3. Optimality of TD(0)                                                             127"
+  },
+  {
+    "pdf_page": 150,
+    "text": "128                                                 Chapter 6: Temporal-Di↵erence Learning"
+  },
+  {
+    "pdf_page": 151,
+    "text": "6.4. Sarsa: On-policy TD Control                                                         129"
+  },
+  {
+    "pdf_page": 152,
+    "text": "130                                                  Chapter 6: Temporal-Di↵erence Learning"
+  },
+  {
+    "pdf_page": 153,
+    "text": "6.5. Q-learning: O↵-policy TD Control                                                      131"
+  },
+  {
+    "pdf_page": 154,
+    "text": "132                                                      Chapter 6: Temporal-Di↵erence Learning"
+  },
+  {
+    "pdf_page": 155,
+    "text": "                        6.6. Expected Sarsa                                                                                                           133"
+  },
+  {
+    "pdf_page": 156,
+    "text": "134                                               Chapter 6: Temporal-Di↵erence Learning"
+  },
+  {
+    "pdf_page": 157,
+    "text": "6.7. Maximization Bias and Double Learning                                                    135"
+  },
+  {
+    "pdf_page": 158,
+    "text": "136                                                   Chapter 6: Temporal-Di↵erence Learning"
+  },
+  {
+    "pdf_page": 159,
+    "text": "6.8. Games, Afterstates, and Other Special Cases                                         137"
+  },
+  {
+    "pdf_page": 160,
+    "text": "138                                               Chapter 6: Temporal-Di↵erence Learning"
+  },
+  {
+    "pdf_page": 161,
+    "text": "6.9. Summary                                                                              139"
+  },
+  {
+    "pdf_page": 162,
+    "text": "140                                             Chapter 6: Temporal-Di↵erence Learning"
+  },
+  {
+    "pdf_page": 164,
+    "text": "142                                                                    Chapter 7: n-step Bootstrapping"
+  },
+  {
+    "pdf_page": 165,
+    "text": "7.1. n-step TD Prediction                                                                  143"
+  },
+  {
+    "pdf_page": 166,
+    "text": "144                                                          Chapter 7: n-step Bootstrapping"
+  },
+  {
+    "pdf_page": 167,
+    "text": "7.2. n-step Sarsa                                                                             145"
+  },
+  {
+    "pdf_page": 168,
+    "text": "146                                                                 Chapter 7: n-step Bootstrapping"
+  },
+  {
+    "pdf_page": 169,
+    "text": "7.2. n-step Sarsa                                                                             147"
+  },
+  {
+    "pdf_page": 170,
+    "text": "148                                                                  Chapter 7: n-step Bootstrapping"
+  },
+  {
+    "pdf_page": 171,
+    "text": "7.3. n-step O↵-policy Learning                                                                149"
+  },
+  {
+    "pdf_page": 172,
+    "text": "150                                                          Chapter 7: n-step Bootstrapping"
+  },
+  {
+    "pdf_page": 173,
+    "text": "7.4. Per-decision Methods with Control Variates                                         151"
+  },
+  {
+    "pdf_page": 174,
+    "text": "152                                                           Chapter 7: n-step Bootstrapping"
+  },
+  {
+    "pdf_page": 175,
+    "text": "7.5. O↵-policy Learning Without Importance Sampling: n-step Tree Backup                  153"
+  },
+  {
+    "pdf_page": 176,
+    "text": "154                                                         Chapter 7: n-step Bootstrapping"
+  },
+  {
+    "pdf_page": 177,
+    "text": "7.6. A Unifying Algorithm: n-step Q( )                                                          155"
+  },
+  {
+    "pdf_page": 178,
+    "text": "156                                                        Chapter 7: n-step Bootstrapping"
+  },
+  {
+    "pdf_page": 179,
+    "text": "7.7. Summary                                                                           157"
+  },
+  {
+    "pdf_page": 180,
+    "text": "158                                                        Chapter 7: n-step Bootstrapping"
+  },
+  {
+    "pdf_page": 182,
+    "text": "160                                 Chapter 8: Planning and Learning with Tabular Methods"
+  },
+  {
+    "pdf_page": 183,
+    "text": "8.2. Dyna: Integrated Planning, Acting, and Learning                                   161"
+  },
+  {
+    "pdf_page": 184,
+    "text": "162                                   Chapter 8: Planning and Learning with Tabular Methods"
+  },
+  {
+    "pdf_page": 185,
+    "text": "8.2. Dyna: Integrated Planning, Acting, and Learning                                      163"
+  },
+  {
+    "pdf_page": 186,
+    "text": "164                                  Chapter 8: Planning and Learning with Tabular Methods"
+  },
+  {
+    "pdf_page": 187,
+    "text": "8.2. Dyna: Integrated Planning, Acting, and Learning                                         165"
+  },
+  {
+    "pdf_page": 188,
+    "text": "166                                  Chapter 8: Planning and Learning with Tabular Methods"
+  },
+  {
+    "pdf_page": 189,
+    "text": "8.3. When the Model Is Wrong                                                                          167"
+  },
+  {
+    "pdf_page": 190,
+    "text": "168                                      Chapter 8: Planning and Learning with Tabular Methods"
+  },
+  {
+    "pdf_page": 191,
+    "text": "8.4. Prioritized Sweeping                                                                169"
+  },
+  {
+    "pdf_page": 192,
+    "text": "170                                 Chapter 8: Planning and Learning with Tabular Methods"
+  },
+  {
+    "pdf_page": 193,
+    "text": "8.4. Prioritized Sweeping                                                              171"
+  },
+  {
+    "pdf_page": 194,
+    "text": "172                                     Chapter 8: Planning and Learning with Tabular Methods"
+  },
+  {
+    "pdf_page": 195,
+    "text": "8.5. Expected vs. Sample Updates                                                        173"
+  },
+  {
+    "pdf_page": 196,
+    "text": "174                                         Chapter 8: Planning and Learning with Tabular Methods"
+  },
+  {
+    "pdf_page": 197,
+    "text": "8.6. Trajectory Sampling                                                                   175"
+  },
+  {
+    "pdf_page": 198,
+    "text": "176                                          Chapter 8: Planning and Learning with Tabular Methods"
+  },
+  {
+    "pdf_page": 199,
+    "text": "8.7. Real-time Dynamic Programming                                                                      177"
+  },
+  {
+    "pdf_page": 200,
+    "text": "178                                  Chapter 8: Planning and Learning with Tabular Methods"
+  },
+  {
+    "pdf_page": 201,
+    "text": "8.7. Real-time Dynamic Programming                                                        179"
+  },
+  {
+    "pdf_page": 202,
+    "text": "180                                 Chapter 8: Planning and Learning with Tabular Methods"
+  },
+  {
+    "pdf_page": 203,
+    "text": "8.9. Heuristic Search                                                                    181"
+  },
+  {
+    "pdf_page": 204,
+    "text": "182                                      Chapter 8: Planning and Learning with Tabular Methods"
+  },
+  {
+    "pdf_page": 205,
+    "text": "8.10. Rollout Algorithms                                                              183"
+  },
+  {
+    "pdf_page": 206,
+    "text": "184                                   Chapter 8: Planning and Learning with Tabular Methods"
+  },
+  {
+    "pdf_page": 207,
+    "text": "8.11. Monte Carlo Tree Search                                                           185"
+  },
+  {
+    "pdf_page": 208,
+    "text": "186                                   Chapter 8: Planning and Learning with Tabular Methods"
+  },
+  {
+    "pdf_page": 209,
+    "text": "8.11. Monte Carlo Tree Search                                                          187"
+  },
+  {
+    "pdf_page": 210,
+    "text": "188                                Chapter 8: Planning and Learning with Tabular Methods"
+  },
+  {
+    "pdf_page": 211,
+    "text": "8.13. Summary of Part I: Dimensions                                                       189"
+  },
+  {
+    "pdf_page": 212,
+    "text": "190                                 Chapter 8: Planning and Learning with Tabular Methods"
+  },
+  {
+    "pdf_page": 213,
+    "text": "8.13. Summary of Part I: Dimensions                                                    191"
+  },
+  {
+    "pdf_page": 214,
+    "text": "192                                 Chapter 8: Planning and Learning with Tabular Methods"
+  },
+  {
+    "pdf_page": 215,
+    "text": "8.13. Summary of Part I: Dimensions                                                     193"
+  },
+  {
+    "pdf_page": 218,
+    "text": "196                                                 Part II: Approximate Solution Methods"
+  },
+  {
+    "pdf_page": 220,
+    "text": "198                                      Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 221,
+    "text": "9.2. The Prediction Objective (VE)                                                        199"
+  },
+  {
+    "pdf_page": 222,
+    "text": "200                                            Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 223,
+    "text": "9.3. Stochastic-gradient and Semi-gradient Methods                                        201"
+  },
+  {
+    "pdf_page": 224,
+    "text": "202                                         Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 225,
+    "text": "9.3. Stochastic-gradient and Semi-gradient Methods                                        203"
+  },
+  {
+    "pdf_page": 226,
+    "text": "204                                        Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 227,
+    "text": "9.4. Linear Methods                                                                    205"
+  },
+  {
+    "pdf_page": 228,
+    "text": "206                                                      Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 229,
+    "text": "9.4. Linear Methods                                                                         207"
+  },
+  {
+    "pdf_page": 230,
+    "text": "208                                               Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 231,
+    "text": "9.4. Linear Methods                                                                        209"
+  },
+  {
+    "pdf_page": 232,
+    "text": "210                                              Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 233,
+    "text": "9.5. Feature Construction for Linear Methods                                                 211"
+  },
+  {
+    "pdf_page": 234,
+    "text": " 212                                                                                                                                              Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 235,
+    "text": "      9.5. Feature Construction for Linear Methods                                                 213"
+  },
+  {
+    "pdf_page": 236,
+    "text": "214                                           Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 237,
+    "text": "9.5. Feature Construction for Linear Methods                                                  215"
+  },
+  {
+    "pdf_page": 238,
+    "text": "216                                          Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 239,
+    "text": "9.5. Feature Construction for Linear Methods                                                217"
+  },
+  {
+    "pdf_page": 240,
+    "text": "218                                        Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 241,
+    "text": "9.5. Feature Construction for Linear Methods                                                    219"
+  },
+  {
+    "pdf_page": 242,
+    "text": "220                                        Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 243,
+    "text": "9.5. Feature Construction for Linear Methods                                              221"
+  },
+  {
+    "pdf_page": 244,
+    "text": "222                                     Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 245,
+    "text": "9.7. Nonlinear Function Approximation: Artificial Neural Networks                        223"
+  },
+  {
+    "pdf_page": 246,
+    "text": "224                                      Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 247,
+    "text": "9.7. Nonlinear Function Approximation: Artificial Neural Networks                         225"
+  },
+  {
+    "pdf_page": 248,
+    "text": "226                                       Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 249,
+    "text": "9.7. Nonlinear Function Approximation: Artificial Neural Networks                       227"
+  },
+  {
+    "pdf_page": 250,
+    "text": "228                                        Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 251,
+    "text": "9.8. Least-Squares TD                                                                    229"
+  },
+  {
+    "pdf_page": 252,
+    "text": "230                                     Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 253,
+    "text": "9.9. Memory-based Function Approximation                                                   231"
+  },
+  {
+    "pdf_page": 254,
+    "text": "232                                      Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 255,
+    "text": "9.10. Kernel-based Function Approximation                                                    233"
+  },
+  {
+    "pdf_page": 256,
+    "text": "234                                      Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 257,
+    "text": "9.11. Looking Deeper at On-policy Learning: Interest and Emphasis                          235"
+  },
+  {
+    "pdf_page": 258,
+    "text": "236                                     Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 259,
+    "text": "9.12. Summary                                                                           237"
+  },
+  {
+    "pdf_page": 260,
+    "text": "238                                     Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 261,
+    "text": "9.12. Summary                                                                            239"
+  },
+  {
+    "pdf_page": 262,
+    "text": "240                                   Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 263,
+    "text": "9.12. Summary                                                                             241"
+  },
+  {
+    "pdf_page": 264,
+    "text": "242                                   Chapter 9: On-policy Prediction with Approximation"
+  },
+  {
+    "pdf_page": 266,
+    "text": "244                                           Chapter 10: On-policy Control with Approximation"
+  },
+  {
+    "pdf_page": 267,
+    "text": "10.1. Episodic Semi-gradient Control                                                                                                                245"
+  },
+  {
+    "pdf_page": 268,
+    "text": "246                                                    Chapter 10: On-policy Control with Approximation"
+  },
+  {
+    "pdf_page": 269,
+    "text": "10.2. Semi-gradient n-step Sarsa                                                            247"
+  },
+  {
+    "pdf_page": 270,
+    "text": "248                                                           Chapter 10: On-policy Control with Approximation"
+  },
+  {
+    "pdf_page": 271,
+    "text": "10.3. Average Reward: A New Problem Setting for Continuing Tasks                         249"
+  },
+  {
+    "pdf_page": 272,
+    "text": "250                                                       Chapter 10: On-policy Control with Approximation"
+  },
+  {
+    "pdf_page": 273,
+    "text": "10.3. Average Reward: A New Problem Setting for Continuing Tasks                        251"
+  },
+  {
+    "pdf_page": 274,
+    "text": "252                                                          Chapter 10: On-policy Control with Approximation"
+  },
+  {
+    "pdf_page": 275,
+    "text": "10.4. Deprecating the Discounted Setting                                                  253"
+  },
+  {
+    "pdf_page": 276,
+    "text": "254                                                      Chapter 10: On-policy Control with Approximation"
+  },
+  {
+    "pdf_page": 277,
+    "text": "10.5. Di↵erential Semi-gradient n-step Sarsa                                             255"
+  },
+  {
+    "pdf_page": 278,
+    "text": "256                                      Chapter 10: On-policy Control with Approximation"
+  },
+  {
+    "pdf_page": 280,
+    "text": "258                                          Chapter 11: O↵-policy Methods with Approximation"
+  },
+  {
+    "pdf_page": 281,
+    "text": "11.1. Semi-gradient Methods                                                                  259"
+  },
+  {
+    "pdf_page": 282,
+    "text": "260                                        Chapter 11: O↵-policy Methods with Approximation"
+  },
+  {
+    "pdf_page": 283,
+    "text": "11.2. Examples of O↵-policy Divergence                                                           261"
+  },
+  {
+    "pdf_page": 284,
+    "text": "262                                         Chapter 11: O↵-policy Methods with Approximation"
+  },
+  {
+    "pdf_page": 285,
+    "text": "11.2. Examples of O↵-policy Divergence                                                  263"
+  },
+  {
+    "pdf_page": 286,
+    "text": "264                                      Chapter 11: O↵-policy Methods with Approximation"
+  },
+  {
+    "pdf_page": 287,
+    "text": "11.3. The Deadly Triad                                                                  265"
+  },
+  {
+    "pdf_page": 288,
+    "text": "266                                          Chapter 11: O↵-policy Methods with Approximation"
+  },
+  {
+    "pdf_page": 290,
+    "text": "268                                       Chapter 11: O↵-policy Methods with Approximation"
+  },
+  {
+    "pdf_page": 291,
+    "text": "11.5. Gradient Descent in the Bellman Error                                           269"
+  },
+  {
+    "pdf_page": 292,
+    "text": "270                                            Chapter 11: O↵-policy Methods with Approximation"
+  },
+  {
+    "pdf_page": 293,
+    "text": "11.5. Gradient Descent in the Bellman Error                                                271"
+  },
+  {
+    "pdf_page": 294,
+    "text": "272                                           Chapter 11: O↵-policy Methods with Approximation"
+  },
+  {
+    "pdf_page": 295,
+    "text": "11.5. Gradient Descent in the Bellman Error                                             273"
+  },
+  {
+    "pdf_page": 296,
+    "text": "274                                          Chapter 11: O↵-policy Methods with Approximation"
+  },
+  {
+    "pdf_page": 297,
+    "text": "11.6. The Bellman Error is Not Learnable                                               275"
+  },
+  {
+    "pdf_page": 298,
+    "text": "276                                     Chapter 11: O↵-policy Methods with Approximation"
+  },
+  {
+    "pdf_page": 299,
+    "text": "                                    11.6. The Bellman Error is Not Learnable                                                                                                                         277"
+  },
+  {
+    "pdf_page": 300,
+    "text": "278                                        Chapter 11: O↵-policy Methods with Approximation"
+  },
+  {
+    "pdf_page": 301,
+    "text": "11.7. Gradient-TD Methods                                                                  279"
+  },
+  {
+    "pdf_page": 302,
+    "text": "280                                             Chapter 11: O↵-policy Methods with Approximation"
+  },
+  {
+    "pdf_page": 303,
+    "text": "11.8. Emphatic-TD Methods                                                                                  281"
+  },
+  {
+    "pdf_page": 304,
+    "text": "282                                          Chapter 11: O↵-policy Methods with Approximation"
+  },
+  {
+    "pdf_page": 305,
+    "text": "11.9. Reducing Variance                                                                 283"
+  },
+  {
+    "pdf_page": 306,
+    "text": "284                                      Chapter 11: O↵-policy Methods with Approximation"
+  },
+  {
+    "pdf_page": 307,
+    "text": "11.10.   Summary                                                                       285"
+  },
+  {
+    "pdf_page": 308,
+    "text": "286                                    Chapter 11: O↵-policy Methods with Approximation"
+  },
+  {
+    "pdf_page": 310,
+    "text": "288                                                            Chapter 12: Eligibility Traces"
+  },
+  {
+    "pdf_page": 311,
+    "text": "12.1. The -return                                                                                 289"
+  },
+  {
+    "pdf_page": 312,
+    "text": "290                                                                                    Chapter 12: Eligibility Traces"
+  },
+  {
+    "pdf_page": 313,
+    "text": "  12.1. The -return                                                                                                                 291"
+  },
+  {
+    "pdf_page": 314,
+    "text": "292                                                               Chapter 12: Eligibility Traces"
+  },
+  {
+    "pdf_page": 315,
+    "text": "12.2. TD( )                                                                               293"
+  },
+  {
+    "pdf_page": 316,
+    "text": "294                                                            Chapter 12: Eligibility Traces"
+  },
+  {
+    "pdf_page": 317,
+    "text": "12.3. n-step Truncated -return Methods                                                                                                          295"
+  },
+  {
+    "pdf_page": 318,
+    "text": "296                                                                     Chapter 12: Eligibility Traces"
+  },
+  {
+    "pdf_page": 319,
+    "text": "12.4. Redoing Updates: Online -return Algorithm                                         297"
+  },
+  {
+    "pdf_page": 320,
+    "text": "298                                                                 Chapter 12: Eligibility Traces"
+  },
+  {
+    "pdf_page": 321,
+    "text": "12.5. True Online TD( )                                                                                                           299"
+  },
+  {
+    "pdf_page": 322,
+    "text": "300                                                           Chapter 12: Eligibility Traces"
+  },
+  {
+    "pdf_page": 323,
+    "text": "12.6. *Dutch Traces in Monte Carlo Learning                                             301"
+  },
+  {
+    "pdf_page": 324,
+    "text": "302                                                                                        Chapter 12: Eligibility Traces"
+  },
+  {
+    "pdf_page": 325,
+    "text": "12.7. Sarsa( )                                                                                 303"
+  },
+  {
+    "pdf_page": 326,
+    "text": "304                                                                       Chapter 12: Eligibility Traces"
+  },
+  {
+    "pdf_page": 327,
+    "text": "12.7. Sarsa( )                                                                            305"
+  },
+  {
+    "pdf_page": 328,
+    "text": "                       306                                                                                                                          Chapter 12: Eligibility Traces"
+  },
+  {
+    "pdf_page": 329,
+    "text": "12.8. Variable   and                                                                    307"
+  },
+  {
+    "pdf_page": 330,
+    "text": "308                                                                          Chapter 12: Eligibility Traces"
+  },
+  {
+    "pdf_page": 331,
+    "text": "12.9. O↵-policy Traces with Control Variates                                                309"
+  },
+  {
+    "pdf_page": 332,
+    "text": "310                                                                                    Chapter 12: Eligibility Traces"
+  },
+  {
+    "pdf_page": 333,
+    "text": "12.9. O↵-policy Traces with Control Variates                                               311"
+  },
+  {
+    "pdf_page": 334,
+    "text": "312                                                            Chapter 12: Eligibility Traces"
+  },
+  {
+    "pdf_page": 335,
+    "text": "12.10.     Watkins’s Q( ) to Tree-Backup( )                                                                        313"
+  },
+  {
+    "pdf_page": 336,
+    "text": "314                                                                          Chapter 12: Eligibility Traces"
+  },
+  {
+    "pdf_page": 337,
+    "text": "12.11.     Stable O↵-policy Methods with Traces                                             315"
+  },
+  {
+    "pdf_page": 338,
+    "text": "316                                                            Chapter 12: Eligibility Traces"
+  },
+  {
+    "pdf_page": 339,
+    "text": "12.13.   Conclusions                                                                     317"
+  },
+  {
+    "pdf_page": 340,
+    "text": "318                                                                                      Chapter 12: Eligibility Traces"
+  },
+  {
+    "pdf_page": 341,
+    "text": "12.13.   Conclusions                                                                    319"
+  },
+  {
+    "pdf_page": 342,
+    "text": "320                                                        Chapter 12: Eligibility Traces"
+  },
+  {
+    "pdf_page": 344,
+    "text": "322                                                     Chapter 13: Policy Gradient Methods"
+  },
+  {
+    "pdf_page": 345,
+    "text": "13.1. Policy Approximation and its Advantages                                               323"
+  },
+  {
+    "pdf_page": 346,
+    "text": "324                                                    Chapter 13: Policy Gradient Methods"
+  },
+  {
+    "pdf_page": 347,
+    "text": "13.2. The Policy Gradient Theorem                                                                                325"
+  },
+  {
+    "pdf_page": 348,
+    "text": "326                                                      Chapter 13: Policy Gradient Methods"
+  },
+  {
+    "pdf_page": 349,
+    "text": "13.3. REINFORCE: Monte Carlo Policy Gradient                                                       327"
+  },
+  {
+    "pdf_page": 350,
+    "text": "328                                                                       Chapter 13: Policy Gradient Methods"
+  },
+  {
+    "pdf_page": 351,
+    "text": "13.4. REINFORCE with Baseline                                                           329"
+  },
+  {
+    "pdf_page": 352,
+    "text": "330                                                                           Chapter 13: Policy Gradient Methods"
+  },
+  {
+    "pdf_page": 353,
+    "text": "13.5. Actor–Critic Methods                                                              331"
+  },
+  {
+    "pdf_page": 354,
+    "text": "332                                                     Chapter 13: Policy Gradient Methods"
+  },
+  {
+    "pdf_page": 355,
+    "text": "13.6. Policy Gradient for Continuing Problems                                          333"
+  },
+  {
+    "pdf_page": 356,
+    "text": "334                                                                           Chapter 13: Policy Gradient Methods"
+  },
+  {
+    "pdf_page": 357,
+    "text": "13.7. Policy Parameterization for Continuous Actions                                                                335"
+  },
+  {
+    "pdf_page": 358,
+    "text": "336                                                         Chapter 13: Policy Gradient Methods"
+  },
+  {
+    "pdf_page": 359,
+    "text": "13.8. Summary                                                                         337"
+  },
+  {
+    "pdf_page": 360,
+    "text": "338                                                   Chapter 13: Policy Gradient Methods"
+  },
+  {
+    "pdf_page": 364,
+    "text": "342                                                                            Chapter 14: Psychology"
+  },
+  {
+    "pdf_page": 365,
+    "text": "14.2. Classical Conditioning                                                              343"
+  },
+  {
+    "pdf_page": 366,
+    "text": "344                                                                 Chapter 14: Psychology"
+  },
+  {
+    "pdf_page": 367,
+    "text": "14.2. Classical Conditioning                                                                         345"
+  },
+  {
+    "pdf_page": 368,
+    "text": "346                                                                Chapter 14: Psychology"
+  },
+  {
+    "pdf_page": 369,
+    "text": "14.2. Classical Conditioning                                                                 347"
+  },
+  {
+    "pdf_page": 370,
+    "text": "348                                                                         Chapter 14: Psychology"
+  },
+  {
+    "pdf_page": 371,
+    "text": "14.2. Classical Conditioning                                                             349"
+  },
+  {
+    "pdf_page": 372,
+    "text": "350                                                                    Chapter 14: Psychology"
+  },
+  {
+    "pdf_page": 373,
+    "text": "14.2. Classical Conditioning                                                                               351"
+  },
+  {
+    "pdf_page": 374,
+    "text": "352                                                                                Chapter 14: Psychology"
+  },
+  {
+    "pdf_page": 375,
+    "text": "14.2. Classical Conditioning                                                             353"
+  },
+  {
+    "pdf_page": 376,
+    "text": "354                                                                  Chapter 14: Psychology"
+  },
+  {
+    "pdf_page": 377,
+    "text": "14.2. Classical Conditioning                                                                355"
+  },
+  {
+    "pdf_page": 378,
+    "text": "356                                                                      Chapter 14: Psychology"
+  },
+  {
+    "pdf_page": 379,
+    "text": "14.3. Instrumental Conditioning                                                        357"
+  },
+  {
+    "pdf_page": 380,
+    "text": "358                                                                     Chapter 14: Psychology"
+  },
+  {
+    "pdf_page": 381,
+    "text": "14.3. Instrumental Conditioning                                                        359"
+  },
+  {
+    "pdf_page": 382,
+    "text": "360                                                                  Chapter 14: Psychology"
+  },
+  {
+    "pdf_page": 383,
+    "text": "14.4. Delayed Reinforcement                                                             361"
+  },
+  {
+    "pdf_page": 384,
+    "text": "362                                                                  Chapter 14: Psychology"
+  },
+  {
+    "pdf_page": 385,
+    "text": "14.5. Cognitive Maps                                                                      363"
+  },
+  {
+    "pdf_page": 386,
+    "text": "364                                                                  Chapter 14: Psychology"
+  },
+  {
+    "pdf_page": 387,
+    "text": "14.6. Habitual and Goal-directed Behavior                                                     365"
+  },
+  {
+    "pdf_page": 388,
+    "text": "366                                                                   Chapter 14: Psychology"
+  },
+  {
+    "pdf_page": 389,
+    "text": "14.6. Habitual and Goal-directed Behavior                                               367"
+  },
+  {
+    "pdf_page": 390,
+    "text": "368                                                                 Chapter 14: Psychology"
+  },
+  {
+    "pdf_page": 391,
+    "text": "14.7. Summary                                                                             369"
+  },
+  {
+    "pdf_page": 392,
+    "text": "370                                                                Chapter 14: Psychology"
+  },
+  {
+    "pdf_page": 393,
+    "text": "14.7. Summary                                                                          371"
+  },
+  {
+    "pdf_page": 394,
+    "text": "372                                                                 Chapter 14: Psychology"
+  },
+  {
+    "pdf_page": 395,
+    "text": "14.7. Summary                                                                            373"
+  },
+  {
+    "pdf_page": 396,
+    "text": "374                                                                  Chapter 14: Psychology"
+  },
+  {
+    "pdf_page": 397,
+    "text": "14.7. Summary                                                                            375"
+  },
+  {
+    "pdf_page": 398,
+    "text": "376                                                                 Chapter 14: Psychology"
+  },
+  {
+    "pdf_page": 400,
+    "text": "378                                                               Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 401,
+    "text": "15.1. Neuroscience Basics                                                                  379"
+  },
+  {
+    "pdf_page": 402,
+    "text": "380                                                                        Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 403,
+    "text": "15.3. The Reward Prediction Error Hypothesis                                                         381"
+  },
+  {
+    "pdf_page": 404,
+    "text": "382                                                                          Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 405,
+    "text": "15.4. Dopamine                                                                          383"
+  },
+  {
+    "pdf_page": 406,
+    "text": "384                                                              Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 407,
+    "text": "15.4. Dopamine                                                                              385"
+  },
+  {
+    "pdf_page": 408,
+    "text": "386                                                                   Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 409,
+    "text": "15.5. Experimental Support for the Reward Prediction Error Hypothesis                     387"
+  },
+  {
+    "pdf_page": 410,
+    "text": "388                                                                    Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 411,
+    "text": "15.5. Experimental Support for the Reward Prediction Error Hypothesis                       389"
+  },
+  {
+    "pdf_page": 412,
+    "text": "390                                                                Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 413,
+    "text": "15.6. TD Error/Dopamine Correspondence                                                         391"
+  },
+  {
+    "pdf_page": 414,
+    "text": "392                                                                Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 415,
+    "text": "15.6. TD Error/Dopamine Correspondence                                                   393"
+  },
+  {
+    "pdf_page": 416,
+    "text": "394                                                                Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 417,
+    "text": "15.7. Neural Actor–Critic                                                               395"
+  },
+  {
+    "pdf_page": 418,
+    "text": "396                                                                                                             Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 419,
+    "text": "15.7. Neural Actor–Critic                                                               397"
+  },
+  {
+    "pdf_page": 420,
+    "text": "398                                                               Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 421,
+    "text": "15.8. Actor and Critic Learning Rules                                                          399"
+  },
+  {
+    "pdf_page": 422,
+    "text": "400                                                                  Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 423,
+    "text": "15.8. Actor and Critic Learning Rules                                                     401"
+  },
+  {
+    "pdf_page": 424,
+    "text": "402                                                              Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 425,
+    "text": "15.9. Hedonistic Neurons                                                                  403"
+  },
+  {
+    "pdf_page": 426,
+    "text": "404                                                                 Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 427,
+    "text": "15.10.   Collective Reinforcement Learning                                                 405"
+  },
+  {
+    "pdf_page": 428,
+    "text": "406                                                                 Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 429,
+    "text": "15.11.   Model-based Methods in the Brain                                               407"
+  },
+  {
+    "pdf_page": 430,
+    "text": "408                                                               Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 431,
+    "text": "15.12.   Addiction                                                                      409"
+  },
+  {
+    "pdf_page": 432,
+    "text": "410                                                              Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 433,
+    "text": "15.13.   Summary                                                                          411"
+  },
+  {
+    "pdf_page": 434,
+    "text": "412                                                               Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 435,
+    "text": "15.13.   Summary                                                                      413"
+  },
+  {
+    "pdf_page": 436,
+    "text": "414                                                              Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 437,
+    "text": "15.13.   Summary                                                                           415"
+  },
+  {
+    "pdf_page": 438,
+    "text": "416                                                                 Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 439,
+    "text": "15.13.   Summary                                                                                  417"
+  },
+  {
+    "pdf_page": 440,
+    "text": "418                                                             Chapter 15: Neuroscience"
+  },
+  {
+    "pdf_page": 441,
+    "text": "15.13.   Summary                                                                      419"
+  },
+  {
+    "pdf_page": 444,
+    "text": "422                                                    Chapter 16: Applications and Case Studies"
+  },
+  {
+    "pdf_page": 446,
+    "text": "424                                                 Chapter 16: Applications and Case Studies"
+  },
+  {
+    "pdf_page": 447,
+    "text": "16.1. TD-Gammon                                                                      425"
+  },
+  {
+    "pdf_page": 448,
+    "text": "426                                              Chapter 16: Applications and Case Studies"
+  },
+  {
+    "pdf_page": 449,
+    "text": "16.2. Samuel’s Checkers Player                                                          427"
+  },
+  {
+    "pdf_page": 450,
+    "text": "428                                              Chapter 16: Applications and Case Studies"
+  },
+  {
+    "pdf_page": 451,
+    "text": "16.3. Watson’s Daily-Double Wagering                                                     429"
+  },
+  {
+    "pdf_page": 452,
+    "text": "430                                                Chapter 16: Applications and Case Studies"
+  },
+  {
+    "pdf_page": 453,
+    "text": "16.3. Watson’s Daily-Double Wagering                                                      431"
+  },
+  {
+    "pdf_page": 454,
+    "text": "432                                               Chapter 16: Applications and Case Studies"
+  },
+  {
+    "pdf_page": 455,
+    "text": "16.4. Optimizing Memory Control                                                            433"
+  },
+  {
+    "pdf_page": 456,
+    "text": "434                                               Chapter 16: Applications and Case Studies"
+  },
+  {
+    "pdf_page": 457,
+    "text": "16.4. Optimizing Memory Control                                                             435"
+  },
+  {
+    "pdf_page": 458,
+    "text": "436                                                Chapter 16: Applications and Case Studies"
+  },
+  {
+    "pdf_page": 459,
+    "text": "16.5. Human-level Video Game Play                                                      437"
+  },
+  {
+    "pdf_page": 460,
+    "text": "438                                               Chapter 16: Applications and Case Studies"
+  },
+  {
+    "pdf_page": 461,
+    "text": "16.5. Human-level Video Game Play                                                         439"
+  },
+  {
+    "pdf_page": 462,
+    "text": "440                                               Chapter 16: Applications and Case Studies"
+  },
+  {
+    "pdf_page": 463,
+    "text": "16.6. Mastering the Game of Go                                                             441"
+  },
+  {
+    "pdf_page": 464,
+    "text": "442                                             Chapter 16: Applications and Case Studies"
+  },
+  {
+    "pdf_page": 465,
+    "text": "16.6. Mastering the Game of Go                                                              443"
+  },
+  {
+    "pdf_page": 466,
+    "text": "444                                               Chapter 16: Applications and Case Studies"
+  },
+  {
+    "pdf_page": 467,
+    "text": "      16.6. Mastering the Game of Go                                                                                      445"
+  },
+  {
+    "pdf_page": 468,
+    "text": "446                                              Chapter 16: Applications and Case Studies"
+  },
+  {
+    "pdf_page": 469,
+    "text": "16.6. Mastering the Game of Go                                                          447"
+  },
+  {
+    "pdf_page": 470,
+    "text": "448                                                                  Chapter 16: Applications and Case Studies"
+  },
+  {
+    "pdf_page": 471,
+    "text": "16.6. Mastering the Game of Go                                                          449"
+  },
+  {
+    "pdf_page": 472,
+    "text": "450                                             Chapter 16: Applications and Case Studies"
+  },
+  {
+    "pdf_page": 473,
+    "text": "16.7. Personalized Web Services                                                           451"
+  },
+  {
+    "pdf_page": 474,
+    "text": "452                                                Chapter 16: Applications and Case Studies"
+  },
+  {
+    "pdf_page": 475,
+    "text": "16.8. Thermal Soaring                                                                         453"
+  },
+  {
+    "pdf_page": 476,
+    "text": "              454                                                          Chapter 16: Applications and Case Studies"
+  },
+  {
+    "pdf_page": 477,
+    "text": "16.8. Thermal Soaring                                                                           455"
+  },
+  {
+    "pdf_page": 478,
+    "text": "456                                                Chapter 16: Applications and Case Studies"
+  },
+  {
+    "pdf_page": 479,
+    "text": "16.8. Thermal Soaring                                                                           457"
+  },
+  {
+    "pdf_page": 482,
+    "text": "460                                                                  Chapter 17: Frontiers"
+  },
+  {
+    "pdf_page": 483,
+    "text": "17.2. Temporal Abstraction via Options                                                    461"
+  },
+  {
+    "pdf_page": 484,
+    "text": "462                                                                          Chapter 17: Frontiers"
+  },
+  {
+    "pdf_page": 485,
+    "text": "17.2. Temporal Abstraction via Options                                                 463"
+  },
+  {
+    "pdf_page": 486,
+    "text": "464                                                                    Chapter 17: Frontiers"
+  },
+  {
+    "pdf_page": 487,
+    "text": "17.3. Observations and State                                                                 465"
+  },
+  {
+    "pdf_page": 488,
+    "text": "466                                                                       Chapter 17: Frontiers"
+  },
+  {
+    "pdf_page": 489,
+    "text": "17.3. Observations and State                                                                467"
+  },
+  {
+    "pdf_page": 490,
+    "text": "468                                                                      Chapter 17: Frontiers"
+  },
+  {
+    "pdf_page": 491,
+    "text": "17.4. Designing Reward Signals                                                            469"
+  },
+  {
+    "pdf_page": 492,
+    "text": "470                                                                    Chapter 17: Frontiers"
+  },
+  {
+    "pdf_page": 493,
+    "text": "17.4. Designing Reward Signals                                                           471"
+  },
+  {
+    "pdf_page": 494,
+    "text": "472                                                                    Chapter 17: Frontiers"
+  },
+  {
+    "pdf_page": 495,
+    "text": "17.5. Remaining Issues                                                                            473"
+  },
+  {
+    "pdf_page": 496,
+    "text": "474                                                                   Chapter 17: Frontiers"
+  },
+  {
+    "pdf_page": 497,
+    "text": "17.6. Reinforcement Learning and the Future of Artificial Intelligence                   475"
+  },
+  {
+    "pdf_page": 498,
+    "text": "476                                                                    Chapter 17: Frontiers"
+  },
+  {
+    "pdf_page": 499,
+    "text": "17.6. Reinforcement Learning and the Future of Artificial Intelligence                     477"
+  },
+  {
+    "pdf_page": 500,
+    "text": "478                                                                   Chapter 17: Frontiers"
+  },
+  {
+    "pdf_page": 501,
+    "text": "17.6. Reinforcement Learning and the Future of Artificial Intelligence                 479"
+  },
+  {
+    "pdf_page": 502,
+    "text": "480                                                                Chapter 17: Frontiers"
+  },
+  {
+    "pdf_page": 504,
+    "text": "482                                                                                    References"
+  },
+  {
+    "pdf_page": 505,
+    "text": "References                                                                                    483"
+  },
+  {
+    "pdf_page": 506,
+    "text": "484                                                                                       References"
+  },
+  {
+    "pdf_page": 507,
+    "text": "References                                                                                   485"
+  },
+  {
+    "pdf_page": 508,
+    "text": "486                                                                                   References"
+  },
+  {
+    "pdf_page": 509,
+    "text": "References                                                                                   487"
+  },
+  {
+    "pdf_page": 510,
+    "text": "488                                                                                     References"
+  },
+  {
+    "pdf_page": 511,
+    "text": "References                                                                                 489"
+  },
+  {
+    "pdf_page": 512,
+    "text": "490                                                                                  References"
+  },
+  {
+    "pdf_page": 513,
+    "text": "References                                                                                      491"
+  },
+  {
+    "pdf_page": 514,
+    "text": "492                                                                                   References"
+  },
+  {
+    "pdf_page": 515,
+    "text": "References                                                                                  493"
+  },
+  {
+    "pdf_page": 516,
+    "text": "494                                                                                    References"
+  },
+  {
+    "pdf_page": 517,
+    "text": "References                                                                                  495"
+  },
+  {
+    "pdf_page": 518,
+    "text": "496                                                                                References"
+  },
+  {
+    "pdf_page": 519,
+    "text": "References                                                                                   497"
+  },
+  {
+    "pdf_page": 520,
+    "text": "498                                                                                  References"
+  },
+  {
+    "pdf_page": 521,
+    "text": "References                                                                                     499"
+  },
+  {
+    "pdf_page": 522,
+    "text": "500                                                                                  References"
+  },
+  {
+    "pdf_page": 523,
+    "text": "References                                                                                  501"
+  },
+  {
+    "pdf_page": 524,
+    "text": "502                                                                                  References"
+  },
+  {
+    "pdf_page": 525,
+    "text": "References                                                                                     503"
+  },
+  {
+    "pdf_page": 526,
+    "text": "504                                                                                  References"
+  },
+  {
+    "pdf_page": 527,
+    "text": "References                                                                                  505"
+  },
+  {
+    "pdf_page": 528,
+    "text": "506                                                                                    References"
+  },
+  {
+    "pdf_page": 529,
+    "text": "References                                                                                   507"
+  },
+  {
+    "pdf_page": 530,
+    "text": "508                                                                                     References"
+  },
+  {
+    "pdf_page": 531,
+    "text": "References                                                                                  509"
+  },
+  {
+    "pdf_page": 532,
+    "text": "510                                                                                     References"
+  },
+  {
+    "pdf_page": 533,
+    "text": "References                                                                                    511"
+  },
+  {
+    "pdf_page": 534,
+    "text": "512                                                                                  References"
+  },
+  {
+    "pdf_page": 535,
+    "text": "References                                                                                    513"
+  },
+  {
+    "pdf_page": 536,
+    "text": "514                                                                                  References"
+  },
+  {
+    "pdf_page": 537,
+    "text": "References                                                                                   515"
+  },
+  {
+    "pdf_page": 538,
+    "text": "516                                                                                   References"
+  },
+  {
+    "pdf_page": 539,
+    "text": "References                                                                                  517"
+  },
+  {
+    "pdf_page": 540,
+    "text": "518                                                                                     References"
+  },
+  {
+    "pdf_page": 542,
+    "text": "520                                                                                       Index"
+  },
+  {
+    "pdf_page": 543,
+    "text": "Index                                                                                    521"
+  },
+  {
+    "pdf_page": 544,
+    "text": "522                                                                                         Index"
+  },
+  {
+    "pdf_page": 545,
+    "text": "Index                                                                                     523"
+  },
+  {
+    "pdf_page": 546,
+    "text": "524                                                                                        Index"
+  }
+]

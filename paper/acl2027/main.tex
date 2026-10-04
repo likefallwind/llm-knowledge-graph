@@ -1,0 +1,276 @@
+\documentclass[11pt]{article}
+% Review version. Change "review" to "final" for a camera-ready version.
+\usepackage[review]{acl}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{inconsolata}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{url}
+
+\newcommand{\TODO}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\kg}{\textsc{kg}}
+\newcommand{\llm}{\textsc{llm}}
+\newcommand{\llms}{\textsc{llm}s}
+\newcommand{\obs}{\mathsf{Obs}}
+\newcommand{\assertion}{\mathsf{Assertion}}
+\newcommand{\evidence}{\mathsf{Evidence}}
+
+\title{Evidence-Governed Open-Vocabulary Knowledge Graph Construction with Large Language Models}
+\author{Anonymous ACL submission}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Large language models make automatic knowledge graph construction substantially more capable, but they also make a central methodological question unavoidable: should a graph record what a model remembers, or what high-quality source text actually supports? We study the latter setting. We present an evidence-governed pipeline that uses a large language model as an extractor, normalizer, and verifier while treating source passages as the authority for factual content. The pipeline has no hand-authored domain ontology or fixed relation inventory: it discovers open-vocabulary entities and relations, resolves identities and aliases, preserves assertion scope and polarity, and materializes compact graph claims only after passage-level support and projection checks. We formalize the separation between source evidence, assertions, and navigational claims, and we provide a reproducible benchmark and four diagnostic evaluations covering assertion structure, staged relation extraction, identity resolution, and projection faithfulness. On a frozen 200-item comparison protocol, our current implementation obtains 92.0\% complete-assertion support, compared with 78.0\% for GraphRAG, 75.5\% for AutoSchema, and 69.5\% for KGGen under the same model-based judge. These numbers are preliminary and judge-dependent; the paper reports the protocols and failure cases needed to audit them. The resulting design is intended as an evidence layer for later retrieval, training, and evaluation, rather than as a substitute for a language model's parametric knowledge.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+Knowledge graphs are useful because they make entities, relations, and supporting evidence explicit. In practice, however, building a broad and current graph still requires a large amount of schema design, extraction engineering, entity curation, and manual quality control. Recent progress in large language models (\llms{}) changes the feasibility of this problem. A model can read long passages, recognize varied linguistic expressions, produce structured records, and compare competing interpretations. High-quality automatic construction is therefore no longer limited to a narrow, manually specified domain.
+
+This new capability raises a more fundamental design question. If a graph will later be used to retrieve context for, train, or evaluate a language model, then asking that same model to freely generate the graph from its parametric memory creates a circular source of authority. A generated fact can look plausible without being grounded in a document, and a later model evaluation can reward the same unsupported belief that produced the graph. We instead treat the graph as an external evidence layer. The source text is the authority for factual claims; the \llm{} performs linguistic interpretation, normalization, and quality control over that text. The graph is thus an intermediate representation that can be inspected before it is supplied to another model.
+
+The evidence-first view creates four technical requirements. First, the system must retain the passage and the relevant span for every extracted observation. Second, the vocabulary must remain open: entities and predicates should be introduced when the source warrants them rather than forced into a manually enumerated ontology. Third, identity resolution must distinguish aliases from genuinely different concepts and must preserve unresolved cases. Fourth, a compact graph edge must not erase conditions, time, quantity, scope, or polarity carried by the full assertion. These requirements interact. A relation extractor that is accurate in isolation can still produce a wrong graph edge when it projects a conditional statement into an unconditional one; an aggressive entity merger can make a supported passage appear to contradict itself.
+
+We present an AI-only construction pipeline designed around these requirements. ``AI-only'' refers to the absence of hand-authored domain schemas, relation lists, and per-domain matching rules. The pipeline still uses a small, implementation-level record schema for auditability (source, passage, observation, assertion, evidence, and claim); the domain vocabulary and relation meanings are induced from text by the model and checked against the same evidence. The implementation follows a read--structure--extract--normalize--resolve--verify--merge--synthesize flow. It supports append-only observations, replayable runs, content hashes, and mechanical integrity checks, so a graph can be rebuilt and audited rather than treated as an opaque generation.
+
+Our contributions are:
+\begin{itemize}
+  \item an evidence-governed formulation that separates source passages, model observations, full assertions, and compact navigational claims;
+  \item an open-vocabulary, ontology-light pipeline for entity and relation discovery, identity and alias resolution, assertion verification, and projection-faithful graph materialization;
+  \item a benchmark protocol and four diagnostic evaluations that measure not only aggregate graph quality but also the mechanisms that determine it; and
+  \item a set of reproducible artifacts and failure analyses that make clear which results are established, which are development evidence, and which remain to be validated with independent human annotation.
+\end{itemize}
+
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Traditional Automatic Knowledge Graph Construction}
+\label{sec:traditional}
+
+Early open-information-extraction systems learned or specified patterns that map text spans to binary tuples, enabling broad coverage without a domain ontology \citep{banko2007,angeli2015}. Traditional knowledge graph pipelines typically add named-entity recognition, entity linking, relation extraction, canonicalization, and schema validation as separate components. These systems provide useful precision--recall controls and interpretable heuristics, but their coverage is bounded by the relation inventory, lexical patterns, or domain rules available at development time. Ontology engineering and schema alignment can improve consistency, yet they are expensive to maintain as new domains and languages are added \citep{hogan2021,noy2001}.
+
+Our setting keeps the useful separation between extraction and storage while moving domain vocabulary induction into the model. A fixed record schema stores provenance and validation state, but it does not enumerate which entities or predicates are legal. This distinction allows the graph to preserve an unfamiliar relation when the source supports it while retaining enough structure for deterministic integrity checks.
+
+\subsection{LLM-Based Knowledge Graph Construction}
+\label{sec:llmkg}
+
+Instruction-tuned \llms{} can follow extraction instructions, normalize paraphrases, and generate structured outputs from passages. Their broad linguistic competence makes few-shot and prompt-based extraction attractive, especially when a task spans domains or languages. The same competence creates two risks. First, a model can complete a plausible fact from parametric memory even when the passage does not state it. Second, a single unconstrained generation can silently omit qualifiers or merge multiple statements. Retrieval-augmented generation addresses the need to condition a model on external text, but a retrieved document is not automatically converted into a durable, auditable graph record \citep{lewis2020}.
+
+We use the \llm{} for interpretation rather than as a source of new facts. Prompts require passage identifiers, source spans, explicit assertion fields, and a verdict for each proposed projection. Model outputs are stored as observations and may be rejected, replayed, or superseded. This differs from approaches that ask a model to emit a final graph in one pass or use a model's general world knowledge as an implicit validator. Exact references to representative LLM-based graph systems and their released benchmarks will be added in the next bibliography pass; the present draft focuses on the evidence and evaluation distinction.
+
+\subsection{Open Schemas, Relation Induction, and Ontology Induction}
+\label{sec:open-schema}
+
+Open-schema extraction and ontology induction aim to discover relation types, concepts, and taxonomic structure instead of assuming a closed schema. Work on open information extraction shows that relation phrases can be retained verbatim, while ontology engineering studies how such phrases can be clustered, aligned, and given reusable semantics. These lines of work expose a tension between expressiveness and canonicalization: a completely open vocabulary preserves distinctions but fragments the graph, whereas an aggressively normalized vocabulary improves connectivity at the risk of changing meaning.
+
+Our design treats relation induction and projection as separate decisions. The extractor may emit a source-faithful predicate; a later normalization step proposes aliases or a coarser relation only when the direction and arguments remain faithful. The full assertion retains conditions, scope, time, quantity, and polarity even when a compact claim is materialized for navigation. In this sense, ontology induction is a proposal mechanism, not an authority that can override the source passage.
+
+\section{Research Setting and Problem Formulation}
+\label{sec:formulation}
+
+Let a corpus be a set of sources $\mathcal{S}$. Each source $s\in\mathcal{S}$ is segmented into passages $p$ and an ordered section tree. A passage contains text $x_p$ and a stable identifier. The construction process produces append-only observations and a materialized graph:
+\begin{align}
+  \obs_e &= (p, m, t, a, c),\\
+  \obs_r &= (p, h, r, t, q, c),\\
+  \assertion &= (h,r,t,\kappa,\tau,\pi,\nu,\mathcal{E}),\\
+  \mathrm{claim} &= (h,r,t,\mathrm{id}(\assertion),\mathrm{status}).
+\end{align}
+Here $m$ is a mention, $t$ is an induced entity type or target, $a$ is an alias candidate, $h$ and $t$ are canonical entity identifiers, $r$ is an open predicate, and $c$ is the model's confidence or rationale. The assertion fields $\kappa$, $\tau$, $\pi$, and $\nu$ represent conditions, temporal or quantitative scope, polarity, and other qualifiers. $\mathcal{E}$ is a set of evidence links to passage spans. A claim is intentionally smaller than an assertion: it is a navigational projection whose support status can be recomputed from the assertion and evidence.
+
+The system must satisfy three invariants. (i) Every accepted assertion has at least one source passage and a mechanically valid passage identifier. (ii) A claim can be materialized only if the complete assertion is supported and the projection preserves its direction and arguments. (iii) Identity merges are reversible at the observation layer: a later decision can revise a canonical entity without deleting what the source originally said. These invariants let us evaluate extraction quality, identity quality, and projection quality separately.
+
+The practical objective is not to maximize the number of edges. We seek a graph $G$ that balances coverage and evidence fidelity:
+\begin{equation}
+\begin{aligned}
+  \max_G\quad &\mathrm{Coverage}(G) - \lambda\,\mathrm{Unsupported}(G)\\
+               &- \mu\,\mathrm{ProjectionError}(G).
+\end{aligned}
+\end{equation}
+subject to the invariants above. The coefficients are not tuned against a downstream language model; they express the requirement that unsupported or semantically distorted edges are more damaging than missing edges in an evidence layer.
+
+\section{Evidence-Governed Open-Vocabulary Construction}
+\label{sec:method}
+
+\subsection{Pipeline Overview}
+
+Figure~\ref{fig:pipeline} summarizes the pipeline. Source text is read and structurally parsed before extraction. Entity and relation discovery are performed in separate passes so that the model is not forced to choose a closed relation schema before seeing the text. Candidate identities and aliases are retrieved with lexical and embedding similarity, but the final decision is made from the mention, its context, and the existing candidate records. Assertions and evidence are verified before a compact claim is synthesized.
+
+\begin{figure}[t]
+\centering
+\fbox{\begin{minipage}{0.94\columnwidth}\small
+\centering
+Source text $\rightarrow$ sections/passages $\rightarrow$ open entity observations\\
+\hspace{2em}$\downarrow$\\[-0.4em]
+open relation observations $\rightarrow$ identity/alias candidates $\rightarrow$ full assertions\\
+\hspace{2em}$\downarrow$\\[-0.4em]
+evidence and projection verification $\rightarrow$ append-only merge $\rightarrow$ compact claims
+\end{minipage}}
+\caption{Evidence-governed construction. Source passages remain the factual authority; model outputs are observations that must pass verification before they become graph claims.}
+\label{fig:pipeline}
+\end{figure}
+
+\subsection{Source Ingestion and Structural Context}
+
+The ingestion stage records the original source, normalized text, content hash, and a section tree. Each passage receives a stable identifier and retains its exact text. Section summaries are used as context for reading and entity resolution, but they are not allowed to create independent claims. This prevents a summary from becoming an untraceable second source of facts and makes it possible to re-run only the affected passages after an extraction or prompt change.
+
+\subsection{Open Entity and Relation Discovery}
+
+The entity pass asks the model to identify all source-grounded mentions, including technical objects, methods, mathematical symbols, and named datasets. Types are open strings rather than a closed ontology. The relation pass then extracts source-grounded pairs with an open predicate, the complete statement, and a passage identifier. A relation record includes direction, argument spans, qualifiers, and a short textual rationale. The prompts explicitly prohibit facts that are merely plausible from general knowledge.
+
+We found that a single prompt that asks for both a fixed schema and all relations tends to collapse predicates, omit relations, duplicate records, and invent connective facts. We therefore stage relation extraction: first discover fine-grained source predicates, then propose optional aliases or coarse projections. The fine-grained record remains available even when a normalized label is rejected.
+
+\subsection{Identity and Alias Resolution}
+
+For each new entity observation, lexical and embedding retrieval proposes a small candidate set. Similarity is used for candidate recall only. The model decides among \emph{same entity}, \emph{new entity}, and \emph{uncertain}, using the mention, local passage, aliases, type, and existing definitions. An alias is stored separately from identity; a string match is not sufficient to merge two concepts. Uncertain decisions remain unresolved observations and can be replayed when additional context arrives.
+
+\subsection{Assertions, Evidence, and Verification}
+
+An assertion is the semantic unit that is checked against text. The verifier receives the source passage, the proposed full statement, and all scope fields. It returns a support verdict (supported, insufficient, or contradicted) together with a projection-faithfulness verdict. The mechanical layer independently checks that passage identifiers, source hashes, entity references, and relation directions are valid. A model verdict cannot repair a missing passage or an invalid identifier.
+
+\subsection{Projection-Faithful Materialization}
+
+Claims provide compact graph navigation, while assertions preserve meaning. The materializer accepts a claim only when the assertion is supported and the projection is faithful. For example, a passage stating that a method ``can be used for'' a task must not be projected as ``is identical to'' that task; a conditional or time-qualified statement must retain its qualifier. The graph therefore supports both convenient traversal and evidence-preserving inspection.
+
+\subsection{Run Reproducibility and Auditability}
+
+Every run records model and prompt versions, input hashes, configuration, manifests, and status markers. Outputs are append-only and include replay queues for failed or uncertain items. A lightweight integrity check validates passage joins, source hashes, referential integrity, and assertion--claim links before a run is considered complete. These artifacts are part of the result, not merely implementation logs.
+
+\section{Experimental Setup}
+\label{sec:setup}
+
+\subsection{Research Questions}
+
+We evaluate the following questions:
+\begin{itemize}
+  \item \textbf{RQ1:} Does the evidence-governed graph provide higher-quality supported assertions than existing graph construction baselines under a common benchmark protocol?
+  \item \textbf{RQ2:} Which mechanisms are necessary for reliable construction: assertion structure, staged relation extraction, identity and alias resolution, and projection verification?
+  \item \textbf{RQ3:} Do the same invariants remain checkable when the pipeline is scaled to a complete technical book rather than a small diagnostic sample?
+\end{itemize}
+
+\subsection{Benchmark and Corpora}
+
+Our primary comparison uses a frozen 200-item D2L-style question set and a common model-based judge. The protocol scores complete assertion support, entity referent correctness, citation validity, and fact probes. The current snapshot uses the same model family for all systems; it is therefore a reproducible relative benchmark, not a human gold standard. We also use a technical-book corpus for incremental and empty-database construction. The book experiments are intended to test coverage, provenance, and integrity at scale; they are not treated as an independent accuracy annotation.
+
+\subsection{Baselines and Metrics}
+
+We compare with GraphRAG, AutoSchema, and KGGen using the frozen benchmark protocol available in the companion benchmark repository. The primary metric is the proportion of evaluated items for which the answer is supported by a complete assertion and a valid citation. Secondary metrics are entity referent accuracy, citation validity, fact-probe accuracy, unsupported-edge rate, and projection error rate. We report counts and denominators for every metric. Model-judge failures caused by malformed output or exhausted completion length are recorded as retries rather than semantic negatives.
+
+\subsection{Diagnostic Evaluations}
+
+Four evaluations isolate the mechanisms that were introduced during development:
+\begin{enumerate}
+  \item \textbf{Assertion structure:} compare extraction that stores only compact triples with extraction that stores conditions, polarity, scope, and evidence links.
+  \item \textbf{Relation staging:} compare one-pass schema-constrained relation extraction with the two-stage open-predicate extraction and normalization protocol.
+  \item \textbf{Identity and aliases:} evaluate candidate retrieval and LLM decisions on collision and alias cases, including multilingual and abbreviation variants.
+  \item \textbf{Projection faithfulness:} judge whether a compact claim preserves the direction, arguments, and qualifiers of its source assertion, separately from whether the assertion itself is supported.
+\end{enumerate}
+
+The historical development comparisons in Section~\ref{sec:results} are diagnostic snapshots. They explain why the current mechanisms exist, but they are not claimed as randomized causal ablations. The final version should rerun each comparison on a frozen item set with identical prompts, model versions, and independent human or expert adjudication where feasible.
+
+\section{Results}
+\label{sec:results}
+
+\subsection{Benchmark Comparison}
+
+Table~\ref{tab:benchmark} reports the current conservative snapshot from the frozen 200-item protocol. The score is complete-assertion support under a common model-based judge. It should be read together with the protocol and limitations: it is not a claim that a model judge is equivalent to human annotation.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lcc}
+\toprule
+System & Supported items & Rate \\
+\midrule
+Ours & 184/200 & 92.0\% \\
+GraphRAG & 156/200 & 78.0\% \\
+AutoSchema & 151/200 & 75.5\% \\
+KGGen & 139/200 & 69.5\% \\
+\bottomrule
+\end{tabular}
+\caption{Preliminary frozen-protocol benchmark snapshot. All systems use the same judge and item set; the measure is complete-assertion support, not a human-gold accuracy estimate.}
+\label{tab:benchmark}
+\end{table}
+
+On the same snapshot, our system obtained 100/100 for entity referents and citation validity, and 40/48 (83.3\%) on the fact-probe subset. These aggregate numbers motivate the mechanism analyses below: the remaining errors are concentrated in semantic projection, qualifier handling, and source artifacts rather than in missing citation links.
+
+\subsection{Assertion Structure}
+
+The assertion pilot was run on five fixed chunks during development. A triple-only version produced 35 entity observations, 27 compact claim observations, and 23 relation assertions in the first pass. Adding explicit conditions, polarity, and assertion verification reduced code/API/UI noise; a subsequent over-filtered version lost valid relations in one chunk. The current version restored those relations while preserving the filters: on the five chunks it produced 24 entity observations, 17 claim observations, and 16 assertions, with seven of seven retained relations in the most relation-dense chunk judged supported. These counts document a design trade-off between precision and recall; they are not a statistically powered ablation.
+
+\subsection{Staged Relation Extraction}
+
+On 2,093 original relation labels, a one-pass schema-constrained variant collapsed the vocabulary to four labels, omitted 314 source relations, duplicated 380, and introduced 230 unsupported relations. A lighter one-pass variant omitted 150, duplicated 796, and introduced 245. The two-stage protocol had zero structural omission, duplication, or invention in the corresponding bookkeeping comparison because it retained the fine-grained observation before normalization. Independent re-judging of the original text improved consistency from 46.5\% to 56.1\% and reduced ``none'' decisions from 5.6\% to 0.5\%. These are structural and consistency signals; they do not replace semantic accuracy annotation.
+
+\subsection{Identity and Alias Resolution}
+
+In a six-case identity set covering Paddle, batch normalization, GRU, CNN, SVM, and PCA, the initial resolver correctly separated or merged 4/6 cases. Adding incoming aliases, knowledge aliases, and a larger candidate set raised the result to 6/6 in the development snapshot. A 47-chunk run produced 260 entity observations, 198 canonical entities, 62 same-entity decisions, and zero unresolved decisions after replay. Manual inspection preserved distinctions such as MLP versus convolution and mathematical n-grams versus deep-learning convolution. The remaining known risk is granularity at order boundaries, such as the distinction between a general fully connected layer and a particular layer instance.
+
+\subsection{Projection Faithfulness}
+
+In a fresh 47-chunk audit, 184 of 203 claim observations reached semantic review: 150 were supported, 32 were insufficient, and two were contradicted. A manual sample of 31 supported edges accepted 27 projections and found four projection errors (87.1\% on this small sample). Errors included aliasing a convolution layer with its kernel, reversing an LSTM gate relation, confusing graph mode with symbolic programming, and reversing the cross-entropy/ masked-language-model direction. A targeted follow-up fixed the corresponding direction and condition checks and found no recurrence on the six cases tested. The sample is too small for a final accuracy claim, but it demonstrates why assertion support and claim projection must be scored separately.
+
+\subsection{Scaling and Integrity}
+
+The incremental Sutton--Barto run processed 324/324 chunks and produced 3,383 entities, 5,715 claims, 6,017 assertions, and 18,113 evidence links across two sources. A source-specific audit verified 17,196 text/hash joins. The run also exposed formula-symbol loss, an over-merge of Sarsa variants, duplicated claims, and over-generalized definitions. A separate empty-database run is currently incomplete and is therefore not included as a completed accuracy result. These observations support the engineering claim that the pipeline scales with auditable artifacts while also showing that scale does not guarantee semantic correctness.
+
+\section{Error Analysis}
+\label{sec:error}
+
+The errors fall into four recurring categories. First, source artifacts such as code snippets, API names, and user-interface labels can be mistaken for conceptual entities. Passage structure and assertion verification reduce this noise but do not eliminate it. Second, qualifiers are easy to lose when a full statement is compressed into a binary edge; this is the main motivation for storing assertions separately from claims. Third, identity resolution is sensitive to granularity: aliases, abbreviations, and multilingual forms should merge, while a type and an instance or two levels of a hierarchy should remain distinct. Fourth, technical notation and formulas are vulnerable to normalization that is harmless for prose but changes meaning for symbols.
+
+The development history is informative here. Adding a condition-aware assertion layer improved noise control but initially over-filtered valid relations. Separating relation discovery from normalization restored recall. Expanding alias context corrected identity collisions. Projection-specific checks caught direction errors that a generic support judge accepted. This sequence motivates the final experimental design, but it should not be mistaken for a clean causal intervention study; the controlled rerun is part of the next release.
+
+\section{Discussion}
+\label{sec:discussion}
+
+\paragraph{What ``AI-only'' means.} The system does not require a human to enumerate every domain relation or hand-tune entity rules. It does require an implementation schema for storing evidence and validation state, just as a database requires columns before it can store records. The distinction is between infrastructure and domain knowledge: the former is fixed for auditability, while the latter is induced from source text and remains open to new entities and predicates.
+
+\paragraph{Why high-quality text is central.} A graph intended for later interaction with a language model should not be created by asking that model to restate its own beliefs. Source passages provide an external anchor that can be cited, re-read, and replaced. The model is valuable for interpreting language and comparing alternatives, but its output is accepted only when the source supports it. This makes the graph useful as a retrieval, training, or evaluation layer without assuming that the graph is the final objective.
+
+\paragraph{Toward broader knowledge coverage.} The representation is designed for incremental expansion: new sources add observations, candidate identities can be revisited, and claims can be regenerated from assertions. Open vocabulary is important for worldwide coverage because a fixed ontology would encode today's domains and languages before the system encounters tomorrow's. The cost is that normalization and cross-lingual identity remain difficult and require explicit uncertainty rather than forced merges.
+
+\section{Limitations}
+\label{sec:limitations}
+
+This study has several limitations. First, the main benchmark and several diagnostic evaluations rely on a model-based judge, and the judge shares a model family with the construction system. The reported scores are therefore relative evidence under a frozen protocol, not a substitute for independent human gold labels. Second, the current benchmark is small and the full-book comparison is not yet a clean empty-database comparison across all systems; seeded and incremental runs must not be conflated with fair zero-shot construction. Third, most semantic audits use English technical text. Multilingual identity, low-resource sources, and culturally heterogeneous knowledge require dedicated data and adjudication. Fourth, the pipeline still fixes an infrastructure-level record schema and incurs substantial model and verification cost. Finally, we have not yet shown a downstream improvement in retrieval, language-model training, or factuality evaluation caused by the graph. Establishing that causal benefit, together with a larger independent annotation study and controlled mechanism ablations, is the next empirical step.
+
+\section*{Ethical Considerations}
+
+An automatically constructed graph can amplify errors, omissions, or biases present in its sources and in the model's interpretation. Evidence links make such errors easier to inspect but do not make a source authoritative or neutral. A deployment should preserve source licenses, record model and prompt versions, expose uncertainty, and avoid presenting unsupported claims as facts in high-stakes domains. We also recommend human review for sensitive knowledge and independent evaluation before using the graph to make decisions about people.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\appendix
+\section{Record Schema and Verification Fields}
+\label{app:schema}
+
+The released implementation stores source and passage identifiers, text hashes, section context, entity and relation observations, identity decisions, assertions, evidence links, claim projections, and run manifests. The minimum acceptance checks are:
+\begin{enumerate}
+  \item every evidence link resolves to an existing passage and span;
+  \item every assertion refers to existing canonical entities or an explicit unresolved observation;
+  \item every accepted claim points to a supported assertion;
+  \item every projection preserves relation direction and both arguments; and
+  \item every run records model, prompt, input hash, configuration, and completion markers.
+\end{enumerate}
+
+\section{Prompt and Evaluation Protocol}
+\label{app:protocol}
+
+The implementation prompts are versioned with the run manifest. The extraction prompts require JSON records with stable passage IDs and reject facts not stated in the passage. The verifier prompt receives the original passage and the complete assertion, and returns support and projection fields separately. The benchmark harness stores raw judge responses, retry reasons, item coverage, and per-model counts. The final submission should include the exact prompt templates, model snapshot identifiers, decoding parameters, and cost budget as supplementary material.
+
+\section{Current Status of Results}
+\label{app:status}
+
+Numbers in Sections~\ref{sec:results} and~\ref{sec:error} are a working evidence snapshot assembled from the repository artifacts. Before submission, they should be regenerated from a frozen commit, checked against independent annotations, and accompanied by confidence intervals or repeated-run variance where the benchmark permits it. In particular, the historical mechanism comparisons should be converted into matched, pre-registered ablations rather than presented as a chronological development narrative.
+
+\end{document}

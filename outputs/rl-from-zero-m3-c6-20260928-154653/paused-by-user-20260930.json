@@ -1,0 +1,9 @@
+{
+  "paused_at": "2026-09-30T09:26:30.690285+08:00",
+  "reason": "User requested pause; await explicit resume",
+  "progress": {
+    "done": 209,
+    "failed": 20
+  },
+  "quick_check": "ok"
+}

@@ -1,0 +1,3501 @@
+[
+  {
+    "index": 0,
+    "sha256": "783262198c9e728142a249bee4f8ba3786d9385b66b61f160e32abdce55491a4",
+    "section_path": [
+      "Chapter 1: Introduction"
+    ],
+    "location": "section Chapter 1: Introduction; page 23, chars 23-48 – section Chapter 1: Introduction; page 23, chars 1212-1659",
+    "chars": 1676
+  },
+  {
+    "index": 1,
+    "sha256": "f22fa4d2619d13d3646a11b599bc6199d8285d446e87d855fec611ac3e2831a6",
+    "section_path": [
+      "Chapter 1: Introduction",
+      "1.1 Reinforcement Learning"
+    ],
+    "location": "section Chapter 1: Introduction > 1.1 Reinforcement Learning; page 23, chars 1663-1692 – section Chapter 1: Introduction > 1.1 Reinforcement Learning; page 25, chars 9239-9468",
+    "chars": 7901
+  },
+  {
+    "index": 2,
+    "sha256": "a01f5af6bdbe9ec4410cece98052a90c0cf369df74d60f085e74516e4388c1fc",
+    "section_path": [
+      "Chapter 1: Introduction",
+      "1.1 Reinforcement Learning"
+    ],
+    "location": "section Chapter 1: Introduction > 1.1 Reinforcement Learning; page 25, chars 9239-9468 – section Chapter 1: Introduction > 1.1 Reinforcement Learning; page 26, chars 11753-12226",
+    "chars": 3027
+  },
+  {
+    "index": 3,
+    "sha256": "76193b0b1c573da37a372218097f32f77727c70e38f2ee8a4e39f9d873dc9b14",
+    "section_path": [
+      "Chapter 1: Introduction",
+      "1.2 Examples"
+    ],
+    "location": "section Chapter 1: Introduction > 1.2 Examples; page 26, chars 12230-12245 – section Chapter 1: Introduction > 1.2 Examples; page 28, chars 16353-16521",
+    "chars": 4366
+  },
+  {
+    "index": 4,
+    "sha256": "473c7840b8bdf09f4636aa5c93f1fb007b0e960b0a4e5fde185a56042e40c177",
+    "section_path": [
+      "Chapter 1: Introduction",
+      "1.3 Elements of Reinforcement Learning"
+    ],
+    "location": "section Chapter 1: Introduction > 1.3 Elements of Reinforcement Learning; page 28, chars 16525-16566 – section Chapter 1: Introduction > 1.3 Elements of Reinforcement Learning; page 29, chars 21109-21400",
+    "chars": 4936
+  },
+  {
+    "index": 5,
+    "sha256": "cafe49119068974dcf4d0542e5ce9c1c8dabfd1dd710447e35a6f94e9376e828",
+    "section_path": [
+      "Chapter 1: Introduction",
+      "1.4 Limitations and Scope"
+    ],
+    "location": "section Chapter 1: Introduction > 1.4 Limitations and Scope; page 29, chars 21404-21432 – section Chapter 1: Introduction > 1.4 Limitations and Scope; page 30, chars 24576-24827",
+    "chars": 3470
+  },
+  {
+    "index": 6,
+    "sha256": "11dc18a8c8be6b16ea4e39664e830d95d2ef9e50dbf02de2a48d7db17e0bf5a1",
+    "section_path": [
+      "Chapter 1: Introduction",
+      "1.5 An Extended Example: Tic-Tac-Toe"
+    ],
+    "location": "section Chapter 1: Introduction > 1.5 An Extended Example: Tic-Tac-Toe; page 30, chars 24831-24870 – section Chapter 1: Introduction > 1.5 An Extended Example: Tic-Tac-Toe; page 32, chars 32653-32771",
+    "chars": 7847
+  },
+  {
+    "index": 7,
+    "sha256": "50bd3cdbc66aea91371aa26e3e725a837749c7b2b137767181e0ec8358375cd3",
+    "section_path": [
+      "Chapter 1: Introduction",
+      "1.5 An Extended Example: Tic-Tac-Toe"
+    ],
+    "location": "section Chapter 1: Introduction > 1.5 An Extended Example: Tic-Tac-Toe; page 32, chars 32653-32771 – section Chapter 1: Introduction > 1.5 An Extended Example: Tic-Tac-Toe; page 34, chars 38689-39808",
+    "chars": 7232
+  },
+  {
+    "index": 8,
+    "sha256": "a200c85df864e037a444cf4123c7185d0713832e075258898b136f42c3cf878b",
+    "section_path": [
+      "Chapter 1: Introduction",
+      "1.5 An Extended Example: Tic-Tac-Toe"
+    ],
+    "location": "section Chapter 1: Introduction > 1.5 An Extended Example: Tic-Tac-Toe; page 34, chars 39809-40926 – section Chapter 1: Introduction > 1.5 An Extended Example: Tic-Tac-Toe; page 35, chars 41199-42148",
+    "chars": 2368
+  },
+  {
+    "index": 9,
+    "sha256": "217c665b1d22bb4d2b147194a432407c63f45d481e4272be9c9f80339be2b388",
+    "section_path": [
+      "Chapter 1: Introduction",
+      "1.6 Summary"
+    ],
+    "location": "section Chapter 1: Introduction > 1.6 Summary; page 35, chars 42152-42166 – section Chapter 1: Introduction > 1.6 Summary; page 35, chars 43338-43575",
+    "chars": 1454
+  },
+  {
+    "index": 10,
+    "sha256": "95baebd763fba16eaa2aa775383fd3bf32482c26287927e3209bbbee48485d3f",
+    "section_path": [
+      "Chapter 1: Introduction",
+      "1.7 Early History of Reinforcement Learning"
+    ],
+    "location": "section Chapter 1: Introduction > 1.7 Early History of Reinforcement Learning; page 35, chars 43579-43625 – section Chapter 1: Introduction > 1.7 Early History of Reinforcement Learning; page 37, chars 50309-51451",
+    "chars": 7961
+  },
+  {
+    "index": 11,
+    "sha256": "de039ee104df17727b9e4e55fc41d8c16ec6be682c2f23df6849f9df4f7f6136",
+    "section_path": [
+      "Chapter 1: Introduction",
+      "1.7 Early History of Reinforcement Learning"
+    ],
+    "location": "section Chapter 1: Introduction > 1.7 Early History of Reinforcement Learning; page 37, chars 51452-51715 – section Chapter 1: Introduction > 1.7 Early History of Reinforcement Learning; page 39, chars 58769-58937",
+    "chars": 7571
+  },
+  {
+    "index": 12,
+    "sha256": "80a15fa645a22763b63e869ba89f0abf7c0bc425b10cea0a829a14ad232142a3",
+    "section_path": [
+      "Chapter 1: Introduction",
+      "1.7 Early History of Reinforcement Learning"
+    ],
+    "location": "section Chapter 1: Introduction > 1.7 Early History of Reinforcement Learning; page 39, chars 58769-58937 – section Chapter 1: Introduction > 1.7 Early History of Reinforcement Learning; page 41, chars 66215-66470",
+    "chars": 7790
+  },
+  {
+    "index": 13,
+    "sha256": "48513de53e05c75cd5e122b989a19e2ddcc45fce9d214987cb08f83e4e27bd8e",
+    "section_path": [
+      "Chapter 1: Introduction",
+      "1.7 Early History of Reinforcement Learning"
+    ],
+    "location": "section Chapter 1: Introduction > 1.7 Early History of Reinforcement Learning; page 41, chars 66215-66470 – section Chapter 1: Introduction > 1.7 Early History of Reinforcement Learning; page 44, chars 73864-74062",
+    "chars": 7947
+  },
+  {
+    "index": 14,
+    "sha256": "5a4ed5c9fa3dd14bd310d89cbb16db568487ecc92e78b12941f582ae0f38b5ee",
+    "section_path": [
+      "Chapter 1: Introduction",
+      "1.7 Early History of Reinforcement Learning"
+    ],
+    "location": "section Chapter 1: Introduction > 1.7 Early History of Reinforcement Learning; page 43, chars 73600-73860 – section Chapter 1: Introduction > 1.7 Early History of Reinforcement Learning; page 44, chars 75070-75174",
+    "chars": 1621
+  },
+  {
+    "index": 15,
+    "sha256": "2def073f1a4a36876f4ccc0eec8193586c23d1b39ff62ddcbc61d7b0cfbeeb37",
+    "section_path": [
+      "Part I: Tabular Solution Methods"
+    ],
+    "location": "section Part I: Tabular Solution Methods; page 45, chars 75176-75210 – section Part I: Tabular Solution Methods; page 45, chars 76411-77510",
+    "chars": 2363
+  },
+  {
+    "index": 16,
+    "sha256": "64ba28f34d91ea1fbb6f2cdc57a3ad07fe019bbfb66b6087a2947e5c0af77c90",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 2: Multi-armed Bandits"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits; page 47, chars 77513-77546 – section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits; page 47, chars 78764-79506",
+    "chars": 2033
+  },
+  {
+    "index": 17,
+    "sha256": "e793a6c07a1757c0f84d8986c367367bb55c6368b6a559ccfb0ed4272d5bf709",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 2: Multi-armed Bandits",
+      "2.1 A k -armed Bandit Problem"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.1 A k -armed Bandit Problem; page 47, chars 79510-79543 – section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.1 A k -armed Bandit Problem; page 49, chars 83325-84248",
+    "chars": 4806
+  },
+  {
+    "index": 18,
+    "sha256": "e27fd760f1f7543d4b37b73e0b8426fb43115f3657ecd8ad7768a8054914398f",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 2: Multi-armed Bandits",
+      "2.2 Action-value Methods"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.2 Action-value Methods; page 49, chars 84252-84280 – section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.2 Action-value Methods; page 50, chars 86599-87417",
+    "chars": 3213
+  },
+  {
+    "index": 19,
+    "sha256": "7f1b476e0e74265ee892b0e875bf6fd23a46a77d9a5b18db70711f7d732e9810",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 2: Multi-armed Bandits",
+      "2.3 The 10-armed Testbed"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.3 The 10-armed Testbed; page 50, chars 87421-87449 – section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.3 The 10-armed Testbed; page 52, chars 94498-95189",
+    "chars": 7614
+  },
+  {
+    "index": 20,
+    "sha256": "ca929717dfd660cb122aa2c73a71bb1ba1e77874d60138254f0d38fb497c038b",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 2: Multi-armed Bandits",
+      "2.4 Incremental Implementation"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.4 Incremental Implementation; page 52, chars 95193-95227 – section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.4 Incremental Implementation; page 54, chars 98775-99151",
+    "chars": 4006
+  },
+  {
+    "index": 21,
+    "sha256": "faec12285a42c24d278895db17e52054f054f2a18e0781bfc52ca08cbacd9f16",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 2: Multi-armed Bandits",
+      "2.5 Tracking a Nonstationary Problem"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.5 Tracking a Nonstationary Problem; page 54, chars 99157-99197 – section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.5 Tracking a Nonstationary Problem; page 55, chars 103236-104280",
+    "chars": 5113
+  },
+  {
+    "index": 22,
+    "sha256": "97a6bb6696844bb41fa9618fc04949cef50814b9004d89236eb724140e89a1d9",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 2: Multi-armed Bandits",
+      "2.6 Optimistic Initial Values"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.6 Optimistic Initial Values; page 56, chars 104285-104318 – section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.6 Optimistic Initial Values; page 57, chars 108769-109875",
+    "chars": 5623
+  },
+  {
+    "index": 23,
+    "sha256": "15ef464550420f4aa4641eb509f0720ff266779ffc5d0d104bbce0124df6d5be",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 2: Multi-armed Bandits",
+      "2.7 Upper-Confidence-Bound Action Selection"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.7 Upper-Confidence-Bound Action Selection; page 57, chars 109879-109926 – section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.7 Upper-Confidence-Bound Action Selection; page 58, chars 113329-113666",
+    "chars": 3785
+  },
+  {
+    "index": 24,
+    "sha256": "d4f28acf7de2f30116fa0512a535ebe959e2c75f392426f5d7397842521a4142",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 2: Multi-armed Bandits",
+      "2.8 Gradient Bandit Algorithms"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.8 Gradient Bandit Algorithms; page 59, chars 113671-113705 – section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.8 Gradient Bandit Algorithms; page 61, chars 120957-121470",
+    "chars": 7793
+  },
+  {
+    "index": 25,
+    "sha256": "fec77596af7c5e0828f45788167c0c0555e2dcc3471dcad041232ae2738126a6",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 2: Multi-armed Bandits",
+      "2.8 Gradient Bandit Algorithms"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.8 Gradient Bandit Algorithms; page 61, chars 121475-121785 – section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.8 Gradient Bandit Algorithms; page 62, chars 124381-125267",
+    "chars": 3759
+  },
+  {
+    "index": 26,
+    "sha256": "29f6b86b32e3f718811c8ef26bc802b619e9e0cb6d6dfd9a9ade974edbb5a2c9",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 2: Multi-armed Bandits",
+      "2.9 Associative Search (Contextual Bandits)"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.9 Associative Search (Contextual Bandits); page 63, chars 125272-125319 – section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.9 Associative Search (Contextual Bandits); page 63, chars 127913-128700",
+    "chars": 3476
+  },
+  {
+    "index": 27,
+    "sha256": "226a6a2e5869fb0c1d55435685505edd6e14293b5de98c0e34dc7b688aab618d",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 2: Multi-armed Bandits",
+      "2.10 Summary"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.10 Summary; page 64, chars 128705-128721 – section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.10 Summary; page 66, chars 135325-135674",
+    "chars": 6975
+  },
+  {
+    "index": 28,
+    "sha256": "dc7d20b8669bbeed20868b5badde7dafbb00a02f05e72d327547ab58feee5545",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 2: Multi-armed Bandits",
+      "2.10 Summary"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.10 Summary; page 66, chars 135325-135674 – section Part I: Tabular Solution Methods > Chapter 2: Multi-armed Bandits > 2.10 Summary; page 67, chars 141070-141498",
+    "chars": 6270
+  },
+  {
+    "index": 29,
+    "sha256": "9a92a44fc245b507abd669f8d5cc50631ae97b50de3b455e4c5728f09937d8a9",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 3: Finite Markov Decision Processes"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes; page 69, chars 141501-141547 – section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes; page 69, chars 142780-143189",
+    "chars": 1728
+  },
+  {
+    "index": 30,
+    "sha256": "1efb238e366f6ab22d2c7ecea40f2ed5fd0b713e596a8ec2b2edb5046d4610a6",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 3: Finite Markov Decision Processes",
+      "3.1 The Agent–Environment Interface"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.1 The Agent–Environment Interface; page 69, chars 143194-143233 – section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.1 The Agent–Environment Interface; page 72, chars 149895-151086",
+    "chars": 7965
+  },
+  {
+    "index": 31,
+    "sha256": "0255ab9999d0a9f0f52c9b2f07f4b955ac3f2cd3dff5c0d05dbfc629fdcea86f",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 3: Finite Markov Decision Processes",
+      "3.1 The Agent–Environment Interface"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.1 The Agent–Environment Interface; page 72, chars 151090-152256 – section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.1 The Agent–Environment Interface; page 74, chars 156970-158115",
+    "chars": 7123
+  },
+  {
+    "index": 32,
+    "sha256": "430948d739fbcd74b0fd54428ad22f9fa1e3bf66d308f089fbf07bf6b65d8c16",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 3: Finite Markov Decision Processes",
+      "3.1 The Agent–Environment Interface"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.1 The Agent–Environment Interface; page 74, chars 158121-159299 – section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.1 The Agent–Environment Interface; page 75, chars 162187-162467",
+    "chars": 4390
+  },
+  {
+    "index": 33,
+    "sha256": "0d077077beade51c06e4f4f9b7161048adcbf638aea6c1e2dae3b6bbdc0fc0ab",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 3: Finite Markov Decision Processes",
+      "3.2 Goals and Rewards"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.2 Goals and Rewards; page 75, chars 162471-162496 – section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.2 Goals and Rewards; page 76, chars 164541-165299",
+    "chars": 2881
+  },
+  {
+    "index": 34,
+    "sha256": "7cf47249d9449184efd250c3036086f68f425e9d0d3d27ae8030412a1d2ff4e0",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 3: Finite Markov Decision Processes",
+      "3.3 Returns and Episodes"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.3 Returns and Episodes; page 76, chars 165303-165331 – section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.3 Returns and Episodes; page 78, chars 171115-172294",
+    "chars": 7081
+  },
+  {
+    "index": 35,
+    "sha256": "00b1728a7f07fbb422564847cc2935016047efcee842016eb2f8bb4e97c39bcf",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 3: Finite Markov Decision Processes",
+      "3.3 Returns and Episodes"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.3 Returns and Episodes; page 78, chars 172296-173441 – section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.3 Returns and Episodes; page 78, chars 173508-173772",
+    "chars": 1431
+  },
+  {
+    "index": 36,
+    "sha256": "962b3ffba5069e2dea018264253937a6048ed581cfe978081528358c399b8c85",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 3: Finite Markov Decision Processes",
+      "3.4 Unified Notation for Episodic and Continuing Tasks"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.4 Unified Notation for Episodic and Continuing Tasks; page 79, chars 173777-173835 – section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.4 Unified Notation for Episodic and Continuing Tasks; page 80, chars 177016-177152",
+    "chars": 3415
+  },
+  {
+    "index": 37,
+    "sha256": "2de9b8c41e31fbfd87b15c52756beb2aab76aa1e6f5566b6afbb0280d8e70fbf",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 3: Finite Markov Decision Processes",
+      "3.5 Policies and Value Functions"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.5 Policies and Value Functions; page 80, chars 177156-177192 – section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.5 Policies and Value Functions; page 81, chars 183357-184216",
+    "chars": 7054
+  },
+  {
+    "index": 38,
+    "sha256": "651bde99e71b9acdde9e84b55bc3201672aed08943b24e6c03bb9ae2278c2f9d",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 3: Finite Markov Decision Processes",
+      "3.5 Policies and Value Functions"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.5 Policies and Value Functions; page 82, chars 184217-185360 – section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.5 Policies and Value Functions; page 82, chars 191131-192266",
+    "chars": 7608
+  },
+  {
+    "index": 39,
+    "sha256": "9a1623811405d4e3b61d0b6fd82b2d8a0c029ba20e9ef9f8b3a693cdbcbb678f",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 3: Finite Markov Decision Processes",
+      "3.5 Policies and Value Functions"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.5 Policies and Value Functions; page 82, chars 192272-192920 – section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.5 Policies and Value Functions; page 84, chars 199252-200257",
+    "chars": 7953
+  },
+  {
+    "index": 40,
+    "sha256": "2714238b7cad922e6c2218db5db643770996e52f9abe4e8b2266d8a47dd55cf4",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 3: Finite Markov Decision Processes",
+      "3.6 Optimal Policies and Optimal Value Functions"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.6 Optimal Policies and Optimal Value Functions; page 84, chars 200261-200313 – section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.6 Optimal Policies and Optimal Value Functions; page 86, chars 206983-207699",
+    "chars": 7533
+  },
+  {
+    "index": 41,
+    "sha256": "b3dbf9a1f3009963ca9212defd776740211351c5eafab9f3a68f9cea11580036",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 3: Finite Markov Decision Processes",
+      "3.6 Optimal Policies and Optimal Value Functions"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.6 Optimal Policies and Optimal Value Functions; page 87, chars 207703-208858 – section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.6 Optimal Policies and Optimal Value Functions; page 89, chars 214360-215360",
+    "chars": 7641
+  },
+  {
+    "index": 42,
+    "sha256": "134aa31e6bca311bd422773b3399b42bdf51cf6bdc7a1bd7da00a3d3a41adeb8",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 3: Finite Markov Decision Processes",
+      "3.7 Optimality and Approximation"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.7 Optimality and Approximation; page 89, chars 215365-215401 – section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.7 Optimality and Approximation; page 90, chars 217650-218220",
+    "chars": 2894
+  },
+  {
+    "index": 43,
+    "sha256": "45d771ec57bfd59df83bae66a2519ad1125ed665a1535c2df7f664bfebd0582f",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 3: Finite Markov Decision Processes",
+      "3.8 Summary"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.8 Summary; page 90, chars 218224-218239 – section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.8 Summary; page 92, chars 224460-225180",
+    "chars": 7042
+  },
+  {
+    "index": 44,
+    "sha256": "f65ff6b6e9272ab5a84689556a51f9596d7c7af7dc166f4e573d28c50003031e",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 3: Finite Markov Decision Processes",
+      "3.8 Summary"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.8 Summary; page 92, chars 225182-226340 – section Part I: Tabular Solution Methods > Chapter 3: Finite Markov Decision Processes > 3.8 Summary; page 93, chars 228803-229745",
+    "chars": 4604
+  },
+  {
+    "index": 45,
+    "sha256": "fabb9f965460381a15d4750e778fc750b121cc5b7d3abf36773667761ab83816",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 4: Dynamic Programming"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming; page 95, chars 229748-229781 – section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming; page 96, chars 232537-232768",
+    "chars": 3063
+  },
+  {
+    "index": 46,
+    "sha256": "2c72afd4d42079916e43eeb2d3fca10f070fa32c8e953e913b91f1989945ab3d",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 4: Dynamic Programming",
+      "4.1 Policy Evaluation (Prediction)"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.1 Policy Evaluation (Prediction); page 96, chars 232772-232810 – section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.1 Policy Evaluation (Prediction); page 98, chars 239772-240578",
+    "chars": 7838
+  },
+  {
+    "index": 47,
+    "sha256": "246e808033ed6418f148f3bdf7d329701ef5363091f36513e774f5f1801235b1",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 4: Dynamic Programming",
+      "4.2 Policy Improvement"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.2 Policy Improvement; page 98, chars 240583-240609 – section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.2 Policy Improvement; page 101, chars 247871-248124",
+    "chars": 7506
+  },
+  {
+    "index": 48,
+    "sha256": "e1bc50350f3f424a69ebab20edb59e5b61fd1e76516c91b2cb7b222aadde536a",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 4: Dynamic Programming",
+      "4.2 Policy Improvement"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.2 Policy Improvement; page 101, chars 247871-248124 – section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.2 Policy Improvement; page 102, chars 249949-250098",
+    "chars": 2261
+  },
+  {
+    "index": 49,
+    "sha256": "fdb5bf8bcd21c131582ac28c652e38c00459900a7178640da68ed70018940ddc",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 4: Dynamic Programming",
+      "4.3 Policy Iteration"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.3 Policy Iteration; page 102, chars 250102-250126 – section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.3 Policy Iteration; page 103, chars 258357-258570",
+    "chars": 7858
+  },
+  {
+    "index": 50,
+    "sha256": "4b505bd12141fbea6eb687546c2d3e3ca75c095cc8d17c82fce22c2d5efd5618",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 4: Dynamic Programming",
+      "4.3 Policy Iteration"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.3 Policy Iteration; page 103, chars 258357-258570 – section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.3 Policy Iteration; page 104, chars 264630-264951",
+    "chars": 5703
+  },
+  {
+    "index": 51,
+    "sha256": "9ef64f176e1c2f54a2af395e84c77d961315bc1ffd1468b76e012f6f079b0ae5",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 4: Dynamic Programming",
+      "4.4 Value Iteration"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.4 Value Iteration; page 104, chars 264955-264978 – section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.4 Value Iteration; page 106, chars 272292-272467",
+    "chars": 7574
+  },
+  {
+    "index": 52,
+    "sha256": "315e3822d2fc80e19f3d95a4920ff54c6c348f2f62bd7d1c8bd89f32b5a7f820",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 4: Dynamic Programming",
+      "4.5 Asynchronous Dynamic Programming"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.5 Asynchronous Dynamic Programming; page 107, chars 272472-272512 – section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.5 Asynchronous Dynamic Programming; page 108, chars 275849-275954",
+    "chars": 3548
+  },
+  {
+    "index": 53,
+    "sha256": "a651d74745d056ffbfc40a75dab4ab10210a8fbd1990889dc653dfaef89cd86c",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 4: Dynamic Programming",
+      "4.6 Generalized Policy Iteration"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.6 Generalized Policy Iteration; page 108, chars 275960-275996 – section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.6 Generalized Policy Iteration; page 109, chars 280182-280297",
+    "chars": 4394
+  },
+  {
+    "index": 54,
+    "sha256": "b49990efb9315247eb5de759a87acbda38c811bdf9e6f9890203fd3cc516911a",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 4: Dynamic Programming",
+      "4.7 Efficiency of Dynamic Programming"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.7 Efficiency of Dynamic Programming; page 109, chars 280301-280342 – section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.7 Efficiency of Dynamic Programming; page 110, chars 282373-282904",
+    "chars": 2637
+  },
+  {
+    "index": 55,
+    "sha256": "ee363f32be6349d45498f787091d50de6b4ad9e5df57accb3f1e8ea67e53753f",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 4: Dynamic Programming",
+      "4.8 Summary"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.8 Summary; page 110, chars 282908-282923 – section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.8 Summary; page 112, chars 289855-290583",
+    "chars": 7763
+  },
+  {
+    "index": 56,
+    "sha256": "56e6ec07d7f2b866235261d9d6299fb196bb3174605ff4843059a483d3c6cb49",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 4: Dynamic Programming",
+      "4.8 Summary"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.8 Summary; page 112, chars 290585-290940 – section Part I: Tabular Solution Methods > Chapter 4: Dynamic Programming > 4.8 Summary; page 112, chars 290585-290940",
+    "chars": 365
+  },
+  {
+    "index": 57,
+    "sha256": "2d945918d5a817ee1250cf39ccfa9204f0b87c92027609d57ea512c744f8681f",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 5: Monte Carlo Methods"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods; page 113, chars 290942-290975 – section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods; page 114, chars 293443-294132",
+    "chars": 3246
+  },
+  {
+    "index": 58,
+    "sha256": "4cfc68202797795ba7efed42e6403cf720d434eb830c612bcee09992e4dac964",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 5: Monte Carlo Methods",
+      "5.1 Monte Carlo Prediction"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.1 Monte Carlo Prediction; page 114, chars 294136-294166 – section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.1 Monte Carlo Prediction; page 116, chars 301135-301653",
+    "chars": 7246
+  },
+  {
+    "index": 59,
+    "sha256": "2b439da2ec7c10aba42d1bb52c3f5d67c4a78a1ed16d1bc66db74820377eb771",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 5: Monte Carlo Methods",
+      "5.1 Monte Carlo Prediction"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.1 Monte Carlo Prediction; page 116, chars 301658-302841 – section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.1 Monte Carlo Prediction; page 118, chars 306222-306513",
+    "chars": 4924
+  },
+  {
+    "index": 60,
+    "sha256": "f2ed69238ec436558824e15fdfe2fc10855295f6bc964a513183c45ee460aa9a",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 5: Monte Carlo Methods",
+      "5.2 Monte Carlo Estimation of Action Values"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.2 Monte Carlo Estimation of Action Values; page 118, chars 306517-306564 – section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.2 Monte Carlo Estimation of Action Values; page 119, chars 309673-310069",
+    "chars": 3602
+  },
+  {
+    "index": 61,
+    "sha256": "d2fdeae9978e938670755f2c73f388de466b2abc5d35508207716321cf413531",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 5: Monte Carlo Methods",
+      "5.3 Monte Carlo Control"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.3 Monte Carlo Control; page 119, chars 310073-310100 – section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.3 Monte Carlo Control; page 121, chars 316775-317918",
+    "chars": 7905
+  },
+  {
+    "index": 62,
+    "sha256": "d1fc623be978e70434586bf5779971286df41d8dfa572274e21f35cfa9a96fbb",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 5: Monte Carlo Methods",
+      "5.3 Monte Carlo Control"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.3 Monte Carlo Control; page 121, chars 317919-319002 – section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.3 Monte Carlo Control; page 122, chars 325680-326001",
+    "chars": 6484
+  },
+  {
+    "index": 63,
+    "sha256": "47244702731b8532208b727ca36a6b1cdf98f70f3f84fd380ea38eaf5b79639f",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 5: Monte Carlo Methods",
+      "5.4 Monte Carlo Control without Exploring Starts"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.4 Monte Carlo Control without Exploring Starts; page 122, chars 326003-326055 – section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.4 Monte Carlo Control without Exploring Starts; page 124, chars 332562-333327",
+    "chars": 7334
+  },
+  {
+    "index": 64,
+    "sha256": "bedfbbc03a3e2927018e71b474a8d731c50dc13863649ec394688ecc5991bc07",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 5: Monte Carlo Methods",
+      "5.4 Monte Carlo Control without Exploring Starts"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.4 Monte Carlo Control without Exploring Starts; page 124, chars 333329-334012 – section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.4 Monte Carlo Control without Exploring Starts; page 125, chars 334536-334811",
+    "chars": 1510
+  },
+  {
+    "index": 65,
+    "sha256": "9c005d5e4ebbe633bb6238af7aca30f335302d28da8926532255cc5e8b926715",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 5: Monte Carlo Methods",
+      "5.5 O↵-policy Prediction via Importance Sampling"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.5 O↵-policy Prediction via Importance Sampling; page 125, chars 334815-334867 – section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.5 O↵-policy Prediction via Importance Sampling; page 127, chars 341361-341747",
+    "chars": 7002
+  },
+  {
+    "index": 66,
+    "sha256": "d04b4a893503f9b3381767fcf06e27fc31ae7d7c8c74ee9b56397149663e95a7",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 5: Monte Carlo Methods",
+      "5.5 O↵-policy Prediction via Importance Sampling"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.5 O↵-policy Prediction via Importance Sampling; page 126, chars 341351-341357 – section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.5 O↵-policy Prediction via Importance Sampling; page 129, chars 349246-349266",
+    "chars": 7821
+  },
+  {
+    "index": 67,
+    "sha256": "eb2d4a9238393bfaf9bb580a9bc5bc1346f298902b7069d1ba5766edf46dab18",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 5: Monte Carlo Methods",
+      "5.5 O↵-policy Prediction via Importance Sampling"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.5 O↵-policy Prediction via Importance Sampling; page 129, chars 348931-349047 – section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.5 O↵-policy Prediction via Importance Sampling; page 130, chars 353547-353806",
+    "chars": 4901
+  },
+  {
+    "index": 68,
+    "sha256": "4d068b5d9430ca537b39aaec4ec19cd044cd5ed75e924f0e96b37a4ce7b0babe",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 5: Monte Carlo Methods",
+      "5.6 Incremental Implementation"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.6 Incremental Implementation; page 131, chars 353811-353845 – section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.6 Incremental Implementation; page 132, chars 356650-357348",
+    "chars": 3599
+  },
+  {
+    "index": 69,
+    "sha256": "a91110dc4e326aedff701e41d22b6fa1d3a9a6d58c5b3ab7bed4055b3e8a7618",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 5: Monte Carlo Methods",
+      "5.7 O↵-policy Monte Carlo Control"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.7 O↵-policy Monte Carlo Control; page 132, chars 357354-357391 – section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.7 O↵-policy Monte Carlo Control; page 134, chars 362620-363341",
+    "chars": 6015
+  },
+  {
+    "index": 70,
+    "sha256": "95bac8065111ff46a29411f8bdddda942035ad90c3f20b70d8471b15cf563938",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 5: Monte Carlo Methods",
+      "5.8 *Discounting-aware Importance Sampling"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.8 *Discounting-aware Importance Sampling; page 134, chars 363345-363391 – section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.8 *Discounting-aware Importance Sampling; page 135, chars 367735-367940",
+    "chars": 4658
+  },
+  {
+    "index": 71,
+    "sha256": "49c80834dc6322e0208065a1cbaf37df94f9c87ae3ca9b1255dd54760f7080a3",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 5: Monte Carlo Methods",
+      "5.9 *Per-decision Importance Sampling"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.9 *Per-decision Importance Sampling; page 136, chars 367945-367986 – section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.9 *Per-decision Importance Sampling; page 137, chars 370875-371549",
+    "chars": 3602
+  },
+  {
+    "index": 72,
+    "sha256": "a649a5422cd1bc2902322890bf01eee2074bca828e93a5f8515901e2aa630ea0",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 5: Monte Carlo Methods",
+      "5.10 Summary"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.10 Summary; page 137, chars 371553-371569 – section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.10 Summary; page 139, chars 378965-379241",
+    "chars": 7791
+  },
+  {
+    "index": 73,
+    "sha256": "0b8386a212ab7122b89591346dd29b70065aaec896e847b9fd1c215b754d93df",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 5: Monte Carlo Methods",
+      "5.10 Summary"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.10 Summary; page 139, chars 378850-378963 – section Part I: Tabular Solution Methods > Chapter 5: Monte Carlo Methods > 5.10 Summary; page 139, chars 379542-379879",
+    "chars": 1069
+  },
+  {
+    "index": 74,
+    "sha256": "4aa4c6f221d492d799fb7a54457818195804fdba48efd62f47552b8ddbea1371",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 6: Temporal-Di↵erence Learning"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning; page 141, chars 379882-379923 – section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning; page 141, chars 381102-381326",
+    "chars": 1484
+  },
+  {
+    "index": 75,
+    "sha256": "25aa834c391f685a7bb915e03e0bb4d027a5449dc82699bb5f1e07759570f834",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 6: Temporal-Di↵erence Learning",
+      "6.1 TD Prediction"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.1 TD Prediction; page 141, chars 381331-381352 – section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.1 TD Prediction; page 144, chars 387982-389097",
+    "chars": 7885
+  },
+  {
+    "index": 76,
+    "sha256": "c38643773d90d9956a11f524dde50e6028ed70d609225704f2f5b54baab9ce7c",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 6: Temporal-Di↵erence Learning",
+      "6.1 TD Prediction"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.1 TD Prediction; page 144, chars 389104-390276 – section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.1 TD Prediction; page 145, chars 394077-395024",
+    "chars": 5963
+  },
+  {
+    "index": 77,
+    "sha256": "ca74050bfd03b720a631974ea425267ec262125a0e4b63fb9336aa468eda6f9d",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 6: Temporal-Di↵erence Learning",
+      "6.2 Advantages of TD Prediction Methods"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.2 Advantages of TD Prediction Methods; page 146, chars 395029-395072 – section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.2 Advantages of TD Prediction Methods; page 147, chars 401410-402320",
+    "chars": 7306
+  },
+  {
+    "index": 78,
+    "sha256": "496e788a2326f80e7956ee0b91984e500cccaa838a8fd3d323273b7dc1794cf2",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 6: Temporal-Di↵erence Learning",
+      "6.2 Advantages of TD Prediction Methods"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.2 Advantages of TD Prediction Methods; page 148, chars 402324-403451 – section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.2 Advantages of TD Prediction Methods; page 148, chars 403452-403715",
+    "chars": 1412
+  },
+  {
+    "index": 79,
+    "sha256": "59b90b6b3ff3891e78d79c2aabd6181ca0ff4b43311180bda0a0c73e79035d60",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 6: Temporal-Di↵erence Learning",
+      "6.3 Optimality of TD(0)"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.3 Optimality of TD(0); page 148, chars 403719-403746 – section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.3 Optimality of TD(0); page 150, chars 409957-411110",
+    "chars": 7481
+  },
+  {
+    "index": 80,
+    "sha256": "5a57f577bb275935d168b364850c923bfe0151af4894bec29737ddf80ecd2409",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 6: Temporal-Di↵erence Learning",
+      "6.3 Optimality of TD(0)"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.3 Optimality of TD(0); page 150, chars 411111-412239 – section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.3 Optimality of TD(0); page 150, chars 412241-412510",
+    "chars": 1419
+  },
+  {
+    "index": 81,
+    "sha256": "d9fd997dca5de67adde7fbd32f499b84d15836d3628b76dc12581cd17433cac5",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 6: Temporal-Di↵erence Learning",
+      "6.4 Sarsa: On-policy TD Control"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.4 Sarsa: On-policy TD Control; page 151, chars 412515-412550 – section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.4 Sarsa: On-policy TD Control; page 153, chars 418546-419588",
+    "chars": 7171
+  },
+  {
+    "index": 82,
+    "sha256": "fa004a36056d904f412b6f16b87ddc5e2910dafb95158e19acda9641bffed261",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 6: Temporal-Di↵erence Learning",
+      "6.5 Q-learning: O↵-policy TD Control"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.5 Q-learning: O↵-policy TD Control; page 153, chars 419592-419632 – section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.5 Q-learning: O↵-policy TD Control; page 154, chars 424844-425372",
+    "chars": 5800
+  },
+  {
+    "index": 83,
+    "sha256": "f7c0097b68bb9d787be67a166323bf4c52d7c446ce3c3f4a197fd43b05fabac9",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 6: Temporal-Di↵erence Learning",
+      "6.6 Expected Sarsa"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.6 Expected Sarsa; page 155, chars 425377-425399 – section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.6 Expected Sarsa; page 155, chars 432884-432907",
+    "chars": 7145
+  },
+  {
+    "index": 84,
+    "sha256": "816337df6893b0a556b8a7aa779e5282d383aa69fa9381ee003d2dc9e2e3c3c9",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 6: Temporal-Di↵erence Learning",
+      "6.6 Expected Sarsa"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.6 Expected Sarsa; page 155, chars 432884-432907 – section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.6 Expected Sarsa; page 156, chars 436875-437955",
+    "chars": 4864
+  },
+  {
+    "index": 85,
+    "sha256": "1ab439ed4e2b460702e4e056701c5efee174d765b323b350f95a496411c56302",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 6: Temporal-Di↵erence Learning",
+      "6.7 Maximization Bias and Double Learning"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.7 Maximization Bias and Double Learning; page 156, chars 437959-438004 – section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.7 Maximization Bias and Double Learning; page 158, chars 444713-444872",
+    "chars": 6906
+  },
+  {
+    "index": 86,
+    "sha256": "6401baf5a5966e3eea2fe821ab7f101e01ce0064bd5d23a66422fde74701cdb7",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 6: Temporal-Di↵erence Learning",
+      "6.8 Games, Afterstates, and Other Special Cases"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.8 Games, Afterstates, and Other Special Cases; page 158, chars 444878-444929 – section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.8 Games, Afterstates, and Other Special Cases; page 159, chars 448055-448309",
+    "chars": 3491
+  },
+  {
+    "index": 87,
+    "sha256": "ceb2f628560d7232180ba2fc250ab1c533d842253fc48f65cdaa0f059a6d9f72",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 6: Temporal-Di↵erence Learning",
+      "6.9 Summary"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.9 Summary; page 160, chars 448314-448329 – section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.9 Summary; page 162, chars 455256-456188",
+    "chars": 7972
+  },
+  {
+    "index": 88,
+    "sha256": "ce1b958297db562cec56bad1e81acc59af83e3394b8929a198db8bb696e759f3",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 6: Temporal-Di↵erence Learning",
+      "6.9 Summary"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.9 Summary; page 162, chars 456190-456412 – section Part I: Tabular Solution Methods > Chapter 6: Temporal-Di↵erence Learning > 6.9 Summary; page 162, chars 456414-456563",
+    "chars": 393
+  },
+  {
+    "index": 89,
+    "sha256": "f31046707bfbd2c544519dd0c1715bbd4544ee19fa8396a2b74c9c46dd1f8361",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 7: n-step Bootstrapping"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 7: n-step Bootstrapping; page 163, chars 456565-456599 – section Part I: Tabular Solution Methods > Chapter 7: n-step Bootstrapping; page 163, chars 457780-458643",
+    "chars": 2118
+  },
+  {
+    "index": 90,
+    "sha256": "8e183cb172770ef7cf4cd37587bafb647a0082c33c0f22ddcf7a042ba499490e",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 7: n-step Bootstrapping",
+      "7.1 n-step TD Prediction"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 7: n-step Bootstrapping > 7.1 n-step TD Prediction; page 164, chars 458648-458676 – section Part I: Tabular Solution Methods > Chapter 7: n-step Bootstrapping > 7.1 n-step TD Prediction; page 166, chars 465110-465953",
+    "chars": 7267
+  },
+  {
+    "index": 91,
+    "sha256": "330a837c1819f3fed025e19eaf7a69e9268a8ac5d5d4f713c1284ba16dd8b2f3",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 7: n-step Bootstrapping",
+      "7.1 n-step TD Prediction"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 7: n-step Bootstrapping > 7.1 n-step TD Prediction; page 166, chars 465955-466831 – section Part I: Tabular Solution Methods > Chapter 7: n-step Bootstrapping > 7.1 n-step TD Prediction; page 167, chars 469092-469432",
+    "chars": 3382
+  },
+  {
+    "index": 92,
+    "sha256": "a4dbb4a4ec0779f114b202dc53bcedda3f45baa63d816689c8f3a1872c1d0d98",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 7: n-step Bootstrapping",
+      "7.2 n-step Sarsa"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 7: n-step Bootstrapping > 7.2 n-step Sarsa; page 167, chars 469436-469456 – section Part I: Tabular Solution Methods > Chapter 7: n-step Bootstrapping > 7.2 n-step Sarsa; page 170, chars 475290-475473",
+    "chars": 6091
+  },
+  {
+    "index": 93,
+    "sha256": "28f2d0c05c5221b438bffb84a537d2ac373a7f8d6f05fee6fceffc0c754578d6",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 7: n-step Bootstrapping",
+      "7.3 n-step O↵-policy Learning"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 7: n-step Bootstrapping > 7.3 n-step O↵-policy Learning; page 170, chars 475477-475510 – section Part I: Tabular Solution Methods > Chapter 7: n-step Bootstrapping > 7.3 n-step O↵-policy Learning; page 172, chars 479666-480165",
+    "chars": 4726
+  },
+  {
+    "index": 94,
+    "sha256": "220182e0d6f6bbc5a064da02f96ddb52af53ecc52c67f06d823cb65e2c30097e",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 7: n-step Bootstrapping",
+      "7.4 *Per-decision Methods with Control Variates"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 7: n-step Bootstrapping > 7.4 *Per-decision Methods with Control Variates; page 172, chars 480168-480219 – section Part I: Tabular Solution Methods > Chapter 7: n-step Bootstrapping > 7.4 *Per-decision Methods with Control Variates; page 174, chars 486517-486668",
+    "chars": 6521
+  },
+  {
+    "index": 95,
+    "sha256": "3d68d194b54c9451cb9ab1f41e5aa6d26d8debfc58ea91f769a04f999a7c9f24",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 7: n-step Bootstrapping",
+      "7.5 O↵-policy Learning Without Importance Sampling: The n-step Tree Backup Algorithm"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 7: n-step Bootstrapping > 7.5 O↵-policy Learning Without Importance Sampling: The n-step Tree Backup Algorithm; page 174, chars 486672-486760 – section Part I: Tabular Solution Methods > Chapter 7: n-step Bootstrapping > 7.5 O↵-policy Learning Without Importance Sampling: The n-step Tree Backup Algorithm; page 176, chars 493432-493522",
+    "chars": 6873
+  },
+  {
+    "index": 96,
+    "sha256": "22264e863500391214a7ad73947b6f493e6db98c40f2f0e97e134fe4e60b9438",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 7: n-step Bootstrapping",
+      "7.6 *A Unifying Algorithm: n-step Q( )"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 7: n-step Bootstrapping > 7.6 *A Unifying Algorithm: n-step Q( ); page 176, chars 493527-493569 – section Part I: Tabular Solution Methods > Chapter 7: n-step Bootstrapping > 7.6 *A Unifying Algorithm: n-step Q( ); page 178, chars 499103-499413",
+    "chars": 5606
+  },
+  {
+    "index": 97,
+    "sha256": "30f9c01207b91210131e07139c268df95089fc15cf4517ef95d53ff868da2ad0",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 7: n-step Bootstrapping",
+      "7.7 Summary"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 7: n-step Bootstrapping > 7.7 Summary; page 179, chars 499418-499433 – section Part I: Tabular Solution Methods > Chapter 7: n-step Bootstrapping > 7.7 Summary; page 180, chars 503281-503452",
+    "chars": 4114
+  },
+  {
+    "index": 98,
+    "sha256": "2c3466be92d28c23f042ed669fc48d7b30796fedf8876bd5c8cbfbea444f223c",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods; page 181, chars 503454-503510 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods; page 181, chars 504681-504760",
+    "chars": 1346
+  },
+  {
+    "index": 99,
+    "sha256": "468dd464a461ccdecb42a276c049dc85f1b296e29120a893fb5deeb3ae94e42a",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.1 Models and Planning"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.1 Models and Planning; page 181, chars 504765-504792 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.1 Models and Planning; page 183, chars 511422-511937",
+    "chars": 7242
+  },
+  {
+    "index": 100,
+    "sha256": "adbdf80a1c4d5c9a9489d2b215f7625abc8e62db75cdde84c0197c06840abee4",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.2 Dyna: Integrated Planning, Acting, and Learning"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.2 Dyna: Integrated Planning, Acting, and Learning; page 183, chars 511941-511996 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.2 Dyna: Integrated Planning, Acting, and Learning; page 186, chars 519662-519676",
+    "chars": 7709
+  },
+  {
+    "index": 101,
+    "sha256": "477d00434fb263aa1e3d395f51e8f4b90a3a7235c6cc34445cb599d363656517",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.2 Dyna: Integrated Planning, Acting, and Learning"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.2 Dyna: Integrated Planning, Acting, and Learning; page 186, chars 519226-519657 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.2 Dyna: Integrated Planning, Acting, and Learning; page 188, chars 524411-525455",
+    "chars": 6101
+  },
+  {
+    "index": 102,
+    "sha256": "070252c84802027054a48d207badad493747c8d51f60916c1adc3e3f8ee60598",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.3 When the Model Is Wrong"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.3 When the Model Is Wrong; page 188, chars 525459-525490 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.3 When the Model Is Wrong; page 190, chars 532654-533072",
+    "chars": 7454
+  },
+  {
+    "index": 103,
+    "sha256": "4fbcafe29b75b176ba498d18acf02d30b9f550a7c3abfa1c98935e637571d820",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.4 Prioritized Sweeping"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.4 Prioritized Sweeping; page 190, chars 533076-533104 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.4 Prioritized Sweeping; page 193, chars 540618-540675",
+    "chars": 7711
+  },
+  {
+    "index": 104,
+    "sha256": "ec4081027d9783fddf2cb33ff9cccf003dc14a17cb70428c44dec484dc90eec6",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.4 Prioritized Sweeping"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.4 Prioritized Sweeping; page 193, chars 540618-540675 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.4 Prioritized Sweeping; page 193, chars 542839-543199",
+    "chars": 2617
+  },
+  {
+    "index": 105,
+    "sha256": "233bf2e6e97b55651be297a5dec50b6b589f24663b83d5eb9f3df18ce5f30da7",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.5 Expected vs. Sample Updates"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.5 Expected vs. Sample Updates; page 194, chars 543204-543239 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.5 Expected vs. Sample Updates; page 195, chars 549897-551079",
+    "chars": 7910
+  },
+  {
+    "index": 106,
+    "sha256": "e388fb6bf1a66025c850e1a2214a9c2c5a1df2ec484b924f3e712044fb30cc15",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.5 Expected vs. Sample Updates"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.5 Expected vs. Sample Updates; page 196, chars 551101-551255 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.5 Expected vs. Sample Updates; page 196, chars 553210-553678",
+    "chars": 2540
+  },
+  {
+    "index": 107,
+    "sha256": "992444a95a41996dc553f6369f224bc328118033a73684ba2f73f5e60945e586",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.6 Trajectory Sampling"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.6 Trajectory Sampling; page 196, chars 553682-553709 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.6 Trajectory Sampling; page 198, chars 560716-561162",
+    "chars": 7578
+  },
+  {
+    "index": 108,
+    "sha256": "ed67b42c16cfa9d989f52282fa0fd7f37d417867dfe1fcd85ab41b7757ff7827",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.6 Trajectory Sampling"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.6 Trajectory Sampling; page 198, chars 560716-561162 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.6 Trajectory Sampling; page 199, chars 563369-563533",
+    "chars": 2856
+  },
+  {
+    "index": 109,
+    "sha256": "a2c6b3da745e1a53a749ab2b2239562b936a5134d5a2b38848a15ee57be5b321",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.7 Real-time Dynamic Programming"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.7 Real-time Dynamic Programming; page 199, chars 563537-563574 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.7 Real-time Dynamic Programming; page 201, chars 569122-570319",
+    "chars": 6859
+  },
+  {
+    "index": 110,
+    "sha256": "aab2cd972681475c259775309f387aa4f68738c0869ff17e94502a552b4369a6",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.7 Real-time Dynamic Programming"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.7 Real-time Dynamic Programming; page 201, chars 570320-571488 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.7 Real-time Dynamic Programming; page 202, chars 574960-575340",
+    "chars": 5028
+  },
+  {
+    "index": 111,
+    "sha256": "749f0d160a8fd118a7d541d6ec45688f87447e0d3fda3b645008116dfbabda89",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.8 Planning at Decision Time"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.8 Planning at Decision Time; page 202, chars 575344-575377 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.8 Planning at Decision Time; page 203, chars 578395-578792",
+    "chars": 3498
+  },
+  {
+    "index": 112,
+    "sha256": "cae94456178765c6a03a2e12d51fd70fa4fc09f41d8e272cc7bc45b7567c55ee",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.9 Heuristic Search"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.9 Heuristic Search; page 203, chars 578796-578820 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.9 Heuristic Search; page 205, chars 584677-584906",
+    "chars": 6157
+  },
+  {
+    "index": 113,
+    "sha256": "1a641a54308f5eb546072f0193687f9c538c43a1ff9de80f776d89c5b4d0cc1b",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.10 Rollout Algorithms"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.10 Rollout Algorithms; page 205, chars 584912-584939 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.10 Rollout Algorithms; page 207, chars 590278-590897",
+    "chars": 6059
+  },
+  {
+    "index": 114,
+    "sha256": "2a492ca22562b56dad43e492b5272ff41ddad4340594fc4079834901d2faa825",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.11 Monte Carlo Tree Search"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.11 Monte Carlo Tree Search; page 207, chars 590901-590933 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.11 Monte Carlo Tree Search; page 209, chars 597688-598245",
+    "chars": 7409
+  },
+  {
+    "index": 115,
+    "sha256": "09d0bdc4de0a14ba6d936da881bf9f8126f520e978af0c61bbb38130321dd8cc",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.11 Monte Carlo Tree Search"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.11 Monte Carlo Tree Search; page 210, chars 598249-599416 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.11 Monte Carlo Tree Search; page 210, chars 598249-599416",
+    "chars": 1177
+  },
+  {
+    "index": 116,
+    "sha256": "f4ba90c5e40eb76a333bd82f77eda792f93f36fa68d88f2e2c90fa9c3b6ed24e",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.12 Summary of the Chapter"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.12 Summary of the Chapter; page 210, chars 599420-599451 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.12 Summary of the Chapter; page 211, chars 602860-603003",
+    "chars": 3633
+  },
+  {
+    "index": 117,
+    "sha256": "c3a7f2f4e2aa0d85947c4d5948565ed1ef8ffc197610f506d985ff3548d849e9",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.13 Summary of Part I: Dimensions"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.13 Summary of Part I: Dimensions; page 211, chars 603007-603045 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.13 Summary of Part I: Dimensions; page 213, chars 609221-610181",
+    "chars": 7156
+  },
+  {
+    "index": 118,
+    "sha256": "0ac7bf864fbcd507518132e7642d658a8c4940a1fd89031a49c2fc1b03163eba",
+    "section_path": [
+      "Part I: Tabular Solution Methods",
+      "Chapter 8: Planning and Learning with Tabular Methods",
+      "8.13 Summary of Part I: Dimensions"
+    ],
+    "location": "section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.13 Summary of Part I: Dimensions; page 214, chars 610185-611154 – section Part I: Tabular Solution Methods > Chapter 8: Planning and Learning with Tabular Methods > 8.13 Summary of Part I: Dimensions; page 215, chars 615517-616001",
+    "chars": 5906
+  },
+  {
+    "index": 119,
+    "sha256": "8af4c888cb53ae552a92ad3b26213e5b72a7bc979fad7f7e0bb9bc023e701792",
+    "section_path": [
+      "Part II: Approximate Solution Methods"
+    ],
+    "location": "section Part II: Approximate Solution Methods; page 217, chars 616004-616043 – section Part II: Approximate Solution Methods; page 218, chars 618991-619608",
+    "chars": 3663
+  },
+  {
+    "index": 120,
+    "sha256": "c3ff5cb11c0d091e0b337706c1b28f5f88be040ea6b950ff8641196a264477f5",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation; page 219, chars 619610-619663 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation; page 219, chars 620891-621879",
+    "chars": 2309
+  },
+  {
+    "index": 121,
+    "sha256": "87ed25f11665b6407fa8e27c7fa511ec908f3cd0fa4c12fe08606ffb93514448",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.1 Value-function Approximation"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.1 Value-function Approximation; page 220, chars 621884-621920 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.1 Value-function Approximation; page 220, chars 624236-625304",
+    "chars": 3462
+  },
+  {
+    "index": 122,
+    "sha256": "b721412ee63c45b2c8460a30e90af1948088a5a3d19056609889db2610469d41",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.2 The Prediction Objective (VE)"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.2 The Prediction Objective (VE); page 221, chars 625309-625346 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.2 The Prediction Objective (VE); page 222, chars 630542-630802",
+    "chars": 5541
+  },
+  {
+    "index": 123,
+    "sha256": "72bf58a52edde56cf0546839866f9306868ea3dad1b9aeb4e428dfd9651464fd",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.3 Stochastic-gradient and Semi-gradient Methods"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.3 Stochastic-gradient and Semi-gradient Methods; page 222, chars 630806-630859 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.3 Stochastic-gradient and Semi-gradient Methods; page 224, chars 638376-638533",
+    "chars": 7850
+  },
+  {
+    "index": 124,
+    "sha256": "a13339dfe79f3b1f4959c595ae6213f1ccd880360c340aea12debc8a8dcd7ac3",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.3 Stochastic-gradient and Semi-gradient Methods"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.3 Stochastic-gradient and Semi-gradient Methods; page 224, chars 638376-638533 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.3 Stochastic-gradient and Semi-gradient Methods; page 226, chars 643537-643766",
+    "chars": 5388
+  },
+  {
+    "index": 125,
+    "sha256": "a72a59a058b4b7c77df30b85ace3f5da8c7126153ddb955072bc797735d4def0",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.4 Linear Methods"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.4 Linear Methods; page 226, chars 643772-643794 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.4 Linear Methods; page 229, chars 650244-651410",
+    "chars": 7733
+  },
+  {
+    "index": 126,
+    "sha256": "c0337662d16ded36ec714c7f66cfa1caa395c15f896222bbf2c26f790a69d3a7",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.4 Linear Methods"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.4 Linear Methods; page 229, chars 651414-651755 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.4 Linear Methods; page 231, chars 658451-659408",
+    "chars": 7911
+  },
+  {
+    "index": 127,
+    "sha256": "84d92176e1c990f44a3f4dac2b5bda639f6dc6aaf4668d7ae8d6aadacbec33a9",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.4 Linear Methods"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.4 Linear Methods; page 231, chars 659413-659578 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.4 Linear Methods; page 231, chars 659783-659953",
+    "chars": 570
+  },
+  {
+    "index": 128,
+    "sha256": "002d716ff09a06a2ea08408b44ead16cf84943c1b8872da9def707a1fa1a6ae2",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.5 Feature Construction for Linear Methods"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.5 Feature Construction for Linear Methods; page 232, chars 659958-660005 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.5 Feature Construction for Linear Methods; page 232, chars 661183-661689",
+    "chars": 1762
+  },
+  {
+    "index": 129,
+    "sha256": "6d318b65c0a78afe21cc846846be9483cb07ec0260fba7cfbf81f9eb4b7a3268",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.5 Feature Construction for Linear Methods",
+      "9.5.1 Polynomials"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.5 Feature Construction for Linear Methods > 9.5.1 Polynomials; page 232, chars 661692-661714 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.5 Feature Construction for Linear Methods > 9.5.1 Polynomials; page 233, chars 664371-665249",
+    "chars": 3617
+  },
+  {
+    "index": 130,
+    "sha256": "8beb9b2c2bbcc02ab3d57f10dd0d9cf5f960f236eefc107aae0993163e869124",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.5 Feature Construction for Linear Methods",
+      "9.5.2 Fourier Basis"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.5 Feature Construction for Linear Methods > 9.5.2 Fourier Basis; page 233, chars 665253-665277 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.5 Feature Construction for Linear Methods > 9.5.2 Fourier Basis; page 234, chars 672362-672496",
+    "chars": 7395
+  },
+  {
+    "index": 131,
+    "sha256": "f10b3558daf33b336d43b73417c3b11ae84bbfc024bb98f748f316dbd2ddcdc0",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.5 Feature Construction for Linear Methods",
+      "9.5.2 Fourier Basis"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.5 Feature Construction for Linear Methods > 9.5.2 Fourier Basis; page 234, chars 672191-672356 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.5 Feature Construction for Linear Methods > 9.5.2 Fourier Basis; page 236, chars 679555-679707",
+    "chars": 7560
+  },
+  {
+    "index": 132,
+    "sha256": "35b80e0c841f7402bdfa0c8f9fe1193b1394ea748d9176064244adbe699e21ca",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.5 Feature Construction for Linear Methods",
+      "9.5.3 Coarse Coding"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.5 Feature Construction for Linear Methods > 9.5.3 Coarse Coding; page 237, chars 679712-679736 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.5 Feature Construction for Linear Methods > 9.5.3 Coarse Coding; page 238, chars 684635-684774",
+    "chars": 5117
+  },
+  {
+    "index": 133,
+    "sha256": "5b3b80179f02c47ec2c37f7123ba197fd2bc2fb243810f0fd25820cb49afbedb",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.5 Feature Construction for Linear Methods",
+      "9.5.4 Tile Coding"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.5 Feature Construction for Linear Methods > 9.5.4 Tile Coding; page 239, chars 684779-684801 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.5 Feature Construction for Linear Methods > 9.5.4 Tile Coding; page 241, chars 691352-691793",
+    "chars": 7020
+  },
+  {
+    "index": 134,
+    "sha256": "2fc826d51e64a178b9e5297c2abd5158935a2f98559c5ce79aafdb47a9e2408c",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.5 Feature Construction for Linear Methods",
+      "9.5.4 Tile Coding"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.5 Feature Construction for Linear Methods > 9.5.4 Tile Coding; page 241, chars 691352-691793 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.5 Feature Construction for Linear Methods > 9.5.4 Tile Coding; page 243, chars 697126-697515",
+    "chars": 6223
+  },
+  {
+    "index": 135,
+    "sha256": "7ea9636bf50ab6c861bec943446dd3d5cb398996a74bfea4cbbb714a60a9cf69",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.5 Feature Construction for Linear Methods",
+      "9.5.5 Radial Basis Functions"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.5 Feature Construction for Linear Methods > 9.5.5 Radial Basis Functions; page 243, chars 697518-697551 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.5 Feature Construction for Linear Methods > 9.5.5 Radial Basis Functions; page 244, chars 699764-699930",
+    "chars": 2396
+  },
+  {
+    "index": 136,
+    "sha256": "b352b5a65c6c750a1445234200956ba32c48048af6776bedc0d90b2169631e23",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.6 Selecting Step-Size Parameters Manually"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.6 Selecting Step-Size Parameters Manually; page 244, chars 699934-699981 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.6 Selecting Step-Size Parameters Manually; page 245, chars 704098-704189",
+    "chars": 4277
+  },
+  {
+    "index": 137,
+    "sha256": "6043420695dec93910667cd85348718528e23d1302ff8f288c5113ad3c623f0f",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.7 Nonlinear Function Approximation: Artificial Neural Networks"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.7 Nonlinear Function Approximation: Artificial Neural Networks; page 245, chars 704193-704261 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.7 Nonlinear Function Approximation: Artificial Neural Networks; page 247, chars 711267-711442",
+    "chars": 7335
+  },
+  {
+    "index": 138,
+    "sha256": "2057439a82fe9d22acc510b0400dfad742ea58cf84d9a420d3b95ee7e1530466",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.7 Nonlinear Function Approximation: Artificial Neural Networks"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.7 Nonlinear Function Approximation: Artificial Neural Networks; page 247, chars 711267-711442 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.7 Nonlinear Function Approximation: Artificial Neural Networks; page 250, chars 717979-719157",
+    "chars": 7980
+  },
+  {
+    "index": 139,
+    "sha256": "07cdb72e209fdb07adc863f6e0ba4590c17edb979528173af84ba84f0c8045d4",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.7 Nonlinear Function Approximation: Artificial Neural Networks"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.7 Nonlinear Function Approximation: Artificial Neural Networks; page 250, chars 719158-719652 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.7 Nonlinear Function Approximation: Artificial Neural Networks; page 250, chars 719158-719652",
+    "chars": 504
+  },
+  {
+    "index": 140,
+    "sha256": "a005911b6fa76fb18dea69f2bd136c0ecb06c4a9d092a007d3a20a84626a5b59",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.8 Least-Squares TD"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.8 Least-Squares TD; page 250, chars 719656-719680 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.8 Least-Squares TD; page 252, chars 724776-725552",
+    "chars": 5888
+  },
+  {
+    "index": 141,
+    "sha256": "aa0ddc8b266492ee9d1f837e3cd5009d273e6958327218a9691bbfffad5c992b",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.9 Memory-based Function Approximation"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.9 Memory-based Function Approximation; page 252, chars 725558-725601 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.9 Memory-based Function Approximation; page 254, chars 732084-732179",
+    "chars": 6705
+  },
+  {
+    "index": 142,
+    "sha256": "80f2270ed14ec17ae48d8fc915cd46cc94fd25d5292a55188c7b25163ef3bdec",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.10 Kernel-based Function Approximation"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.10 Kernel-based Function Approximation; page 254, chars 732183-732227 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.10 Kernel-based Function Approximation; page 255, chars 736979-737244",
+    "chars": 5134
+  },
+  {
+    "index": 143,
+    "sha256": "37034092e46ace70f7fc535df9b1305f0b8f29b0009f71b1c1bbc514794054de",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.11 Looking Deeper at On-policy Learning: Interest and Emphasis"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.11 Looking Deeper at On-policy Learning: Interest and Emphasis; page 256, chars 737249-737317 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.11 Looking Deeper at On-policy Learning: Interest and Emphasis; page 257, chars 741976-743061",
+    "chars": 5875
+  },
+  {
+    "index": 144,
+    "sha256": "2caddf1dad3acbba364187c615d7e9fe10d7169768386b1df4530817ea1de457",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.12 Summary"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.12 Summary; page 258, chars 743066-743082 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.12 Summary; page 260, chars 750484-750726",
+    "chars": 7780
+  },
+  {
+    "index": 145,
+    "sha256": "310f55d961b5911cfe60df949015441802fd87dd81459c0e5e8a47d4965312d9",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.12 Summary"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.12 Summary; page 260, chars 750484-750726 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.12 Summary; page 262, chars 757106-757643",
+    "chars": 7232
+  },
+  {
+    "index": 146,
+    "sha256": "1ec07f5c0e10150e15a6ef200739e7273eb89e02a0ee2d3375dd8ebedb77f006",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 9: On-policy Prediction with Approximation",
+      "9.12 Summary"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.12 Summary; page 262, chars 757645-758842 – section Part II: Approximate Solution Methods > Chapter 9: On-policy Prediction with Approximation > 9.12 Summary; page 264, chars 763966-764570",
+    "chars": 6996
+  },
+  {
+    "index": 147,
+    "sha256": "74450ebf4eb074fe88f588464e0acb84cc1a978fb210e2bcc81725807e69e9fc",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 10: On-policy Control with Approximation"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 10: On-policy Control with Approximation; page 265, chars 764572-764623 – section Part II: Approximate Solution Methods > Chapter 10: On-policy Control with Approximation; page 265, chars 765848-765978",
+    "chars": 1446
+  },
+  {
+    "index": 148,
+    "sha256": "8217d95272ee6c8bb9159bf8bdc06a3cd97db772b80eecd6b2a168d0e966afe7",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 10: On-policy Control with Approximation",
+      "10.1 Episodic Semi-gradient Control"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 10: On-policy Control with Approximation > 10.1 Episodic Semi-gradient Control; page 265, chars 765983-766022 – section Part II: Approximate Solution Methods > Chapter 10: On-policy Control with Approximation > 10.1 Episodic Semi-gradient Control; page 268, chars 774714-775133",
+    "chars": 7689
+  },
+  {
+    "index": 149,
+    "sha256": "57b5d80037767111cf08063a0a660c2cbeffe6c4a46f644caebdca8ae4475509",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 10: On-policy Control with Approximation",
+      "10.1 Episodic Semi-gradient Control"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 10: On-policy Control with Approximation > 10.1 Episodic Semi-gradient Control; page 268, chars 774714-775133 – section Part II: Approximate Solution Methods > Chapter 10: On-policy Control with Approximation > 10.1 Episodic Semi-gradient Control; page 268, chars 777238-777297",
+    "chars": 2584
+  },
+  {
+    "index": 150,
+    "sha256": "8585a945e539156119773c31d997d599ec237707bc7a295ac11d63c36fd0614a",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 10: On-policy Control with Approximation",
+      "10.2 Semi-gradient n-step Sarsa"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 10: On-policy Control with Approximation > 10.2 Semi-gradient n-step Sarsa; page 269, chars 777302-777337 – section Part II: Approximate Solution Methods > Chapter 10: On-policy Control with Approximation > 10.2 Semi-gradient n-step Sarsa; page 270, chars 782282-782450",
+    "chars": 5048
+  },
+  {
+    "index": 151,
+    "sha256": "7fde5a544112dd4b72e634be495f874befdb5573c8659a203a2b6aa81d1102f4",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 10: On-policy Control with Approximation",
+      "10.3 Average Reward: A New Problem Setting for Continuing Tasks"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 10: On-policy Control with Approximation > 10.3 Average Reward: A New Problem Setting for Continuing Tasks; page 271, chars 782455-782522 – section Part II: Approximate Solution Methods > Chapter 10: On-policy Control with Approximation > 10.3 Average Reward: A New Problem Setting for Continuing Tasks; page 273, chars 789182-789748",
+    "chars": 7357
+  },
+  {
+    "index": 152,
+    "sha256": "24c258baf68b2f9dcf866c1f0e33bad0a3efb3d1b1d8ff8e6aca5b0ab7e959e0",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 10: On-policy Control with Approximation",
+      "10.3 Average Reward: A New Problem Setting for Continuing Tasks"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 10: On-policy Control with Approximation > 10.3 Average Reward: A New Problem Setting for Continuing Tasks; page 273, chars 789750-790586 – section Part II: Approximate Solution Methods > Chapter 10: On-policy Control with Approximation > 10.3 Average Reward: A New Problem Setting for Continuing Tasks; page 274, chars 795668-796510",
+    "chars": 6649
+  },
+  {
+    "index": 153,
+    "sha256": "48b4aa77d383e6c553b5cefac9bb006254676ca019af9ff8404e45639f5c8980",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 10: On-policy Control with Approximation",
+      "10.4 Deprecating the Discounted Setting"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 10: On-policy Control with Approximation > 10.4 Deprecating the Discounted Setting; page 275, chars 796515-796558 – section Part II: Approximate Solution Methods > Chapter 10: On-policy Control with Approximation > 10.4 Deprecating the Discounted Setting; page 276, chars 801746-802688",
+    "chars": 6206
+  },
+  {
+    "index": 154,
+    "sha256": "ae6bc77e3e49c185dff4a2d6972691a2019bcada89b24eef1364a2589332b87d",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 10: On-policy Control with Approximation",
+      "10.5 Di↵erential Semi-gradient n-step Sarsa"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 10: On-policy Control with Approximation > 10.5 Di↵erential Semi-gradient n-step Sarsa; page 277, chars 802693-802740 – section Part II: Approximate Solution Methods > Chapter 10: On-policy Control with Approximation > 10.5 Di↵erential Semi-gradient n-step Sarsa; page 277, chars 804375-805343",
+    "chars": 2713
+  },
+  {
+    "index": 155,
+    "sha256": "aba42b46ffe6398918563547aa84d85633d38640fcfca157c53e4f9e59c47193",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 10: On-policy Control with Approximation",
+      "10.6 Summary"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 10: On-policy Control with Approximation > 10.6 Summary; page 278, chars 805348-805364 – section Part II: Approximate Solution Methods > Chapter 10: On-policy Control with Approximation > 10.6 Summary; page 278, chars 807916-808261",
+    "chars": 2972
+  },
+  {
+    "index": 156,
+    "sha256": "cb33818d06b55aba1293d00397fd719fda7fadb506bd4b816f19728680e9c60a",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation; page 279, chars 808263-808315 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation; page 280, chars 810701-811682",
+    "chars": 3467
+  },
+  {
+    "index": 157,
+    "sha256": "09e5adefe4ac89b40350aa6d613adcca9948f5f9d8a52585be7b814f15493dd8",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.1 Semi-gradient Methods"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.1 Semi-gradient Methods; page 280, chars 811686-811716 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.1 Semi-gradient Methods; page 281, chars 816055-816688",
+    "chars": 5066
+  },
+  {
+    "index": 158,
+    "sha256": "f013ca3be4b317e2f007a72494b50f5c795e802b13f1b205d38a93283864f745",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.2 Examples of O↵-policy Divergence"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.2 Examples of O↵-policy Divergence; page 282, chars 816693-816734 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.2 Examples of O↵-policy Divergence; page 284, chars 824198-824756",
+    "chars": 8007
+  },
+  {
+    "index": 159,
+    "sha256": "a14536fba78404dedeaacf8c2de66028ae4f7983c58b6cb89818516c879d7970",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.2 Examples of O↵-policy Divergence"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.2 Examples of O↵-policy Divergence; page 284, chars 824775-824836 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.2 Examples of O↵-policy Divergence; page 286, chars 828749-829320",
+    "chars": 4510
+  },
+  {
+    "index": 160,
+    "sha256": "3ff0afaf8bf9e7e9e8ed2649ebe3bf57e0fac69a6a0b85fb763a1f5392c61aa1",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.3 The Deadly Triad"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.3 The Deadly Triad; page 286, chars 829324-829349 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.3 The Deadly Triad; page 287, chars 833993-835157",
+    "chars": 5928
+  },
+  {
+    "index": 161,
+    "sha256": "757f2bd6a039f043ce91acaefe66d5db1ac57b9192c48b6b5deded3f5d416580",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.4 Linear Value-function Geometry"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.4 Linear Value-function Geometry; page 288, chars 835162-835201 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.4 Linear Value-function Geometry; page 289, chars 842194-842546",
+    "chars": 7331
+  },
+  {
+    "index": 162,
+    "sha256": "fe17fb70101ac994e3f34e0ea2822ea8c3ff6c9e411bbae75e374f4c0c000a2b",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.4 Linear Value-function Geometry"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.4 Linear Value-function Geometry; page 289, chars 842194-842546 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.4 Linear Value-function Geometry; page 289, chars 849703-850696",
+    "chars": 7825
+  },
+  {
+    "index": 163,
+    "sha256": "cd122dbda2c3061003001e935e182fa597087fe111c2d24a545f6204d4c88f72",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.4 Linear Value-function Geometry"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.4 Linear Value-function Geometry; page 289, chars 850706-851802 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.4 Linear Value-function Geometry; page 290, chars 858240-858764",
+    "chars": 7850
+  },
+  {
+    "index": 164,
+    "sha256": "c7f9ab17e560a2de127770280ed2143a270e4b3b56e6e81f468fd9f5df084d9b",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.4 Linear Value-function Geometry"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.4 Linear Value-function Geometry; page 290, chars 858766-859352 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.4 Linear Value-function Geometry; page 291, chars 861448-861919",
+    "chars": 3204
+  },
+  {
+    "index": 165,
+    "sha256": "5abed54dd5c2f2e87fae3e5b1345a0cdf02a8329e5cebf8861f6583727ad8fde",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.5 Gradient Descent in the Bellman Error"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.5 Gradient Descent in the Bellman Error; page 291, chars 861923-861969 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.5 Gradient Descent in the Bellman Error; page 293, chars 868072-869042",
+    "chars": 7146
+  },
+  {
+    "index": 166,
+    "sha256": "e6f583de24b18e22d78c3ed1a4c3687f7321e94bb7b3a3c68af5166440d6f291",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.5 Gradient Descent in the Bellman Error"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.5 Gradient Descent in the Bellman Error; page 294, chars 869049-870244 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.5 Gradient Descent in the Bellman Error; page 296, chars 875787-876619",
+    "chars": 7644
+  },
+  {
+    "index": 167,
+    "sha256": "eff6343889e1990b9f4134f73f0cd77d74bf9a16626a0173b027e49274a32d65",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.6 The Bellman Error is Not Learnable"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 296, chars 876623-876666 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 298, chars 882562-883757",
+    "chars": 7154
+  },
+  {
+    "index": 168,
+    "sha256": "4b5ee82b6775d26891659851707d52204738d953b2a3766c2d4b89785f35ac73",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.6 The Bellman Error is Not Learnable"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 298, chars 883763-884934 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 890600-891621",
+    "chars": 7510
+  },
+  {
+    "index": 169,
+    "sha256": "b6f2b48c7cdf007fb4f3ad41da0129fe578671ec1ecc86c81d03f177fda51689",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.6 The Bellman Error is Not Learnable"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 891753-892685 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 899525-900386",
+    "chars": 7581
+  },
+  {
+    "index": 170,
+    "sha256": "8f7482098e976624f286e14c016d74b0543b985c007e4448bb592af90d6befe0",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.6 The Bellman Error is Not Learnable"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 900502-901500 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 908468-909325",
+    "chars": 7647
+  },
+  {
+    "index": 171,
+    "sha256": "236e45108003ede79da8d68155de1df8dd5616b20f848204c059e599bdb85abb",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.6 The Bellman Error is Not Learnable"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 909458-910370 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 916273-917420",
+    "chars": 7347
+  },
+  {
+    "index": 172,
+    "sha256": "3f0b507bd8815f2fe81f7cbc31fd2ac8d8b795c2342a0d197d0fde15470ba515",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.6 The Bellman Error is Not Learnable"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 917422-918601 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 924221-925300",
+    "chars": 7270
+  },
+  {
+    "index": 173,
+    "sha256": "5756e3ee2a80ef752a0a559cfe760e1f21b0f72d400e44de86b4ca6516b45d2a",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.6 The Bellman Error is Not Learnable"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 925301-926378 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 932119-933149",
+    "chars": 7032
+  },
+  {
+    "index": 174,
+    "sha256": "a30cecd69966c9281e5055d61fd865a02df637bdad0c7a7a7071a4ffef33265b",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.6 The Bellman Error is Not Learnable"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 933179-934202 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 940965-941983",
+    "chars": 7856
+  },
+  {
+    "index": 175,
+    "sha256": "52a6c8ac391f37615063c0cd39636bd9f11a1f23449f3df2f79cd2c9729874f5",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.6 The Bellman Error is Not Learnable"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 942202-943128 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 949829-950868",
+    "chars": 7832
+  },
+  {
+    "index": 176,
+    "sha256": "9df06889990625410220f8348a89303491f5df72a3fdfe343ce96456dc186147",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.6 The Bellman Error is Not Learnable"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 951030-952051 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 958939-959897",
+    "chars": 7953
+  },
+  {
+    "index": 177,
+    "sha256": "9caf5411ba6d91a93746356e4966d2cddbf5e5737bcfb777df4c294d93342cca",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.6 The Bellman Error is Not Learnable"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 960000-961085 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 967346-968341",
+    "chars": 7594
+  },
+  {
+    "index": 178,
+    "sha256": "112abf1e5a6a7d63f4cc0b9cfb4903ff7b6afcfc4ad468af5273518e88d80c0d",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.6 The Bellman Error is Not Learnable"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 968517-969385 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 976100-977172",
+    "chars": 7698
+  },
+  {
+    "index": 179,
+    "sha256": "87592f843de1a27328f651ae94af0082070a9284251cbdf45872f4ee9c8a5eb2",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.6 The Bellman Error is Not Learnable"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 977388-978243 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.6 The Bellman Error is Not Learnable; page 299, chars 983996-984183",
+    "chars": 5885
+  },
+  {
+    "index": 180,
+    "sha256": "d1db3c499d471cd6618f3d40e32ed190affe775eb8ee5c9f611a07625f2cfd35",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.7 Gradient-TD Methods"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.7 Gradient-TD Methods; page 300, chars 984188-984216 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.7 Gradient-TD Methods; page 302, chars 990745-991869",
+    "chars": 7723
+  },
+  {
+    "index": 181,
+    "sha256": "4b1dc31cee0e993eceadd91539b4b60dd23f53d7a67470d77af5501147d0f86f",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.7 Gradient-TD Methods"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.7 Gradient-TD Methods; page 302, chars 991953-992717 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.7 Gradient-TD Methods; page 303, chars 995519-996578",
+    "chars": 4594
+  },
+  {
+    "index": 182,
+    "sha256": "9c9413477e7f5fef26007959a1dd2779cf1160b2a089c6fba090f79f13ebc00e",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.8 Emphatic-TD Methods"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.8 Emphatic-TD Methods; page 303, chars 996582-996610 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.8 Emphatic-TD Methods; page 305, chars 1001719-1001852",
+    "chars": 5186
+  },
+  {
+    "index": 183,
+    "sha256": "4b3c9530850fcbb385f78538db2bafa6958a0d92119a9ee2215281daaa8386b5",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.9 Reducing Variance"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.9 Reducing Variance; page 305, chars 1001856-1001882 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.9 Reducing Variance; page 306, chars 1005176-1005526",
+    "chars": 3713
+  },
+  {
+    "index": 184,
+    "sha256": "0a2110a3c421b1c92b1b5fd547e66a80fb93907245b13777e554cccc7a1a7f85",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 11: *O↵-policy Methods with Approximation",
+      "11.10 Summary"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.10 Summary; page 306, chars 1005532-1005549 – section Part II: Approximate Solution Methods > Chapter 11: *O↵-policy Methods with Approximation > 11.10 Summary; page 308, chars 1011961-1012256",
+    "chars": 6854
+  },
+  {
+    "index": 185,
+    "sha256": "85f8cf5f9d96bf85aceabf6e440530cd065e811be20eac6d6e5346ebd1912851",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces; page 309, chars 1012258-1012291 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces; page 310, chars 1015944-1016172",
+    "chars": 3984
+  },
+  {
+    "index": 186,
+    "sha256": "f103860bb4f597948d9dc1f78dc051f4dec0740736f06c46a0dddad752438e1c",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.1 The -return"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.1 The -return; page 310, chars 1016176-1016196 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.1 The -return; page 312, chars 1023451-1024034",
+    "chars": 7608
+  },
+  {
+    "index": 187,
+    "sha256": "5b87cf16bb1ed3849f7c3c9765fa55a092de968c760c8b97f08d92ff1d4f0336",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.1 The -return"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.1 The -return; page 313, chars 1024043-1025069 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.1 The -return; page 314, chars 1028795-1028909",
+    "chars": 4695
+  },
+  {
+    "index": 188,
+    "sha256": "8078e4ad3d8f972c55291ea8f4488b9446628ed91a7e0aded7048e652c11af74",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.2 TD( )"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.2 TD( ); page 314, chars 1028913-1028927 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.2 TD( ); page 316, chars 1035652-1036818",
+    "chars": 8006
+  },
+  {
+    "index": 189,
+    "sha256": "1fb73df27cad9c1e34552a1ef5c2a6209b393565faa847ed52558cce99411c9a",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.2 TD( )"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.2 TD( ); page 316, chars 1036819-1037043 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.2 TD( ); page 317, chars 1039982-1041040",
+    "chars": 4209
+  },
+  {
+    "index": 190,
+    "sha256": "d66a2c8e7e38d18328ba8d700b2e2bf9ecc385573fc8be9def802c6bd3da5d82",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.3 n-step Truncated -return Methods"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.3 n-step Truncated -return Methods; page 317, chars 1041044-1041085 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.3 n-step Truncated -return Methods; page 319, chars 1045163-1045424",
+    "chars": 4048
+  },
+  {
+    "index": 191,
+    "sha256": "d541f1706ebaaadcf3d56fd7138398f35197c4cc43f48a1098aa8266aa7191fa",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.4 Redoing Updates: Online -return Algorithm"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.4 Redoing Updates: Online -return Algorithm; page 319, chars 1045428-1045478 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.4 Redoing Updates: Online -return Algorithm; page 321, chars 1052505-1052857",
+    "chars": 7445
+  },
+  {
+    "index": 192,
+    "sha256": "3b18949b7bb63c230a4e33da4634f760cfa129b6581a269b1508ec21ab53854f",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.5 True Online TD( )"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.5 True Online TD( ); page 321, chars 1052861-1052887 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.5 True Online TD( ); page 323, chars 1057413-1057728",
+    "chars": 4944
+  },
+  {
+    "index": 193,
+    "sha256": "92bcaac506e46770d9f19910312ada49f2689ae96409149ab491e635c14ec0ee",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.6 *Dutch Traces in Monte Carlo Learning"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.6 *Dutch Traces in Monte Carlo Learning; page 323, chars 1057734-1057780 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.6 *Dutch Traces in Monte Carlo Learning; page 325, chars 1062585-1063400",
+    "chars": 5704
+  },
+  {
+    "index": 194,
+    "sha256": "799b782cb60285ffc29368ee57c5419854de2dd393cf2ae672482502535bf6a2",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.7 Sarsa( )"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.7 Sarsa( ); page 325, chars 1063404-1063421 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.7 Sarsa( ); page 328, chars 1070911-1070928",
+    "chars": 7288
+  },
+  {
+    "index": 195,
+    "sha256": "06df46498c19231af9e3b123a2245d4c11824cb03a06d2ae3d27ad54ebe90496",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.7 Sarsa( )"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.7 Sarsa( ); page 327, chars 1070701-1070880 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.7 Sarsa( ); page 328, chars 1078102-1078705",
+    "chars": 7781
+  },
+  {
+    "index": 196,
+    "sha256": "ccd5effb868ed91b9cfee866ffa5378385fd9c296c2ef4bffccebc0a5031ff86",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.7 Sarsa( )"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.7 Sarsa( ); page 328, chars 1078737-1079218 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.7 Sarsa( ); page 329, chars 1081661-1081898",
+    "chars": 3210
+  },
+  {
+    "index": 197,
+    "sha256": "e2e6acc19eb8c6007d348c5e59d144d65bc7e0bf7fc7ac7b64b0ee5dbc7fac73",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.8 Variable and"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.8 Variable and; page 329, chars 1081904-1081925 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.8 Variable and; page 331, chars 1086569-1086784",
+    "chars": 4958
+  },
+  {
+    "index": 198,
+    "sha256": "8d58039c721107a870d19cafb134f529879d57b9622ed97220133b8db10e7ad1",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.9 O↵-policy Traces with Control Variates"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.9 O↵-policy Traces with Control Variates; page 331, chars 1086788-1086835 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.9 O↵-policy Traces with Control Variates; page 333, chars 1093908-1094343",
+    "chars": 7600
+  },
+  {
+    "index": 199,
+    "sha256": "5155c89313a90017ed7c403f3fe092183820e5e2c58be126ed34244ed79b4955",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.9 O↵-policy Traces with Control Variates"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.9 O↵-policy Traces with Control Variates; page 333, chars 1093908-1094343 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.9 O↵-policy Traces with Control Variates; page 334, chars 1097999-1099014",
+    "chars": 5163
+  },
+  {
+    "index": 200,
+    "sha256": "ab127deebda2f1bc8bc60eb7f3e20ddd3d696a1f69b6a26d3b76174f87264db1",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.10 Watkins’s Q( ) to Tree-Backup( )"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.10 Watkins’s Q( ) to Tree-Backup( ); page 334, chars 1099018-1099060 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.10 Watkins’s Q( ) to Tree-Backup( ); page 336, chars 1104902-1105336",
+    "chars": 5760
+  },
+  {
+    "index": 201,
+    "sha256": "7a812ea3136f53c45f38ae09d7a8ee1a4927212bc69641b46fc6aa8b13e4d356",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.11 Stable O↵-policy Methods with Traces"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.11 Stable O↵-policy Methods with Traces; page 336, chars 1105342-1105388 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.11 Stable O↵-policy Methods with Traces; page 338, chars 1109816-1110589",
+    "chars": 5327
+  },
+  {
+    "index": 202,
+    "sha256": "1e31e543946438378f77eb908d7b05de896b0d8ec55a3c76095fe4641df24500",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.12 Implementation Issues"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.12 Implementation Issues; page 338, chars 1110594-1110625 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.12 Implementation Issues; page 338, chars 1111820-1112347",
+    "chars": 1784
+  },
+  {
+    "index": 203,
+    "sha256": "e3c04f51b6162978c910827cb6d5c9a27cbbaef4d30c93b3b1ad3b5e98dcc9bb",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.13 Conclusions"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.13 Conclusions; page 339, chars 1112352-1112373 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.13 Conclusions; page 341, chars 1119561-1120209",
+    "chars": 7819
+  },
+  {
+    "index": 204,
+    "sha256": "d33e88a857dec985d65b6d10269852b3dcadd0af7e5800e89252feeb7edd5136",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 12: Eligibility Traces",
+      "12.13 Conclusions"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.13 Conclusions; page 341, chars 1120211-1120657 – section Part II: Approximate Solution Methods > Chapter 12: Eligibility Traces > 12.13 Conclusions; page 342, chars 1123583-1124084",
+    "chars": 3973
+  },
+  {
+    "index": 205,
+    "sha256": "da8f6adde186dce3d0e1f6499f28b775aabad5d7b953e99164b73f8f4015f176",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 13: Policy Gradient Methods"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods; page 343, chars 1124086-1124124 – section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods; page 344, chars 1126554-1126718",
+    "chars": 2701
+  },
+  {
+    "index": 206,
+    "sha256": "0f6ced978f157fb98f809e2a0ed5dcb4bf920ed292a47245b3420d94d8a3dae9",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 13: Policy Gradient Methods",
+      "13.1 Policy Approximation and its Advantages"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods > 13.1 Policy Approximation and its Advantages; page 344, chars 1126722-1126770 – section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods > 13.1 Policy Approximation and its Advantages; page 346, chars 1132704-1133760",
+    "chars": 7002
+  },
+  {
+    "index": 207,
+    "sha256": "b88ab694e22dd708d8d193558dc2fb2510e09005701936ba06d61ca098fef0fd",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 13: Policy Gradient Methods",
+      "13.2 The Policy Gradient Theorem"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods > 13.2 The Policy Gradient Theorem; page 346, chars 1133764-1133800 – section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods > 13.2 The Policy Gradient Theorem; page 348, chars 1140451-1141030",
+    "chars": 7337
+  },
+  {
+    "index": 208,
+    "sha256": "f2f60cd0a1588bab17c1a5a2a69ee53e6c7bd72bda47d93803dc8992203db435",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 13: Policy Gradient Methods",
+      "13.3 REINFORCE: Monte Carlo Policy Gradient"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods > 13.3 REINFORCE: Monte Carlo Policy Gradient; page 348, chars 1141034-1141081 – section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods > 13.3 REINFORCE: Monte Carlo Policy Gradient; page 350, chars 1148797-1148976",
+    "chars": 7897
+  },
+  {
+    "index": 209,
+    "sha256": "b9a50099a7d6844efa7256ab335321f35bf1633a369390fece315d825484b9d6",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 13: Policy Gradient Methods",
+      "13.3 REINFORCE: Monte Carlo Policy Gradient"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods > 13.3 REINFORCE: Monte Carlo Policy Gradient; page 350, chars 1148463-1148558 – section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods > 13.3 REINFORCE: Monte Carlo Policy Gradient; page 351, chars 1149843-1149933",
+    "chars": 1397
+  },
+  {
+    "index": 210,
+    "sha256": "e87d4cb47428888bb87586fcc9e0cc0e2b74e711be9fc569a4f9b6665607a377",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 13: Policy Gradient Methods",
+      "13.4 REINFORCE with Baseline"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods > 13.4 REINFORCE with Baseline; page 351, chars 1149937-1149969 – section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods > 13.4 REINFORCE with Baseline; page 353, chars 1154768-1155005",
+    "chars": 5018
+  },
+  {
+    "index": 211,
+    "sha256": "91626d4958cc56b22bf335fcf04e5a0c20bc1f78d7738d557f0c23f57396e9d9",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 13: Policy Gradient Methods",
+      "13.5 Actor–Critic Methods"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods > 13.5 Actor–Critic Methods; page 353, chars 1155010-1155039 – section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods > 13.5 Actor–Critic Methods; page 354, chars 1159300-1160351",
+    "chars": 5373
+  },
+  {
+    "index": 212,
+    "sha256": "c9a5d5ffd8743bc97c5cc36f607532b64c5df54b875f104b39f30a101080fa4b",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 13: Policy Gradient Methods",
+      "13.6 Policy Gradient for Continuing Problems"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods > 13.6 Policy Gradient for Continuing Problems; page 355, chars 1160356-1160404 – section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods > 13.6 Policy Gradient for Continuing Problems; page 357, chars 1165998-1166973",
+    "chars": 6550
+  },
+  {
+    "index": 213,
+    "sha256": "68898063a44f6b2108280ddb92798193d7633f989519a69ac03171e9df47381d",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 13: Policy Gradient Methods",
+      "13.7 Policy Parameterization for Continuous Actions"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods > 13.7 Policy Parameterization for Continuous Actions; page 357, chars 1166979-1167034 – section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods > 13.7 Policy Parameterization for Continuous Actions; page 358, chars 1172634-1172993",
+    "chars": 6020
+  },
+  {
+    "index": 214,
+    "sha256": "092ef9c689a9bce1e05426162a0be4b63ea005a68c041e323ad0045e1504d855",
+    "section_path": [
+      "Part II: Approximate Solution Methods",
+      "Chapter 13: Policy Gradient Methods",
+      "13.8 Summary"
+    ],
+    "location": "section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods > 13.8 Summary; page 359, chars 1172998-1173014 – section Part II: Approximate Solution Methods > Chapter 13: Policy Gradient Methods > 13.8 Summary; page 360, chars 1178871-1179055",
+    "chars": 6173
+  },
+  {
+    "index": 215,
+    "sha256": "cb4ad8eed9bbfc2fac5e3626a3e773a0413bbc50d2b3069dd3276e471f6f322d",
+    "section_path": [
+      "Part III: Looking Deeper"
+    ],
+    "location": "section Part III: Looking Deeper; page 361, chars 1179057-1179083 – section Part III: Looking Deeper; page 361, chars 1179087-1179418",
+    "chars": 379
+  },
+  {
+    "index": 216,
+    "sha256": "ef76e802587fdccaf64d381a733d3e115e6aec9f5e958c75dea4a2eab71374c7",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology; page 363, chars 1179421-1179446 – section Part III: Looking Deeper > Chapter 14: Psychology; page 364, chars 1181907-1182993",
+    "chars": 3631
+  },
+  {
+    "index": 217,
+    "sha256": "deeb289c9d495720f7310997b892cf84aece0c2426ec8f05a37a3088fd747687",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.1 Prediction and Control"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.1 Prediction and Control; page 364, chars 1182997-1183028 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.1 Prediction and Control; page 365, chars 1186544-1186972",
+    "chars": 4035
+  },
+  {
+    "index": 218,
+    "sha256": "c230fbdec9052419ffb99cbbba7172e62c2bc1c2669820fd30473c8870c9632b",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.2 Classical Conditioning"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.2 Classical Conditioning; page 365, chars 1186976-1187007 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.2 Classical Conditioning; page 366, chars 1191075-1191879",
+    "chars": 4886
+  },
+  {
+    "index": 219,
+    "sha256": "358f262ce9dc891acc8074ce533ac2ec527dd236f0f8b1e20f6a9ea962ed90b0",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.2 Classical Conditioning",
+      "14.2.1 Blocking and Higher-order Conditioning"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.2 Classical Conditioning > 14.2.1 Blocking and Higher-order Conditioning; page 367, chars 1191884-1191934 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.2 Classical Conditioning > 14.2.1 Blocking and Higher-order Conditioning; page 368, chars 1196805-1197405",
+    "chars": 5595
+  },
+  {
+    "index": 220,
+    "sha256": "ce53acc26de81dcbbff34d1db55064dae54987db6ad749518f28c2f5ad32b862",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.2 Classical Conditioning",
+      "14.2.2 The Rescorla–Wagner Model"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.2 Classical Conditioning > 14.2.2 The Rescorla–Wagner Model; page 368, chars 1197410-1197447 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.2 Classical Conditioning > 14.2.2 The Rescorla–Wagner Model; page 370, chars 1203531-1204651",
+    "chars": 7361
+  },
+  {
+    "index": 221,
+    "sha256": "21c89fbc1d749a35b34358d858c3986aa1608773b5891b62b2ba72a0e22ec190",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.2 Classical Conditioning",
+      "14.2.2 The Rescorla–Wagner Model"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.2 Classical Conditioning > 14.2.2 The Rescorla–Wagner Model; page 370, chars 1204652-1205548 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.2 Classical Conditioning > 14.2.2 The Rescorla–Wagner Model; page 371, chars 1205789-1206266",
+    "chars": 1642
+  },
+  {
+    "index": 222,
+    "sha256": "8e65bc9ec82a2cadcf0f3537a18986dd3186ed7ed6fbf4307242abe69cb133d4",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.2 Classical Conditioning",
+      "14.2.3 The TD Model"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.2 Classical Conditioning > 14.2.3 The TD Model; page 371, chars 1206270-1206294 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.2 Classical Conditioning > 14.2.3 The TD Model; page 372, chars 1210473-1211112",
+    "chars": 4933
+  },
+  {
+    "index": 223,
+    "sha256": "cdb04a28dd5995dd053a417e74fad43b754052e097f5214bd6294877f412a6d2",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.2 Classical Conditioning",
+      "14.2.4 TD Model Simulations"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.2 Classical Conditioning > 14.2.4 TD Model Simulations; page 372, chars 1211115-1211147 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.2 Classical Conditioning > 14.2.4 TD Model Simulations; page 374, chars 1218236-1218740",
+    "chars": 7635
+  },
+  {
+    "index": 224,
+    "sha256": "6439ffda75c5a123e4870f43e030cd97184f0d3a1ce565d174ab3c25ebbff1a6",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.2 Classical Conditioning",
+      "14.2.4 TD Model Simulations"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.2 Classical Conditioning > 14.2.4 TD Model Simulations; page 375, chars 1218744-1219913 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.2 Classical Conditioning > 14.2.4 TD Model Simulations; page 377, chars 1225178-1226270",
+    "chars": 7496
+  },
+  {
+    "index": 225,
+    "sha256": "89f3b022e8cea850e0fd55f42ba2282f4c21d66e77b06a2956ce21b861c0801e",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.2 Classical Conditioning",
+      "14.2.4 TD Model Simulations"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.2 Classical Conditioning > 14.2.4 TD Model Simulations; page 377, chars 1226271-1227460 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.2 Classical Conditioning > 14.2.4 TD Model Simulations; page 379, chars 1232991-1233564",
+    "chars": 7317
+  },
+  {
+    "index": 226,
+    "sha256": "4012ee2a676bd8c0d694fa8c639aaf129f19de5a0ae8af1888cafa880552c9b6",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.3 Instrumental Conditioning"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.3 Instrumental Conditioning; page 379, chars 1233568-1233602 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.3 Instrumental Conditioning; page 381, chars 1240895-1241158",
+    "chars": 7681
+  },
+  {
+    "index": 227,
+    "sha256": "96a6b52daa73f9df15d311ca3fe638754aa2fde048bf6b3f5c6ec3244b00221b",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.3 Instrumental Conditioning"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.3 Instrumental Conditioning; page 381, chars 1240895-1241158 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.3 Instrumental Conditioning; page 383, chars 1247119-1247565",
+    "chars": 6748
+  },
+  {
+    "index": 228,
+    "sha256": "aa8ea1f238092645dcd0260f651baf55a8ab50b460dd49459304b129bf89d8d0",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.4 Delayed Reinforcement"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.4 Delayed Reinforcement; page 383, chars 1247569-1247599 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.4 Delayed Reinforcement; page 385, chars 1251909-1252916",
+    "chars": 5413
+  },
+  {
+    "index": 229,
+    "sha256": "a333d4d03f39fe703b544d47644bebe2670cbf6edf888c1fef18f5e750065a4e",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.5 Cognitive Maps"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.5 Cognitive Maps; page 385, chars 1252920-1252943 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.5 Cognitive Maps; page 386, chars 1257624-1257731",
+    "chars": 4877
+  },
+  {
+    "index": 230,
+    "sha256": "539ccfced536e7a0f1a7b27e659d3117a2b174288da58e5a401ae305cafcb45c",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.6 Habitual and Goal-directed Behavior"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.6 Habitual and Goal-directed Behavior; page 386, chars 1257735-1257779 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.6 Habitual and Goal-directed Behavior; page 388, chars 1264656-1265809",
+    "chars": 7950
+  },
+  {
+    "index": 231,
+    "sha256": "5c1918cdc539a97e0a3c750d3200bd95b086843c72532840e39be85354666525",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.6 Habitual and Goal-directed Behavior"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.6 Habitual and Goal-directed Behavior; page 388, chars 1265813-1266164 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.6 Habitual and Goal-directed Behavior; page 390, chars 1272184-1273083",
+    "chars": 7351
+  },
+  {
+    "index": 232,
+    "sha256": "26da78d079e24aa6e4a81cc9800316a3c8cd43e07d6bdcb4882ee6953d82d2c3",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.7 Summary"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.7 Summary; page 390, chars 1273087-1273103 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.7 Summary; page 393, chars 1279910-1280207",
+    "chars": 7216
+  },
+  {
+    "index": 233,
+    "sha256": "9819d042510a70c320a0a9a89d863b9af58f9411659463dfa692db0adaf6594b",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.7 Summary"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.7 Summary; page 393, chars 1279910-1280207 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.7 Summary; page 395, chars 1287128-1287507",
+    "chars": 7690
+  },
+  {
+    "index": 234,
+    "sha256": "4ae8a5618d332399138ec15b0ad6a4593c19adb059b5bb521f37b1f8fd71eae3",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.7 Summary"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.7 Summary; page 395, chars 1287128-1287507 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.7 Summary; page 396, chars 1293704-1294062",
+    "chars": 7010
+  },
+  {
+    "index": 235,
+    "sha256": "dea851c096539699b000be44c6614231968a5ed75ebe5e512e791d2e8d3c4b8c",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 14: Psychology",
+      "14.7 Summary"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 14: Psychology > 14.7 Summary; page 396, chars 1293704-1294062 – section Part III: Looking Deeper > Chapter 14: Psychology > 14.7 Summary; page 398, chars 1298826-1299608",
+    "chars": 5974
+  },
+  {
+    "index": 236,
+    "sha256": "b50336978b64fe7870f224623c64f7597666c404ecd6cf82f9fd896459601101",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience; page 399, chars 1299610-1299637 – section Part III: Looking Deeper > Chapter 15: Neuroscience; page 400, chars 1303331-1303535",
+    "chars": 3992
+  },
+  {
+    "index": 237,
+    "sha256": "5b6d69a228b14e64d0dfacff760383e71a53547a0b860d63c0fed582b7938a22",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.1 Neuroscience Basics"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.1 Neuroscience Basics; page 400, chars 1303540-1303568 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.1 Neuroscience Basics; page 401, chars 1308695-1308783",
+    "chars": 5309
+  },
+  {
+    "index": 238,
+    "sha256": "89ae2ca38d7c2914caac6cbefd9729f28f1e4f82de4bc4d01f2ad09020e15fdd",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.2 Reward Signals, Reinforcement Signals, Values, and Prediction Errors"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.2 Reward Signals, Reinforcement Signals, Values, and Prediction Errors; page 402, chars 1308788-1308865 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.2 Reward Signals, Reinforcement Signals, Values, and Prediction Errors; page 403, chars 1314762-1315144",
+    "chars": 6398
+  },
+  {
+    "index": 239,
+    "sha256": "5a3f5b9a185f4ee5617079ed81e6bc1358be804e52a1b91fd9d686c941068ef7",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.3 The Reward Prediction Error Hypothesis"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.3 The Reward Prediction Error Hypothesis; page 403, chars 1315148-1315195 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.3 The Reward Prediction Error Hypothesis; page 405, chars 1320847-1321105",
+    "chars": 6029
+  },
+  {
+    "index": 240,
+    "sha256": "619953c4e2571543f9d26ca9ab5b4348cad8d7ea73aabb89ba479a3c99ddb40c",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.4 Dopamine"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.4 Dopamine; page 405, chars 1321109-1321126 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.4 Dopamine; page 407, chars 1326895-1328092",
+    "chars": 7060
+  },
+  {
+    "index": 241,
+    "sha256": "bd4f4ba0faf69bc68596452f0b708242b0ea3671c574d592752bd37fd52e1820",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.4 Dopamine"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.4 Dopamine; page 407, chars 1328093-1329224 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.4 Dopamine; page 409, chars 1332681-1333280",
+    "chars": 5242
+  },
+  {
+    "index": 242,
+    "sha256": "e6b7030aa85727c7d80ca011876799d948c551f38970bfd8a1ccc17d710d7436",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.5 Experimental Support for the Reward Prediction Error Hypothesis"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.5 Experimental Support for the Reward Prediction Error Hypothesis; page 409, chars 1333285-1333357 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.5 Experimental Support for the Reward Prediction Error Hypothesis; page 411, chars 1339589-1340729",
+    "chars": 7489
+  },
+  {
+    "index": 243,
+    "sha256": "72a8b8876b917dde8f1668e65a59b3cc16659873a429df9e3f6209ec031bbc1e",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.5 Experimental Support for the Reward Prediction Error Hypothesis"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.5 Experimental Support for the Reward Prediction Error Hypothesis; page 411, chars 1340772-1341315 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.5 Experimental Support for the Reward Prediction Error Hypothesis; page 412, chars 1341319-1342205",
+    "chars": 1451
+  },
+  {
+    "index": 244,
+    "sha256": "e4b35071c210072e58b6fa43ff6815ccdeeb37db7a1ec63642daa3f26a6999b2",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.6 TD Error/Dopamine Correspondence"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.6 TD Error/Dopamine Correspondence; page 412, chars 1342209-1342250 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.6 TD Error/Dopamine Correspondence; page 414, chars 1348831-1349979",
+    "chars": 7780
+  },
+  {
+    "index": 245,
+    "sha256": "f2cd5590dd82ff39251fd0ea7043f43cb328da9a9ac0cb32f438c771eadb54ea",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.6 TD Error/Dopamine Correspondence"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.6 TD Error/Dopamine Correspondence; page 414, chars 1349980-1351132 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.6 TD Error/Dopamine Correspondence; page 416, chars 1356289-1357412",
+    "chars": 7510
+  },
+  {
+    "index": 246,
+    "sha256": "8cf48d27ad843c655dcf86c40f4aca3fc6bb5abaa4b90d32c23eb2756e75f240",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.6 TD Error/Dopamine Correspondence"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.6 TD Error/Dopamine Correspondence; page 416, chars 1357413-1358555 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.6 TD Error/Dopamine Correspondence; page 417, chars 1358742-1359486",
+    "chars": 2099
+  },
+  {
+    "index": 247,
+    "sha256": "7e0572be007f01d321f008c3b828f67debc44c4bac213864dc1d19d49308ea6b",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.7 Neural Actor–Critic"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.7 Neural Actor–Critic; page 417, chars 1359490-1359518 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.7 Neural Actor–Critic; page 418, chars 1366112-1367222",
+    "chars": 7128
+  },
+  {
+    "index": 248,
+    "sha256": "aec3667bfbfee133cdbaa59f9093650a396a1e759a14b2bba941922d1f5a50dc",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.7 Neural Actor–Critic"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.7 Neural Actor–Critic; page 419, chars 1367229-1368361 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.7 Neural Actor–Critic; page 420, chars 1372083-1372247",
+    "chars": 5077
+  },
+  {
+    "index": 249,
+    "sha256": "c06b291b2c18c36adbb5408156acf40b2c74692acaeb8ebbadff7e59225cab45",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.8 Actor and Critic Learning Rules"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.8 Actor and Critic Learning Rules; page 420, chars 1372253-1372293 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.8 Actor and Critic Learning Rules; page 422, chars 1379220-1379308",
+    "chars": 7148
+  },
+  {
+    "index": 250,
+    "sha256": "f614d02901d3781428d4754cbeb6e6a0f8906385753568535591dc906adc923e",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.8 Actor and Critic Learning Rules"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.8 Actor and Critic Learning Rules; page 422, chars 1379220-1379308 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.8 Actor and Critic Learning Rules; page 424, chars 1386130-1387124",
+    "chars": 7989
+  },
+  {
+    "index": 251,
+    "sha256": "f8ae48f14fbef5dc64fb58411488165c9580e92d6927a0e5bd77c6fbb49cbdec",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.9 Hedonistic Neurons"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.9 Hedonistic Neurons; page 424, chars 1387128-1387155 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.9 Hedonistic Neurons; page 426, chars 1393404-1393707",
+    "chars": 6661
+  },
+  {
+    "index": 252,
+    "sha256": "0be96e6aa2336c15f2c3daaaa611ebc4f896ac286da419a4fbbf69e15f90cbac",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.10 Collective Reinforcement Learning"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.10 Collective Reinforcement Learning; page 426, chars 1393711-1393754 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.10 Collective Reinforcement Learning; page 428, chars 1399401-1400544",
+    "chars": 6913
+  },
+  {
+    "index": 253,
+    "sha256": "eeb1a45907c38677430883c0d2dcfb76c10d95235da835c2ea1c61b36ac559fe",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.10 Collective Reinforcement Learning"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.10 Collective Reinforcement Learning; page 428, chars 1400545-1401710 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.10 Collective Reinforcement Learning; page 429, chars 1404343-1405006",
+    "chars": 4509
+  },
+  {
+    "index": 254,
+    "sha256": "1719f787761fe7e6d20e2c3860773f4d2f76e8805ee18eba5bf03bebfde6921f",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.11 Model-based Methods in the Brain"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.11 Model-based Methods in the Brain; page 429, chars 1405010-1405052 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.11 Model-based Methods in the Brain; page 431, chars 1410232-1411163",
+    "chars": 6230
+  },
+  {
+    "index": 255,
+    "sha256": "21f1bad800e8df4d9ca80746b0f9b162dec01a47873bd495234ac649f6897fe0",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.12 Addiction"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.12 Addiction; page 431, chars 1411167-1411186 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.12 Addiction; page 432, chars 1413565-1414523",
+    "chars": 3403
+  },
+  {
+    "index": 256,
+    "sha256": "a4b937af80cdf23e1b9ddbcffdfa3f50d3c084e6b27c1fbfa4cad258e8a0507e",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.13 Summary"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.13 Summary; page 432, chars 1414527-1414544 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.13 Summary; page 434, chars 1420728-1421913",
+    "chars": 7474
+  },
+  {
+    "index": 257,
+    "sha256": "513071f55aa83298edaa2c2b4f0c45c1a1f56cc5bd75b2635725afba1ac27173",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.13 Summary"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.13 Summary; page 434, chars 1421914-1423046 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.13 Summary; page 436, chars 1428632-1429624",
+    "chars": 7796
+  },
+  {
+    "index": 258,
+    "sha256": "e328bc260e4c1de71ffa11928bafc533dddc27a9925255d84462f58dfd1f33b2",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.13 Summary"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.13 Summary; page 436, chars 1429626-1430816 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.13 Summary; page 438, chars 1437155-1437339",
+    "chars": 7781
+  },
+  {
+    "index": 259,
+    "sha256": "d196c930e6b92e664089615043fe46b4dcb8fb2329c0eea52d41a0c36ba1a2b2",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.13 Summary"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.13 Summary; page 438, chars 1437155-1437339 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.13 Summary; page 440, chars 1443367-1444481",
+    "chars": 7352
+  },
+  {
+    "index": 260,
+    "sha256": "d96b98fcc15de77fbc34205352cb48189b5914f520eeeca3289ef8a19a42dc1c",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 15: Neuroscience",
+      "15.13 Summary"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.13 Summary; page 440, chars 1444489-1445151 – section Part III: Looking Deeper > Chapter 15: Neuroscience > 15.13 Summary; page 441, chars 1447923-1448371",
+    "chars": 3916
+  },
+  {
+    "index": 261,
+    "sha256": "982dfdeaf4ecfb3e86721ac9d958c008aac26539c30683a8615b54acddffc004",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies; page 443, chars 1448374-1448418 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies; page 443, chars 1448452-1449363",
+    "chars": 1018
+  },
+  {
+    "index": 262,
+    "sha256": "53cadcb84fca41a3f81a7ff85a192eb628dda14858f33b1c180165641cda29a3",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.1 TD-Gammon"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.1 TD-Gammon; page 443, chars 1449367-1449385 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.1 TD-Gammon; page 445, chars 1455260-1456395",
+    "chars": 7084
+  },
+  {
+    "index": 263,
+    "sha256": "b3a0860067d09091288f1855edf76f658e634fc55fe778ac67837f138c8d43c6",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.1 TD-Gammon"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.1 TD-Gammon; page 445, chars 1456512-1457548 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.1 TD-Gammon; page 445, chars 1463324-1464320",
+    "chars": 7495
+  },
+  {
+    "index": 264,
+    "sha256": "87fba67ed882589a8c18e0dc380e88cd6709e64fd0f493d5575e9818c7091625",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.1 TD-Gammon"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.1 TD-Gammon; page 445, chars 1464441-1465507 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.1 TD-Gammon; page 445, chars 1471406-1472442",
+    "chars": 7587
+  },
+  {
+    "index": 265,
+    "sha256": "c5aa59735ad6e87c026e1968733736b1358b6d76c4a3f99059c3571bdc15a9da",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.1 TD-Gammon"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.1 TD-Gammon; page 445, chars 1472533-1473633 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.1 TD-Gammon; page 446, chars 1479766-1480648",
+    "chars": 8007
+  },
+  {
+    "index": 266,
+    "sha256": "01324d58fb18d7c7ac28b11c2632440d95dd6aebfa9a77ef3ebd08585942b79f",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.1 TD-Gammon"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.1 TD-Gammon; page 447, chars 1480652-1481832 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.1 TD-Gammon; page 448, chars 1485089-1485239",
+    "chars": 4630
+  },
+  {
+    "index": 267,
+    "sha256": "362dbc257184533731f3ee5d2a3b109a00e1b5c9736d3890cf599af14ca66b30",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.2 Samuel’s Checkers Player"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.2 Samuel’s Checkers Player; page 448, chars 1485243-1485276 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.2 Samuel’s Checkers Player; page 450, chars 1491174-1492302",
+    "chars": 7057
+  },
+  {
+    "index": 268,
+    "sha256": "2f67e2c2fbfa8af34b42d4afd0b676ec2a9b55e92f45398e6acad49f937eadcd",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.2 Samuel’s Checkers Player"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.2 Samuel’s Checkers Player; page 450, chars 1492303-1493460 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.2 Samuel’s Checkers Player; page 451, chars 1493464-1493911",
+    "chars": 1626
+  },
+  {
+    "index": 269,
+    "sha256": "05a4f5b6f712a46ff0659647a665d72152701f4c939e97040e64a0cf3b8f7c3d",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.3 Watson’s Daily-Double Wagering"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.3 Watson’s Daily-Double Wagering; page 451, chars 1493915-1493954 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.3 Watson’s Daily-Double Wagering; page 453, chars 1500368-1501503",
+    "chars": 7681
+  },
+  {
+    "index": 270,
+    "sha256": "2e513d009f55941bb4662e0f5846d99d5ec4f2302e99a3e7387b073cc9fe59b4",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.3 Watson’s Daily-Double Wagering"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.3 Watson’s Daily-Double Wagering; page 453, chars 1501504-1502624 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.3 Watson’s Daily-Double Wagering; page 454, chars 1504004-1504239",
+    "chars": 2762
+  },
+  {
+    "index": 271,
+    "sha256": "51c8342ad72c54c366c47dae4ee2a4be560eb0f1121fc4ac9206e2aa4712cc63",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.4 Optimizing Memory Control"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.4 Optimizing Memory Control; page 454, chars 1504244-1504278 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.4 Optimizing Memory Control; page 456, chars 1510041-1511206",
+    "chars": 7035
+  },
+  {
+    "index": 272,
+    "sha256": "b98370f944fdff33d0d13837569399ade9b657c20f768986b335268e28c6f85b",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.4 Optimizing Memory Control"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.4 Optimizing Memory Control; page 456, chars 1511207-1512373 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.4 Optimizing Memory Control; page 458, chars 1518005-1518300",
+    "chars": 7170
+  },
+  {
+    "index": 273,
+    "sha256": "d3d34cfdf695afe8f40961616dbc6e27d8fea72c50b6466af2056f1eafb45360",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.5 Human-level Video Game Play"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.5 Human-level Video Game Play; page 458, chars 1518304-1518340 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.5 Human-level Video Game Play; page 460, chars 1523994-1525149",
+    "chars": 6925
+  },
+  {
+    "index": 274,
+    "sha256": "d1e0034df82abf0f75989bb44c2717e2774473f95540bd6717f76ab672a69fe2",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.5 Human-level Video Game Play"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.5 Human-level Video Game Play; page 460, chars 1525150-1526331 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.5 Human-level Video Game Play; page 462, chars 1531453-1532578",
+    "chars": 7505
+  },
+  {
+    "index": 275,
+    "sha256": "b55ec7f27904960c38833a1180c40bf753e2a0ec7e157f7efbee38544a8b1172",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.5 Human-level Video Game Play"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.5 Human-level Video Game Play; page 462, chars 1532579-1533775 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.5 Human-level Video Game Play; page 463, chars 1537551-1537835",
+    "chars": 5319
+  },
+  {
+    "index": 276,
+    "sha256": "e2c633a03ee998d28c098b64ee38589ae41a95bb2f71632dbb02810a1d762c50",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.6 Mastering the Game of Go"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.6 Mastering the Game of Go; page 463, chars 1537839-1537872 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.6 Mastering the Game of Go; page 465, chars 1544146-1544947",
+    "chars": 7166
+  },
+  {
+    "index": 277,
+    "sha256": "4f366cafd77e677357d5e219f7576327215c6c04ff5511d73cb78540ca5529cc",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.6 Mastering the Game of Go",
+      "16.6.1 AlphaGo"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.6 Mastering the Game of Go > 16.6.1 AlphaGo; page 466, chars 1544952-1544971 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.6 Mastering the Game of Go > 16.6.1 AlphaGo; page 467, chars 1552878-1553940",
+    "chars": 7364
+  },
+  {
+    "index": 278,
+    "sha256": "472fb3747485a59c56d22063d179fbd2d15b1b41755655e2ddfcf46985f62b28",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.6 Mastering the Game of Go",
+      "16.6.1 AlphaGo"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.6 Mastering the Game of Go > 16.6.1 AlphaGo; page 467, chars 1554005-1555118 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.6 Mastering the Game of Go > 16.6.1 AlphaGo; page 468, chars 1560786-1561957",
+    "chars": 7763
+  },
+  {
+    "index": 279,
+    "sha256": "66c2c7d83535f1391aedf11039c26ff6170e1cccfbc7cb093c4835e369f4e778",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.6 Mastering the Game of Go",
+      "16.6.1 AlphaGo"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.6 Mastering the Game of Go > 16.6.1 AlphaGo; page 468, chars 1561958-1563117 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.6 Mastering the Game of Go > 16.6.1 AlphaGo; page 469, chars 1564333-1565182",
+    "chars": 3264
+  },
+  {
+    "index": 280,
+    "sha256": "97ecbe74600b07fcd7eeed928b6ca7b3d793877c0bac92c594e3fcce5112e9fa",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.6 Mastering the Game of Go",
+      "16.6.2 AlphaGo Zero"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.6 Mastering the Game of Go > 16.6.2 AlphaGo Zero; page 469, chars 1565186-1565210 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.6 Mastering the Game of Go > 16.6.2 AlphaGo Zero; page 470, chars 1571295-1572365",
+    "chars": 7045
+  },
+  {
+    "index": 281,
+    "sha256": "288fe9961a31f253944b68324cffdaed68d33b4305abfd99b6b345b62d08d01d",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.6 Mastering the Game of Go",
+      "16.6.2 AlphaGo Zero"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.6 Mastering the Game of Go > 16.6.2 AlphaGo Zero; page 470, chars 1572427-1573446 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.6 Mastering the Game of Go > 16.6.2 AlphaGo Zero; page 472, chars 1578358-1578513",
+    "chars": 6156
+  },
+  {
+    "index": 282,
+    "sha256": "305cfd5815389c06c3f31c23b2ce4f9e73711f042d3e503625b65aedafe95fe9",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.7 Personalized Web Services"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.7 Personalized Web Services; page 472, chars 1578517-1578551 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.7 Personalized Web Services; page 474, chars 1584349-1585542",
+    "chars": 7102
+  },
+  {
+    "index": 283,
+    "sha256": "3cd70fc1d8f059afa8b024e1379ce6323e27705bb06b52a86aa9a82bcfe91493",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.7 Personalized Web Services"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.7 Personalized Web Services; page 474, chars 1585543-1586715 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.7 Personalized Web Services; page 475, chars 1588302-1589266",
+    "chars": 3777
+  },
+  {
+    "index": 284,
+    "sha256": "c511f9a4eff5da8a7435edbf1b303218bbe30d4ba938fa74f5977c98821156ee",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.8 Thermal Soaring"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.8 Thermal Soaring; page 475, chars 1589270-1589294 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.8 Thermal Soaring; page 476, chars 1596549-1597666",
+    "chars": 7744
+  },
+  {
+    "index": 285,
+    "sha256": "3a98b0ca9d9b1456c1d5e069dc1ce87b80024cd2b7b1195e4ad03a64d6dc99d6",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.8 Thermal Soaring"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.8 Thermal Soaring; page 476, chars 1597727-1598832 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.8 Thermal Soaring; page 476, chars 1604677-1604875",
+    "chars": 6848
+  },
+  {
+    "index": 286,
+    "sha256": "ee440eb7aa2f60c0d666e6692f518f4fbe6269a2afe06a8e7f7e73c9f7970792",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 16: Applications and Case Studies",
+      "16.8 Thermal Soaring"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.8 Thermal Soaring; page 476, chars 1604677-1604875 – section Part III: Looking Deeper > Chapter 16: Applications and Case Studies > 16.8 Thermal Soaring; page 479, chars 1612188-1612284",
+    "chars": 7699
+  },
+  {
+    "index": 287,
+    "sha256": "3d63e6edcbf62df9c2b32dbb9869e8d6d11a853b9d997c4181b2df831d78a0e2",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 17: Frontiers"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 17: Frontiers; page 481, chars 1612287-1612311 – section Part III: Looking Deeper > Chapter 17: Frontiers; page 481, chars 1612325-1612598",
+    "chars": 340
+  },
+  {
+    "index": 288,
+    "sha256": "f7ddf49d1fb1bcf4d104b0e50ca6281c38764bf75f612318f75a72f08ac9bcd6",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 17: Frontiers",
+      "17.1 General Value Functions and Auxiliary Tasks"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 17: Frontiers > 17.1 General Value Functions and Auxiliary Tasks; page 481, chars 1612602-1612654 – section Part III: Looking Deeper > Chapter 17: Frontiers > 17.1 General Value Functions and Auxiliary Tasks; page 483, chars 1619296-1619576",
+    "chars": 7068
+  },
+  {
+    "index": 289,
+    "sha256": "e17a91570f8138b5cad44f9bf08c9d2717c86e41d707fbf1c7a5abd87994b086",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 17: Frontiers",
+      "17.2 Temporal Abstraction via Options"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 17: Frontiers > 17.2 Temporal Abstraction via Options; page 483, chars 1619580-1619621 – section Part III: Looking Deeper > Chapter 17: Frontiers > 17.2 Temporal Abstraction via Options; page 485, chars 1625778-1626462",
+    "chars": 6961
+  },
+  {
+    "index": 290,
+    "sha256": "e4fd2d92066aff1b18e03373bbb6278720f11dd3aff0e99ee567a335c6b81df5",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 17: Frontiers",
+      "17.2 Temporal Abstraction via Options"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 17: Frontiers > 17.2 Temporal Abstraction via Options; page 485, chars 1626464-1627659 – section Part III: Looking Deeper > Chapter 17: Frontiers > 17.2 Temporal Abstraction via Options; page 486, chars 1628717-1629156",
+    "chars": 2721
+  },
+  {
+    "index": 291,
+    "sha256": "ec065ffbb9fed129d97086a61546727ecd9b3064e11a13a3ab8178b2f6bcbbec",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 17: Frontiers",
+      "17.3 Observations and State"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 17: Frontiers > 17.3 Observations and State; page 486, chars 1629160-1629191 – section Part III: Looking Deeper > Chapter 17: Frontiers > 17.3 Observations and State; page 488, chars 1635800-1636915",
+    "chars": 7792
+  },
+  {
+    "index": 292,
+    "sha256": "8aca6c6ca0610527e5bb93d07545370bd5263416ac10b000be695eeabfbec6e2",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 17: Frontiers",
+      "17.3 Observations and State"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 17: Frontiers > 17.3 Observations and State; page 488, chars 1636916-1637184 – section Part III: Looking Deeper > Chapter 17: Frontiers > 17.3 Observations and State; page 490, chars 1643467-1644634",
+    "chars": 7808
+  },
+  {
+    "index": 293,
+    "sha256": "0a0f9eeac4432fe1074f4ae61904a57f84cb904af89daad3c9913f5d290529cc",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 17: Frontiers",
+      "17.3 Observations and State"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 17: Frontiers > 17.3 Observations and State; page 490, chars 1644635-1645812 – section Part III: Looking Deeper > Chapter 17: Frontiers > 17.3 Observations and State; page 490, chars 1645813-1646148",
+    "chars": 1534
+  },
+  {
+    "index": 294,
+    "sha256": "392e50abc5991317afc6fb5f9d7d282713cdb8b8d8a2267410f9c96cf67074c7",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 17: Frontiers",
+      "17.4 Designing Reward Signals"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 17: Frontiers > 17.4 Designing Reward Signals; page 491, chars 1646153-1646186 – section Part III: Looking Deeper > Chapter 17: Frontiers > 17.4 Designing Reward Signals; page 492, chars 1653352-1653618",
+    "chars": 7556
+  },
+  {
+    "index": 295,
+    "sha256": "74474a8b44789ab9918914263f9597fd335bccd8f16b28dd482c245d8d4b49ab",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 17: Frontiers",
+      "17.4 Designing Reward Signals"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 17: Frontiers > 17.4 Designing Reward Signals; page 492, chars 1653352-1653618 – section Part III: Looking Deeper > Chapter 17: Frontiers > 17.4 Designing Reward Signals; page 494, chars 1657440-1658296",
+    "chars": 5000
+  },
+  {
+    "index": 296,
+    "sha256": "00fe9c10af0a064df89d225613c371b3da29f4bbb67a263d8e8cc55ad98df8b1",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 17: Frontiers",
+      "17.5 Remaining Issues"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 17: Frontiers > 17.5 Remaining Issues; page 494, chars 1658300-1658325 – section Part III: Looking Deeper > Chapter 17: Frontiers > 17.5 Remaining Issues; page 496, chars 1664802-1665938",
+    "chars": 7732
+  },
+  {
+    "index": 297,
+    "sha256": "d68944e33026d6d80aeb69638c6e7776fb01e327a6dd0741fd216535f3ee4b7d",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 17: Frontiers",
+      "17.5 Remaining Issues"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 17: Frontiers > 17.5 Remaining Issues; page 496, chars 1665939-1667127 – section Part III: Looking Deeper > Chapter 17: Frontiers > 17.5 Remaining Issues; page 496, chars 1668297-1668588",
+    "chars": 2678
+  },
+  {
+    "index": 298,
+    "sha256": "d64e77d66641232f122d84572a7d5e2ea2497d2e9f05b4f359420f2297d68e73",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 17: Frontiers",
+      "17.6 Reinforcement Learning and the Future of Artificial Intelligence"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 17: Frontiers > 17.6 Reinforcement Learning and the Future of Artificial Intelligence; page 497, chars 1668593-1668666 – section Part III: Looking Deeper > Chapter 17: Frontiers > 17.6 Reinforcement Learning and the Future of Artificial Intelligence; page 498, chars 1675479-1675836",
+    "chars": 7325
+  },
+  {
+    "index": 299,
+    "sha256": "df94fd9f1bb6199abcbcaef3db31bb1457f422a51663ea6ef2cf94395db1dd17",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 17: Frontiers",
+      "17.6 Reinforcement Learning and the Future of Artificial Intelligence"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 17: Frontiers > 17.6 Reinforcement Learning and the Future of Artificial Intelligence; page 498, chars 1675479-1675836 – section Part III: Looking Deeper > Chapter 17: Frontiers > 17.6 Reinforcement Learning and the Future of Artificial Intelligence; page 500, chars 1682688-1683120",
+    "chars": 7733
+  },
+  {
+    "index": 300,
+    "sha256": "3905091b647548ac664442bc498c323b08f8803f3beaa41cd12ba36c4d6b0274",
+    "section_path": [
+      "Part III: Looking Deeper",
+      "Chapter 17: Frontiers",
+      "17.6 Reinforcement Learning and the Future of Artificial Intelligence"
+    ],
+    "location": "section Part III: Looking Deeper > Chapter 17: Frontiers > 17.6 Reinforcement Learning and the Future of Artificial Intelligence; page 500, chars 1682688-1683120 – section Part III: Looking Deeper > Chapter 17: Frontiers > 17.6 Reinforcement Learning and the Future of Artificial Intelligence; page 502, chars 1687434-1687759",
+    "chars": 5118
+  },
+  {
+    "index": 301,
+    "sha256": "6d9e27e140b1b134ecd151b49d8230cf624f9becc04644fb508053e1d3b0c635",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 503, chars 1687761-1687773 – section References; page 505, chars 1693887-1695085",
+    "chars": 7403
+  },
+  {
+    "index": 302,
+    "sha256": "a9cdaa93e352f1a47ebd9ea8e851e20bb0ee285aaf3d48aa13b8e619e17aab8e",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 505, chars 1695086-1696271 – section References; page 507, chars 1701101-1702285",
+    "chars": 7273
+  },
+  {
+    "index": 303,
+    "sha256": "92f8f9f7d7b5bd22a880eea1f43242d84e746932a33a5c5f66d1892876dc009b",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 507, chars 1702289-1703431 – section References; page 509, chars 1709014-1710205",
+    "chars": 7983
+  },
+  {
+    "index": 304,
+    "sha256": "77a08d68f60a8b5f184d55ed517b10e338c3c47a3770ad17fa79a2ffb5626956",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 509, chars 1710206-1711381 – section References; page 511, chars 1716378-1717537",
+    "chars": 7401
+  },
+  {
+    "index": 305,
+    "sha256": "9fb5956b4cfa92af865f63247cfdba3424d2a7ba091e3005821b0ea301859877",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 511, chars 1717542-1718657 – section References; page 513, chars 1724264-1725405",
+    "chars": 7923
+  },
+  {
+    "index": 306,
+    "sha256": "e0128f5fa9cccb9e268b792c7afcfb22afa9a642321941abda4afd986f763aa5",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 514, chars 1725409-1726604 – section References; page 515, chars 1731337-1732260",
+    "chars": 6907
+  },
+  {
+    "index": 307,
+    "sha256": "2ca94cf5b5b3a3dd3118ab2ab37e4f0b144b981d9fbbc89d5df3aefbaeabf032",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 516, chars 1732264-1733444 – section References; page 517, chars 1738115-1739222",
+    "chars": 7016
+  },
+  {
+    "index": 308,
+    "sha256": "a01aa683823e8900a00304fe2f8afff5d0a6c3a604ced0e35646538e6122c3f2",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 518, chars 1739226-1740412 – section References; page 519, chars 1744960-1745964",
+    "chars": 6797
+  },
+  {
+    "index": 309,
+    "sha256": "ee5595a68521eb6a20acb3c329255f40dddd46b799c0c8f04cb7487d24fea170",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 520, chars 1745968-1747167 – section References; page 521, chars 1752030-1753122",
+    "chars": 7217
+  },
+  {
+    "index": 310,
+    "sha256": "1a0d2c589e10f9fd30675bc96cc28c5f24ca30d1a6c9647362af1b4644c30410",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 522, chars 1753129-1754305 – section References; page 523, chars 1760173-1760248",
+    "chars": 7183
+  },
+  {
+    "index": 311,
+    "sha256": "208f68a96490cba5249c0d94b10f8c2baf724a5ea0b4945f703e0077b5e315db",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 523, chars 1760173-1760248 – section References; page 525, chars 1767405-1767487",
+    "chars": 7395
+  },
+  {
+    "index": 312,
+    "sha256": "6e4751dddf9d5b6f61b8e493efebb798d56328d8148d6c4f5d244920436897af",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 525, chars 1767405-1767487 – section References; page 527, chars 1773441-1774342",
+    "chars": 7015
+  },
+  {
+    "index": 313,
+    "sha256": "4647b92216168260c376bd870a30399bcd6e348a659ae7a1f4472cff210d20b5",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 528, chars 1774346-1775503 – section References; page 529, chars 1781350-1781439",
+    "chars": 7163
+  },
+  {
+    "index": 314,
+    "sha256": "456b144f36ec07648a07ed49bdde9e8c9064091847ca2c3d3684f722a1ca5cda",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 529, chars 1781350-1781439 – section References; page 531, chars 1788328-1788573",
+    "chars": 7292
+  },
+  {
+    "index": 315,
+    "sha256": "cefcd9e6307501dc8be17f7239e88741120bb73de99b4138e51ac12119561986",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 531, chars 1788328-1788573 – section References; page 533, chars 1794398-1795522",
+    "chars": 7260
+  },
+  {
+    "index": 316,
+    "sha256": "ec478fd0f85e91ac7092a56ed57498d6be9d989cd07d61a844cbe853e35a34ae",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 534, chars 1795526-1796677 – section References; page 535, chars 1802926-1802962",
+    "chars": 7514
+  },
+  {
+    "index": 317,
+    "sha256": "c33d527552e0cd7148f9980088f983156dae2b17e5805ff51433892feb5aa140",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 535, chars 1802926-1802962 – section References; page 537, chars 1809759-1809852",
+    "chars": 7007
+  },
+  {
+    "index": 318,
+    "sha256": "4f5ad58bab5b24f8edef58c415a8e79bbcd26f2bcfdce6faabff7be2342f9143",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 537, chars 1809759-1809852 – section References; page 539, chars 1815626-1816607",
+    "chars": 6915
+  },
+  {
+    "index": 319,
+    "sha256": "2f7dcd934214037a74cd6901f3427759259009652aac1a7fcf131437da7e3070",
+    "section_path": [
+      "References"
+    ],
+    "location": "section References; page 540, chars 1816611-1817785 – section References; page 540, chars 1818927-1819289",
+    "chars": 2710
+  },
+  {
+    "index": 320,
+    "sha256": "471d4bb14bd42124075b5ef8aa029655458b237239486c1632d204b993297408",
+    "section_path": [
+      "Index"
+    ],
+    "location": "section Index; page 541, chars 1819291-1819298 – section Index; page 542, chars 1826462-1827044",
+    "chars": 7828
+  },
+  {
+    "index": 321,
+    "sha256": "f857f0e6dc6814d1ccfacea2cc2fb201815ca2578ff70ce8a63dd7363ebbc5ff",
+    "section_path": [
+      "Index"
+    ],
+    "location": "section Index; page 543, chars 1827048-1828171 – section Index; page 544, chars 1834216-1834606",
+    "chars": 7622
+  },
+  {
+    "index": 322,
+    "sha256": "c89f761c74f2a78141a4cd6900641c4f8b3ee6b0ec7ce36787d65f8ef87cccf8",
+    "section_path": [
+      "Index"
+    ],
+    "location": "section Index; page 544, chars 1834216-1834606 – section Index; page 547, chars 1842073-1842146",
+    "chars": 8007
+  },
+  {
+    "index": 323,
+    "sha256": "684b50c25039760309434a90b2c4bb48a086d82b1f921a16b2034a3c3147277b",
+    "section_path": [
+      "Index"
+    ],
+    "location": "section Index; page 547, chars 1841759-1841837 – section Index; page 548, chars 1843560-1843693",
+    "chars": 2174
+  }
+]

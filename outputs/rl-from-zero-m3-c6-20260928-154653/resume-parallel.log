@@ -1,0 +1,3 @@
+Resume same graph.db: MiniMax-M3, total HTTP cap 6, relation workers 6; existing done fingerprints retained
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 2220.90it/s]
+Terminated

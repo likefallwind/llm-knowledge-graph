@@ -1,0 +1,99 @@
+% Local copy of the official ACL style interface.
+% Source: https://github.com/acl-org/acl-style-files
+% Keep this file unchanged when preparing a submission; replace it with the
+% current official ACL style files if the venue releases a newer version.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{acl}[2026/10/04 ACL review style]
+\newif\ifacl@finalcopy
+\newif\ifacl@anonymize
+\newif\ifacl@linenumbers
+\newif\ifacl@pagenumbers
+\DeclareOption{final}{\acl@finalcopytrue\acl@anonymizefalse\acl@linenumbersfalse\acl@pagenumbersfalse}
+\DeclareOption{review}{\acl@finalcopyfalse\acl@anonymizetrue\acl@linenumberstrue\acl@pagenumberstrue}
+\DeclareOption{preprint}{\acl@finalcopytrue\acl@anonymizefalse\acl@linenumbersfalse\acl@pagenumberstrue}
+\ExecuteOptions{final}
+\ProcessOptions\relax
+
+\RequirePackage[a4paper,margin=2.5cm,heightrounded=true]{geometry}
+\setlength{\columnsep}{0.6cm}
+\RequirePackage{xcolor}
+\ifacl@linenumbers
+  \RequirePackage[switch,mathlines]{lineno}
+  \font\aclhv = phvb at 8pt
+  \renewcommand{\linenumberfont}{\aclhv\color{lightgray}}
+  \renewcommand{\thelinenumber}{\arabic{linenumber}}
+  \AtBeginDocument{\linenumbers}
+  \setlength{\linenumbersep}{1.6cm}
+\else
+  \newcommand{\nolinenumbers}{}
+\fi
+
+\flushbottom
+\twocolumn
+\sloppy
+\newlength{\titlebox}
+\setlength{\titlebox}{11\baselineskip}
+\ifacl@pagenumbers
+  \pagenumbering{arabic}
+\else
+  \pagestyle{empty}
+\fi
+
+\makeatletter
+\newcommand{\outauthor}{%
+  \begin{tabular}[t]{c}%
+  \ifacl@anonymize
+    \bfseries Anonymous ACL submission%
+  \else
+    \bfseries\@author%
+  \fi
+  \end{tabular}}
+\AtBeginDocument{%
+  \def\maketitle{\par\begingroup
+    \def\thefootnote{\fnsymbol{footnote}}%
+    \twocolumn[\@maketitle]\@thanks
+    \endgroup
+    \setcounter{footnote}{0}%
+    \let\maketitle\relax\let\@maketitle\relax
+    \gdef\@thanks{}\gdef\@author{}\gdef\@title{}\let\thanks\relax}
+  }
+\def\@maketitle{\vbox to \titlebox{\hsize\textwidth\linewidth\hsize
+  \vskip 0.125in minus 0.125in\centering
+  {\Large\bfseries\@title\par}\vskip 0.2in plus 1fil minus 0.1in
+  {\def\and{\unskip\enspace{\rmfamily and}\enspace}%
+   \def\And{\end{tabular}\hss\egroup\hskip 1in plus 2fil
+     \hbox to 0pt\bgroup\hss\begin{tabular}[t]{c}\bfseries}%
+   \def\AND{\end{tabular}\hss\egroup\hfil\hfil\egroup
+     \vskip 0.25in plus 1fil minus 0.125in
+     \hbox to \linewidth\bgroup\large\hfil\hfil
+     \hbox to 0pt\bgroup\hss\begin{tabular}[t]{c}\bfseries}%
+   \hbox to \linewidth\bgroup\large\hfil\hfil
+   \hbox to 0pt\bgroup\hss\outauthor\hss\egroup
+   \hfil\hfil\egroup}
+  \vskip 0.3in plus 2fil minus 0.1in}}
+\renewenvironment{abstract}{%
+  \begin{center}\large\textbf{\abstractname}\end{center}%
+  \begin{list}{}{\setlength{\rightmargin}{0.6cm}\setlength{\leftmargin}{0.6cm}}%
+  \item[]\ignorespaces\@setsize\normalsize{12pt}\xpt\@xpt}{%
+  \unskip\end{list}}
+\makeatother
+
+\RequirePackage{caption}
+\DeclareCaptionFont{10pt}{\fontsize{10pt}{12pt}\selectfont}
+\captionsetup{font=10pt}
+\RequirePackage{natbib}
+\renewcommand\cite{\citep}
+\newcommand{\shortcite}{\citeyearpar}
+\newcommand{\newcite}{\citet}
+\newcommand{\citeposs}[1]{\citeauthor{#1}'s (\citeyear{#1})}
+\RequirePackage{hyperref}
+\definecolor{darkblue}{rgb}{0,0,0.5}
+\hypersetup{colorlinks=true,citecolor=darkblue,linkcolor=darkblue,urlcolor=darkblue}
+
+\makeatletter
+\def\section{\@startsection{section}{1}{\z@}{-2.0ex plus -.5ex minus -.2ex}{1.5ex plus .3ex minus .2ex}{\large\bfseries\raggedright}}
+\def\subsection{\@startsection{subsection}{2}{\z@}{-1.8ex plus -.5ex minus -.2ex}{.8ex plus .2ex}{\normalsize\bfseries\raggedright}}
+\def\subsubsection{\@startsection{subsubsection}{3}{\z@}{-1.5ex plus -.5ex minus -.2ex}{.5ex plus .2ex}{\normalsize\bfseries\raggedright}}
+\def\paragraph{\@startsection{paragraph}{4}{\z@}{1.5ex plus .5ex minus .2ex}{-1em}{\normalsize\bfseries}}
+\def\@normalsize{\@setsize\normalsize{11pt}\xpt\@xpt}
+\makeatother

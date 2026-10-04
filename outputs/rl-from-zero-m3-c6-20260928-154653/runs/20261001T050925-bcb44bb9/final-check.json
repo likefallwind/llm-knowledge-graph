@@ -1,0 +1,15 @@
+{
+  "integrity": {
+    "ok": true,
+    "foreign_key_errors": [],
+    "cycles": {},
+    "entities_without_evidence": [],
+    "claims_without_support": [],
+    "assertions_without_evidence": [],
+    "broken_claim_observations": [],
+    "broken_entity_observations": []
+  },
+  "quick_check": [
+    "ok"
+  ]
+}

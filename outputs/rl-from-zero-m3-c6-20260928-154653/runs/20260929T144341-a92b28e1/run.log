@@ -1,0 +1,1762 @@
+2026-09-29 22:43:41,489 INFO Pipeline pass 1/3
+2026-09-29 22:47:59,773 INFO Relation normalization batch size=5 workers=6
+2026-09-29 22:47:59,774 INFO Relation normalization request started observation=1758
+2026-09-29 22:47:59,776 INFO Relation normalization request started observation=1759
+2026-09-29 22:47:59,777 INFO Relation normalization request started observation=1760
+2026-09-29 22:47:59,778 INFO Relation normalization request started observation=1761
+2026-09-29 22:47:59,779 INFO Relation normalization request started observation=1762
+2026-09-29 22:48:11,076 INFO Relation normalization request ended observation=1760 seconds=11.298
+2026-09-29 22:48:13,790 INFO Relation normalization request ended observation=1758 seconds=14.015
+2026-09-29 22:48:23,492 INFO Relation normalization request ended observation=1761 seconds=23.713
+2026-09-29 22:48:25,905 INFO Relation normalization request ended observation=1762 seconds=26.125
+2026-09-29 22:48:28,420 INFO Relation normalization request ended observation=1759 seconds=28.644
+2026-09-29 22:55:09,668 INFO Relation normalization batch size=29 workers=6
+2026-09-29 22:55:09,668 INFO Relation normalization request started observation=1763
+2026-09-29 22:55:09,669 INFO Relation normalization request started observation=1764
+2026-09-29 22:55:09,670 INFO Relation normalization request started observation=1765
+2026-09-29 22:55:09,671 INFO Relation normalization request started observation=1766
+2026-09-29 22:55:09,672 INFO Relation normalization request started observation=1767
+2026-09-29 22:55:09,672 INFO Relation normalization request started observation=1768
+2026-09-29 22:55:20,205 INFO Relation normalization request ended observation=1763 seconds=10.537
+2026-09-29 22:55:20,205 INFO Relation normalization request started observation=1769
+2026-09-29 22:55:20,336 INFO Relation normalization request ended observation=1768 seconds=10.663
+2026-09-29 22:55:20,336 INFO Relation normalization request started observation=1770
+2026-09-29 22:55:25,556 INFO Relation normalization request ended observation=1767 seconds=15.884
+2026-09-29 22:55:25,557 INFO Relation normalization request started observation=1771
+2026-09-29 22:55:26,329 INFO Relation normalization request ended observation=1770 seconds=5.993
+2026-09-29 22:55:26,329 INFO Relation normalization request started observation=1772
+2026-09-29 22:55:28,395 INFO Relation normalization request ended observation=1766 seconds=18.724
+2026-09-29 22:55:28,395 INFO Relation normalization request started observation=1773
+2026-09-29 22:55:34,308 INFO Relation normalization request ended observation=1773 seconds=5.913
+2026-09-29 22:55:34,309 INFO Relation normalization request started observation=1774
+2026-09-29 22:55:35,334 INFO Relation normalization request ended observation=1772 seconds=9.005
+2026-09-29 22:55:35,334 INFO Relation normalization request started observation=1775
+2026-09-29 22:55:42,978 INFO Relation normalization request ended observation=1774 seconds=8.669
+2026-09-29 22:55:42,978 INFO Relation normalization request started observation=1776
+2026-09-29 22:55:52,716 INFO Relation normalization request ended observation=1775 seconds=17.382
+2026-09-29 22:55:52,716 INFO Relation normalization request started observation=1777
+2026-09-29 22:55:59,149 INFO Relation normalization request ended observation=1769 seconds=38.944
+2026-09-29 22:55:59,150 INFO Relation normalization request started observation=1778
+2026-09-29 22:56:02,430 INFO Relation normalization request ended observation=1765 seconds=52.759
+2026-09-29 22:56:02,430 INFO Relation normalization request started observation=1779
+2026-09-29 22:56:07,869 INFO Relation normalization request ended observation=1771 seconds=42.312
+2026-09-29 22:56:07,869 INFO Relation normalization request started observation=1780
+2026-09-29 22:56:10,735 INFO Relation normalization request ended observation=1777 seconds=18.020
+2026-09-29 22:56:10,736 INFO Relation normalization request started observation=1781
+2026-09-29 22:56:13,512 INFO Relation normalization request ended observation=1778 seconds=14.362
+2026-09-29 22:56:13,512 INFO Relation normalization request started observation=1782
+2026-09-29 22:56:15,620 INFO Relation normalization request ended observation=1764 seconds=65.951
+2026-09-29 22:56:15,620 INFO Relation normalization request started observation=1783
+2026-09-29 22:56:23,105 INFO Relation normalization request ended observation=1782 seconds=9.593
+2026-09-29 22:56:23,105 INFO Relation normalization request started observation=1784
+2026-09-29 22:56:23,564 INFO Relation normalization request ended observation=1776 seconds=40.587
+2026-09-29 22:56:23,565 INFO Relation normalization request started observation=1785
+2026-09-29 22:56:24,827 INFO Relation normalization request ended observation=1780 seconds=16.958
+2026-09-29 22:56:24,827 INFO Relation normalization request started observation=1786
+2026-09-29 22:56:30,634 INFO Relation normalization request ended observation=1785 seconds=7.069
+2026-09-29 22:56:30,634 INFO Relation normalization request started observation=1787
+2026-09-29 22:56:40,945 INFO Relation normalization request ended observation=1783 seconds=25.325
+2026-09-29 22:56:40,946 INFO Relation normalization request started observation=1788
+2026-09-29 22:56:48,779 INFO Relation normalization request ended observation=1788 seconds=7.833
+2026-09-29 22:56:48,779 INFO Relation normalization request started observation=1789
+2026-09-29 22:56:52,940 INFO Relation normalization request ended observation=1781 seconds=42.204
+2026-09-29 22:56:52,940 INFO Relation normalization request started observation=1790
+2026-09-29 22:56:59,206 INFO Relation normalization request ended observation=1789 seconds=10.427
+2026-09-29 22:56:59,206 INFO Relation normalization request started observation=1791
+2026-09-29 22:57:03,673 INFO Relation normalization request ended observation=1786 seconds=38.846
+2026-09-29 22:57:03,844 INFO Relation normalization request ended observation=1787 seconds=33.210
+2026-09-29 22:57:12,741 INFO Relation normalization request ended observation=1790 seconds=19.801
+2026-09-29 22:57:32,539 INFO Relation normalization request ended observation=1791 seconds=33.333
+2026-09-29 22:57:46,751 INFO Relation normalization request ended observation=1784 seconds=83.646
+2026-09-29 22:57:59,581 INFO Relation normalization request ended observation=1779 seconds=117.151
+2026-09-29 23:06:40,531 INFO Relation normalization batch size=23 workers=6
+2026-09-29 23:06:40,531 INFO Relation normalization request started observation=1792
+2026-09-29 23:06:40,532 INFO Relation normalization request started observation=1793
+2026-09-29 23:06:40,533 INFO Relation normalization request started observation=1794
+2026-09-29 23:06:40,534 INFO Relation normalization request started observation=1795
+2026-09-29 23:06:40,534 INFO Relation normalization request started observation=1796
+2026-09-29 23:06:40,536 INFO Relation normalization request started observation=1797
+2026-09-29 23:06:51,219 INFO Relation normalization request ended observation=1792 seconds=10.688
+2026-09-29 23:06:51,219 INFO Relation normalization request started observation=1798
+2026-09-29 23:06:55,856 INFO Relation normalization request ended observation=1796 seconds=15.322
+2026-09-29 23:06:55,856 INFO Relation normalization request started observation=1799
+2026-09-29 23:07:09,045 INFO Relation normalization request ended observation=1798 seconds=17.826
+2026-09-29 23:07:09,045 INFO Relation normalization request started observation=1800
+2026-09-29 23:07:10,747 INFO Relation normalization request ended observation=1797 seconds=30.211
+2026-09-29 23:07:10,747 INFO Relation normalization request started observation=1801
+2026-09-29 23:07:14,964 INFO Relation normalization request ended observation=1795 seconds=34.430
+2026-09-29 23:07:14,964 INFO Relation normalization request started observation=1802
+2026-09-29 23:07:24,282 INFO Relation normalization request ended observation=1799 seconds=28.425
+2026-09-29 23:07:24,282 INFO Relation normalization request started observation=1803
+2026-09-29 23:07:26,897 INFO Relation normalization request ended observation=1801 seconds=16.150
+2026-09-29 23:07:26,898 INFO Relation normalization request started observation=1804
+2026-09-29 23:07:30,378 INFO Relation normalization request ended observation=1800 seconds=21.333
+2026-09-29 23:07:30,378 INFO Relation normalization request started observation=1805
+2026-09-29 23:07:32,722 INFO Relation normalization request ended observation=1802 seconds=17.758
+2026-09-29 23:07:32,722 INFO Relation normalization request started observation=1806
+2026-09-29 23:07:34,544 INFO Relation normalization request ended observation=1793 seconds=54.011
+2026-09-29 23:07:34,544 INFO Relation normalization request started observation=1807
+2026-09-29 23:07:36,807 INFO Relation normalization request ended observation=1804 seconds=9.909
+2026-09-29 23:07:36,807 INFO Relation normalization request started observation=1808
+2026-09-29 23:07:41,871 INFO Relation normalization request ended observation=1794 seconds=61.338
+2026-09-29 23:07:41,871 INFO Relation normalization request started observation=1809
+2026-09-29 23:07:47,158 INFO Relation normalization request ended observation=1807 seconds=12.614
+2026-09-29 23:07:47,158 INFO Relation normalization request started observation=1810
+2026-09-29 23:07:54,016 INFO Relation normalization request ended observation=1806 seconds=21.294
+2026-09-29 23:07:54,016 INFO Relation normalization request started observation=1811
+2026-09-29 23:07:54,710 INFO Relation normalization request ended observation=1805 seconds=24.331
+2026-09-29 23:07:54,710 INFO Relation normalization request started observation=1812
+2026-09-29 23:07:58,062 INFO Relation normalization request ended observation=1809 seconds=16.190
+2026-09-29 23:07:58,062 INFO Relation normalization request started observation=1813
+2026-09-29 23:08:02,191 INFO Relation normalization request ended observation=1803 seconds=37.909
+2026-09-29 23:08:02,191 INFO Relation normalization request started observation=1814
+2026-09-29 23:08:02,829 INFO Relation normalization request ended observation=1810 seconds=15.671
+2026-09-29 23:08:12,111 INFO Relation normalization request ended observation=1808 seconds=35.304
+2026-09-29 23:08:17,235 INFO Relation normalization request ended observation=1813 seconds=19.173
+2026-09-29 23:08:24,879 INFO Relation normalization request ended observation=1812 seconds=30.169
+2026-09-29 23:09:10,641 INFO Relation normalization request ended observation=1811 seconds=76.625
+2026-09-29 23:09:32,957 INFO Relation normalization request ended observation=1814 seconds=90.766
+2026-09-29 23:15:54,887 INFO Relation normalization batch size=28 workers=6
+2026-09-29 23:15:54,887 INFO Relation normalization request started observation=1815
+2026-09-29 23:15:54,889 INFO Relation normalization request started observation=1816
+2026-09-29 23:15:54,890 INFO Relation normalization request started observation=1817
+2026-09-29 23:15:54,891 INFO Relation normalization request started observation=1818
+2026-09-29 23:15:54,891 INFO Relation normalization request started observation=1819
+2026-09-29 23:15:54,892 INFO Relation normalization request started observation=1820
+2026-09-29 23:16:07,266 INFO Relation normalization request ended observation=1815 seconds=12.379
+2026-09-29 23:16:07,266 INFO Relation normalization request started observation=1821
+2026-09-29 23:16:15,718 INFO Relation normalization request ended observation=1819 seconds=20.827
+2026-09-29 23:16:15,719 INFO Relation normalization request started observation=1822
+2026-09-29 23:16:18,035 INFO Relation normalization request ended observation=1817 seconds=23.145
+2026-09-29 23:16:18,035 INFO Relation normalization request started observation=1823
+2026-09-29 23:16:28,707 INFO Relation normalization request ended observation=1816 seconds=33.818
+2026-09-29 23:16:28,707 INFO Relation normalization request started observation=1824
+2026-09-29 23:16:29,822 INFO Relation normalization request ended observation=1822 seconds=14.104
+2026-09-29 23:16:29,823 INFO Relation normalization request started observation=1825
+2026-09-29 23:16:33,079 INFO Relation normalization request ended observation=1823 seconds=15.044
+2026-09-29 23:16:33,080 INFO Relation normalization request started observation=1826
+2026-09-29 23:16:33,434 INFO Relation normalization request ended observation=1821 seconds=26.168
+2026-09-29 23:16:33,434 INFO Relation normalization request started observation=1827
+2026-09-29 23:16:43,151 INFO Relation normalization request ended observation=1825 seconds=13.328
+2026-09-29 23:16:43,151 INFO Relation normalization request started observation=1828
+2026-09-29 23:17:11,360 INFO Relation normalization request ended observation=1824 seconds=42.653
+2026-09-29 23:17:11,360 INFO Relation normalization request started observation=1829
+2026-09-29 23:17:26,156 INFO Relation normalization request ended observation=1820 seconds=91.263
+2026-09-29 23:17:26,156 INFO Relation normalization request started observation=1830
+2026-09-29 23:17:26,426 INFO Relation normalization request ended observation=1818 seconds=91.535
+2026-09-29 23:17:26,426 INFO Relation normalization request started observation=1831
+2026-09-29 23:17:26,723 INFO Relation normalization request ended observation=1826 seconds=53.643
+2026-09-29 23:17:26,723 INFO Relation normalization request started observation=1832
+2026-09-29 23:17:30,641 INFO Relation normalization request ended observation=1828 seconds=47.490
+2026-09-29 23:17:30,641 INFO Relation normalization request started observation=1833
+2026-09-29 23:17:34,173 INFO Relation normalization request ended observation=1832 seconds=7.450
+2026-09-29 23:17:34,173 INFO Relation normalization request started observation=1834
+2026-09-29 23:17:37,204 INFO Relation normalization request ended observation=1833 seconds=6.562
+2026-09-29 23:17:37,204 INFO Relation normalization request started observation=1835
+2026-09-29 23:17:40,962 INFO Relation normalization request ended observation=1834 seconds=6.789
+2026-09-29 23:17:40,962 INFO Relation normalization request started observation=1836
+2026-09-29 23:17:43,661 INFO Relation normalization request ended observation=1830 seconds=17.505
+2026-09-29 23:17:43,661 INFO Relation normalization request started observation=1837
+2026-09-29 23:17:43,804 INFO Relation normalization request ended observation=1829 seconds=32.444
+2026-09-29 23:17:43,804 INFO Relation normalization request started observation=1838
+2026-09-29 23:18:02,659 INFO Relation normalization request ended observation=1831 seconds=36.233
+2026-09-29 23:18:02,659 INFO Relation normalization request started observation=1839
+2026-09-29 23:18:10,092 INFO Relation normalization request ended observation=1827 seconds=96.658
+2026-09-29 23:18:10,092 INFO Relation normalization request started observation=1840
+2026-09-29 23:18:20,694 INFO Relation normalization request ended observation=1839 seconds=18.035
+2026-09-29 23:18:20,695 INFO Relation normalization request started observation=1841
+2026-09-29 23:18:23,097 INFO Relation normalization request ended observation=1840 seconds=13.005
+2026-09-29 23:18:23,097 INFO Relation normalization request started observation=1842
+2026-09-29 23:18:31,955 INFO Relation normalization request ended observation=1841 seconds=11.260
+2026-09-29 23:18:33,067 INFO Relation normalization request ended observation=1842 seconds=9.969
+2026-09-29 23:18:33,412 INFO Relation normalization request ended observation=1838 seconds=49.608
+2026-09-29 23:18:36,817 INFO Relation normalization request ended observation=1837 seconds=53.155
+2026-09-29 23:18:47,763 INFO Relation normalization request ended observation=1835 seconds=70.559
+2026-09-29 23:19:02,426 INFO Relation normalization request ended observation=1836 seconds=81.464
+2026-09-29 23:25:42,506 INFO Relation normalization batch size=12 workers=6
+2026-09-29 23:25:42,506 INFO Relation normalization request started observation=1843
+2026-09-29 23:25:42,506 INFO Relation normalization request started observation=1844
+2026-09-29 23:25:42,508 INFO Relation normalization request started observation=1845
+2026-09-29 23:25:42,509 INFO Relation normalization request started observation=1846
+2026-09-29 23:25:42,510 INFO Relation normalization request started observation=1847
+2026-09-29 23:25:42,510 INFO Relation normalization request started observation=1848
+2026-09-29 23:25:49,691 INFO Relation normalization request ended observation=1845 seconds=7.183
+2026-09-29 23:25:49,691 INFO Relation normalization request started observation=1849
+2026-09-29 23:25:55,493 INFO Relation normalization request ended observation=1846 seconds=12.984
+2026-09-29 23:25:55,493 INFO Relation normalization request started observation=1850
+2026-09-29 23:25:57,949 INFO Relation normalization request ended observation=1847 seconds=15.439
+2026-09-29 23:25:57,949 INFO Relation normalization request started observation=1851
+2026-09-29 23:25:58,020 INFO Relation normalization request ended observation=1848 seconds=15.509
+2026-09-29 23:25:58,020 INFO Relation normalization request started observation=1852
+2026-09-29 23:26:02,678 INFO Relation normalization request ended observation=1850 seconds=7.185
+2026-09-29 23:26:02,678 INFO Relation normalization request started observation=1853
+2026-09-29 23:26:04,616 INFO Relation normalization request ended observation=1844 seconds=22.110
+2026-09-29 23:26:04,616 INFO Relation normalization request started observation=1854
+2026-09-29 23:26:07,390 INFO Relation normalization request ended observation=1843 seconds=24.884
+2026-09-29 23:26:19,154 INFO Relation normalization request ended observation=1854 seconds=14.538
+2026-09-29 23:26:24,534 INFO Relation normalization request ended observation=1851 seconds=26.585
+2026-09-29 23:26:43,474 INFO Relation normalization request ended observation=1853 seconds=40.796
+2026-09-29 23:26:51,329 INFO Relation normalization request ended observation=1849 seconds=61.638
+2026-09-29 23:27:33,942 INFO Relation normalization request ended observation=1852 seconds=95.922
+2026-09-29 23:34:30,294 INFO Relation normalization batch size=16 workers=6
+2026-09-29 23:34:30,294 INFO Relation normalization request started observation=1855
+2026-09-29 23:34:30,294 INFO Relation normalization request started observation=1856
+2026-09-29 23:34:30,295 INFO Relation normalization request started observation=1857
+2026-09-29 23:34:30,297 INFO Relation normalization request started observation=1858
+2026-09-29 23:34:30,299 INFO Relation normalization request started observation=1859
+2026-09-29 23:34:30,299 INFO Relation normalization request started observation=1860
+2026-09-29 23:34:50,073 INFO Relation normalization request ended observation=1856 seconds=19.778
+2026-09-29 23:34:50,073 INFO Relation normalization request started observation=1861
+2026-09-29 23:34:53,925 INFO Relation normalization request ended observation=1857 seconds=23.630
+2026-09-29 23:34:53,926 INFO Relation normalization request started observation=1862
+2026-09-29 23:34:54,599 INFO Relation normalization request ended observation=1858 seconds=24.302
+2026-09-29 23:34:54,599 INFO Relation normalization request started observation=1863
+2026-09-29 23:35:20,336 INFO Relation normalization request ended observation=1855 seconds=50.042
+2026-09-29 23:35:20,336 INFO Relation normalization request started observation=1864
+2026-09-29 23:35:45,288 INFO Relation normalization request ended observation=1862 seconds=51.362
+2026-09-29 23:35:45,288 INFO Relation normalization request started observation=1865
+2026-09-29 23:35:49,118 INFO Relation normalization request ended observation=1861 seconds=59.045
+2026-09-29 23:35:49,118 INFO Relation normalization request started observation=1866
+2026-09-29 23:35:54,294 INFO Relation normalization request ended observation=1863 seconds=59.695
+2026-09-29 23:35:54,294 INFO Relation normalization request started observation=1867
+2026-09-29 23:36:11,565 INFO Relation normalization request ended observation=1866 seconds=22.446
+2026-09-29 23:36:11,565 INFO Relation normalization request started observation=1868
+2026-09-29 23:36:15,573 INFO Relation normalization request ended observation=1859 seconds=105.274
+2026-09-29 23:36:15,573 INFO Relation normalization request started observation=1869
+2026-09-29 23:36:27,503 INFO Relation normalization request ended observation=1867 seconds=33.209
+2026-09-29 23:36:27,504 INFO Relation normalization request started observation=1870
+2026-09-29 23:36:36,775 INFO Relation normalization request ended observation=1868 seconds=25.210
+2026-09-29 23:36:50,226 INFO Relation normalization request ended observation=1864 seconds=89.890
+2026-09-29 23:37:00,538 INFO Relation normalization request ended observation=1870 seconds=33.035
+2026-09-29 23:37:21,453 INFO Relation normalization request ended observation=1869 seconds=65.880
+2026-09-29 23:37:26,819 INFO Relation normalization request ended observation=1865 seconds=101.531
+2026-09-29 23:37:36,983 INFO Relation normalization request ended observation=1860 seconds=186.684
+2026-09-29 23:45:04,738 INFO Relation normalization batch size=17 workers=6
+2026-09-29 23:45:04,738 INFO Relation normalization request started observation=1871
+2026-09-29 23:45:04,739 INFO Relation normalization request started observation=1872
+2026-09-29 23:45:04,740 INFO Relation normalization request started observation=1873
+2026-09-29 23:45:04,741 INFO Relation normalization request started observation=1874
+2026-09-29 23:45:04,742 INFO Relation normalization request started observation=1875
+2026-09-29 23:45:04,743 INFO Relation normalization request started observation=1876
+2026-09-29 23:45:10,623 INFO Relation normalization request ended observation=1876 seconds=5.879
+2026-09-29 23:45:10,623 INFO Relation normalization request started observation=1877
+2026-09-29 23:45:14,653 INFO Relation normalization request ended observation=1874 seconds=9.912
+2026-09-29 23:45:14,653 INFO Relation normalization request started observation=1878
+2026-09-29 23:45:23,983 INFO Relation normalization request ended observation=1875 seconds=19.241
+2026-09-29 23:45:23,984 INFO Relation normalization request started observation=1879
+2026-09-29 23:45:24,099 INFO Relation normalization request ended observation=1877 seconds=13.476
+2026-09-29 23:45:24,099 INFO Relation normalization request started observation=1880
+2026-09-29 23:45:26,545 INFO Relation normalization request ended observation=1878 seconds=11.891
+2026-09-29 23:45:26,545 INFO Relation normalization request started observation=1881
+2026-09-29 23:45:36,003 INFO Relation normalization request ended observation=1881 seconds=9.458
+2026-09-29 23:45:36,003 INFO Relation normalization request started observation=1882
+2026-09-29 23:45:37,314 INFO Relation normalization request ended observation=1879 seconds=13.330
+2026-09-29 23:45:37,314 INFO Relation normalization request started observation=1883
+2026-09-29 23:45:38,340 INFO Relation normalization request ended observation=1880 seconds=14.242
+2026-09-29 23:45:38,341 INFO Relation normalization request started observation=1884
+2026-09-29 23:45:50,219 INFO Relation normalization request ended observation=1884 seconds=11.878
+2026-09-29 23:45:50,219 INFO Relation normalization request started observation=1885
+2026-09-29 23:45:52,134 INFO Relation normalization request ended observation=1882 seconds=16.132
+2026-09-29 23:45:52,134 INFO Relation normalization request started observation=1886
+2026-09-29 23:45:56,782 INFO Relation normalization request ended observation=1871 seconds=52.044
+2026-09-29 23:45:56,782 INFO Relation normalization request started observation=1887
+2026-09-29 23:46:07,716 INFO Relation normalization request ended observation=1872 seconds=62.977
+2026-09-29 23:46:10,139 INFO Relation normalization request ended observation=1885 seconds=19.920
+2026-09-29 23:46:12,619 INFO Relation normalization request ended observation=1873 seconds=67.879
+2026-09-29 23:46:17,644 INFO Relation normalization request ended observation=1886 seconds=25.509
+2026-09-29 23:46:22,831 INFO Relation normalization request ended observation=1887 seconds=26.049
+2026-09-29 23:46:55,559 INFO Relation normalization request ended observation=1883 seconds=78.245
+2026-09-29 23:46:56,402 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-29 23:56:57,189 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-30 00:12:28,062 INFO Relation normalization batch size=9 workers=6
+2026-09-30 00:12:28,062 INFO Relation normalization request started observation=1906
+2026-09-30 00:12:28,063 INFO Relation normalization request started observation=1907
+2026-09-30 00:12:28,065 INFO Relation normalization request started observation=1908
+2026-09-30 00:12:28,066 INFO Relation normalization request started observation=1909
+2026-09-30 00:12:28,066 INFO Relation normalization request started observation=1910
+2026-09-30 00:12:28,067 INFO Relation normalization request started observation=1911
+2026-09-30 00:12:38,692 INFO Relation normalization request ended observation=1909 seconds=10.626
+2026-09-30 00:12:38,692 INFO Relation normalization request started observation=1912
+2026-09-30 00:12:55,848 INFO Relation normalization request ended observation=1908 seconds=27.784
+2026-09-30 00:12:55,848 INFO Relation normalization request started observation=1913
+2026-09-30 00:13:15,337 INFO Relation normalization request ended observation=1912 seconds=36.645
+2026-09-30 00:13:15,337 INFO Relation normalization request started observation=1914
+2026-09-30 00:13:15,584 INFO Relation normalization request ended observation=1907 seconds=47.520
+2026-09-30 00:13:27,242 INFO Relation normalization request ended observation=1911 seconds=59.174
+2026-09-30 00:13:31,599 INFO Relation normalization request ended observation=1913 seconds=35.751
+2026-09-30 00:13:39,024 INFO Relation normalization request ended observation=1910 seconds=70.957
+2026-09-30 00:13:47,047 INFO Relation normalization request ended observation=1906 seconds=78.985
+2026-09-30 00:13:48,130 INFO Relation normalization request ended observation=1914 seconds=32.793
+2026-09-30 00:18:53,883 INFO Relation normalization batch size=14 workers=6
+2026-09-30 00:18:53,883 INFO Relation normalization request started observation=1915
+2026-09-30 00:18:53,885 INFO Relation normalization request started observation=1916
+2026-09-30 00:18:53,886 INFO Relation normalization request started observation=1917
+2026-09-30 00:18:53,887 INFO Relation normalization request started observation=1918
+2026-09-30 00:18:53,888 INFO Relation normalization request started observation=1919
+2026-09-30 00:18:53,889 INFO Relation normalization request started observation=1920
+2026-09-30 00:19:01,440 INFO Relation normalization request ended observation=1915 seconds=7.557
+2026-09-30 00:19:01,440 INFO Relation normalization request started observation=1921
+2026-09-30 00:19:02,580 INFO Relation normalization request ended observation=1916 seconds=8.695
+2026-09-30 00:19:02,580 INFO Relation normalization request started observation=1922
+2026-09-30 00:19:05,946 INFO Relation normalization request ended observation=1917 seconds=12.060
+2026-09-30 00:19:05,946 INFO Relation normalization request started observation=1923
+2026-09-30 00:19:08,280 INFO Relation normalization request ended observation=1918 seconds=14.393
+2026-09-30 00:19:08,280 INFO Relation normalization request started observation=1924
+2026-09-30 00:19:16,578 INFO Relation normalization request ended observation=1922 seconds=13.997
+2026-09-30 00:19:16,578 INFO Relation normalization request started observation=1925
+2026-09-30 00:19:19,665 INFO Relation normalization request ended observation=1920 seconds=25.776
+2026-09-30 00:19:19,665 INFO Relation normalization request started observation=1926
+2026-09-30 00:19:19,850 INFO Relation normalization request ended observation=1924 seconds=11.570
+2026-09-30 00:19:19,850 INFO Relation normalization request started observation=1927
+2026-09-30 00:19:30,083 INFO Relation normalization request ended observation=1921 seconds=28.642
+2026-09-30 00:19:30,083 INFO Relation normalization request started observation=1928
+2026-09-30 00:19:35,421 INFO Relation normalization request ended observation=1923 seconds=29.475
+2026-09-30 00:19:39,491 INFO Relation normalization request ended observation=1919 seconds=45.603
+2026-09-30 00:19:45,167 INFO Relation normalization request ended observation=1928 seconds=15.084
+2026-09-30 00:20:09,120 INFO Relation normalization request ended observation=1927 seconds=49.270
+2026-09-30 00:20:18,725 INFO Relation normalization request ended observation=1925 seconds=62.147
+2026-09-30 00:20:24,043 INFO Relation normalization request ended observation=1926 seconds=64.377
+2026-09-30 00:25:23,991 INFO Relation normalization batch size=14 workers=6
+2026-09-30 00:25:23,992 INFO Relation normalization request started observation=1929
+2026-09-30 00:25:23,993 INFO Relation normalization request started observation=1930
+2026-09-30 00:25:23,994 INFO Relation normalization request started observation=1931
+2026-09-30 00:25:23,995 INFO Relation normalization request started observation=1932
+2026-09-30 00:25:23,996 INFO Relation normalization request started observation=1933
+2026-09-30 00:25:23,996 INFO Relation normalization request started observation=1934
+2026-09-30 00:25:29,897 INFO Relation normalization request ended observation=1933 seconds=5.901
+2026-09-30 00:25:29,897 INFO Relation normalization request started observation=1935
+2026-09-30 00:25:38,306 INFO Relation normalization request ended observation=1930 seconds=14.313
+2026-09-30 00:25:38,306 INFO Relation normalization request started observation=1936
+2026-09-30 00:25:39,172 INFO Relation normalization request ended observation=1929 seconds=15.180
+2026-09-30 00:25:39,172 INFO Relation normalization request started observation=1937
+2026-09-30 00:25:48,161 INFO Relation normalization request ended observation=1931 seconds=24.167
+2026-09-30 00:25:48,161 INFO Relation normalization request started observation=1938
+2026-09-30 00:25:53,220 INFO Relation normalization request ended observation=1934 seconds=29.224
+2026-09-30 00:25:53,220 INFO Relation normalization request started observation=1939
+2026-09-30 00:25:54,472 INFO Relation normalization request ended observation=1935 seconds=24.575
+2026-09-30 00:25:54,472 INFO Relation normalization request started observation=1940
+2026-09-30 00:25:59,919 INFO Relation normalization request ended observation=1937 seconds=20.747
+2026-09-30 00:25:59,919 INFO Relation normalization request started observation=1941
+2026-09-30 00:26:03,734 INFO Relation normalization request ended observation=1932 seconds=39.739
+2026-09-30 00:26:03,734 INFO Relation normalization request started observation=1942
+2026-09-30 00:26:06,285 INFO Relation normalization request ended observation=1938 seconds=18.124
+2026-09-30 00:26:09,551 INFO Relation normalization request ended observation=1936 seconds=31.245
+2026-09-30 00:26:16,421 INFO Relation normalization request ended observation=1942 seconds=12.687
+2026-09-30 00:26:17,301 INFO Relation normalization request ended observation=1941 seconds=17.382
+2026-09-30 00:26:30,691 INFO Relation normalization request ended observation=1939 seconds=37.471
+2026-09-30 00:26:46,283 INFO Relation normalization request ended observation=1940 seconds=51.811
+2026-09-30 00:36:21,924 INFO Relation normalization batch size=12 workers=6
+2026-09-30 00:36:21,925 INFO Relation normalization request started observation=1943
+2026-09-30 00:36:21,926 INFO Relation normalization request started observation=1944
+2026-09-30 00:36:21,927 INFO Relation normalization request started observation=1945
+2026-09-30 00:36:21,928 INFO Relation normalization request started observation=1946
+2026-09-30 00:36:21,929 INFO Relation normalization request started observation=1947
+2026-09-30 00:36:21,929 INFO Relation normalization request started observation=1948
+2026-09-30 00:36:29,525 INFO Relation normalization request ended observation=1946 seconds=7.596
+2026-09-30 00:36:29,525 INFO Relation normalization request started observation=1949
+2026-09-30 00:36:30,985 INFO Relation normalization request ended observation=1945 seconds=9.058
+2026-09-30 00:36:30,985 INFO Relation normalization request started observation=1950
+2026-09-30 00:36:34,937 INFO Relation normalization request ended observation=1947 seconds=13.008
+2026-09-30 00:36:34,938 INFO Relation normalization request started observation=1951
+2026-09-30 00:36:34,947 INFO Relation normalization request ended observation=1943 seconds=13.022
+2026-09-30 00:36:34,947 INFO Relation normalization request started observation=1952
+2026-09-30 00:36:38,858 INFO Relation normalization request ended observation=1944 seconds=16.933
+2026-09-30 00:36:38,859 INFO Relation normalization request started observation=1953
+2026-09-30 00:36:43,436 INFO Relation normalization request ended observation=1948 seconds=21.506
+2026-09-30 00:36:43,436 INFO Relation normalization request started observation=1954
+2026-09-30 00:36:47,176 INFO Relation normalization request ended observation=1951 seconds=12.239
+2026-09-30 00:36:48,721 INFO Relation normalization request ended observation=1950 seconds=17.735
+2026-09-30 00:37:01,734 INFO Relation normalization request ended observation=1949 seconds=32.209
+2026-09-30 00:37:02,816 INFO Relation normalization request ended observation=1953 seconds=23.957
+2026-09-30 00:37:23,657 INFO Relation normalization request ended observation=1952 seconds=48.710
+2026-09-30 00:37:47,769 INFO Relation normalization request ended observation=1954 seconds=64.333
+2026-09-30 00:41:14,527 INFO Relation normalization batch size=4 workers=6
+2026-09-30 00:41:14,527 INFO Relation normalization request started observation=1955
+2026-09-30 00:41:14,529 INFO Relation normalization request started observation=1956
+2026-09-30 00:41:14,530 INFO Relation normalization request started observation=1957
+2026-09-30 00:41:14,531 INFO Relation normalization request started observation=1958
+2026-09-30 00:41:22,332 INFO Relation normalization request ended observation=1957 seconds=7.802
+2026-09-30 00:41:24,457 INFO Relation normalization request ended observation=1958 seconds=9.926
+2026-09-30 00:41:28,943 INFO Relation normalization request ended observation=1956 seconds=14.414
+2026-09-30 00:41:57,269 INFO Relation normalization request ended observation=1955 seconds=42.741
+2026-09-30 00:42:19,735 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-30 00:57:31,727 INFO Relation normalization batch size=19 workers=6
+2026-09-30 00:57:31,728 INFO Relation normalization request started observation=1959
+2026-09-30 00:57:31,729 INFO Relation normalization request started observation=1960
+2026-09-30 00:57:31,730 INFO Relation normalization request started observation=1961
+2026-09-30 00:57:31,731 INFO Relation normalization request started observation=1962
+2026-09-30 00:57:31,732 INFO Relation normalization request started observation=1963
+2026-09-30 00:57:31,733 INFO Relation normalization request started observation=1964
+2026-09-30 00:57:40,212 INFO Relation normalization request ended observation=1959 seconds=8.484
+2026-09-30 00:57:40,212 INFO Relation normalization request started observation=1965
+2026-09-30 00:57:41,835 INFO Relation normalization request ended observation=1960 seconds=10.106
+2026-09-30 00:57:41,835 INFO Relation normalization request started observation=1966
+2026-09-30 00:57:50,807 INFO Relation normalization request ended observation=1961 seconds=19.077
+2026-09-30 00:57:50,807 INFO Relation normalization request started observation=1967
+2026-09-30 00:57:55,723 INFO Relation normalization request ended observation=1965 seconds=15.511
+2026-09-30 00:57:55,723 INFO Relation normalization request started observation=1968
+2026-09-30 00:57:58,335 INFO Relation normalization request ended observation=1963 seconds=26.603
+2026-09-30 00:57:58,335 INFO Relation normalization request started observation=1969
+2026-09-30 00:58:02,216 INFO Relation normalization request ended observation=1966 seconds=20.380
+2026-09-30 00:58:02,216 INFO Relation normalization request started observation=1970
+2026-09-30 00:58:04,931 INFO Relation normalization request ended observation=1967 seconds=14.124
+2026-09-30 00:58:04,931 INFO Relation normalization request started observation=1971
+2026-09-30 00:58:05,859 INFO Relation normalization request ended observation=1968 seconds=10.135
+2026-09-30 00:58:05,859 INFO Relation normalization request started observation=1972
+2026-09-30 00:58:05,983 INFO Relation normalization request ended observation=1962 seconds=34.252
+2026-09-30 00:58:05,983 INFO Relation normalization request started observation=1973
+2026-09-30 00:58:14,616 INFO Relation normalization request ended observation=1964 seconds=42.883
+2026-09-30 00:58:14,616 INFO Relation normalization request started observation=1974
+2026-09-30 00:58:15,308 INFO Relation normalization request ended observation=1971 seconds=10.377
+2026-09-30 00:58:15,309 INFO Relation normalization request started observation=1975
+2026-09-30 00:58:16,473 INFO Relation normalization request ended observation=1970 seconds=14.258
+2026-09-30 00:58:16,474 INFO Relation normalization request started observation=1976
+2026-09-30 00:58:16,810 INFO Relation normalization request ended observation=1972 seconds=10.951
+2026-09-30 00:58:16,810 INFO Relation normalization request started observation=1977
+2026-09-30 00:58:18,269 INFO Relation normalization request ended observation=1973 seconds=12.285
+2026-09-30 00:58:21,821 INFO Relation normalization request ended observation=1974 seconds=7.205
+2026-09-30 00:58:31,090 INFO Relation normalization request ended observation=1969 seconds=32.755
+2026-09-30 00:58:37,689 INFO Relation normalization request ended observation=1975 seconds=22.381
+2026-09-30 00:58:55,247 INFO Relation normalization request ended observation=1976 seconds=38.773
+2026-09-30 00:59:41,058 INFO Relation normalization request ended observation=1977 seconds=84.248
+2026-09-30 01:02:36,889 INFO Relation normalization batch size=3 workers=6
+2026-09-30 01:02:36,889 INFO Relation normalization request started observation=1978
+2026-09-30 01:02:36,890 INFO Relation normalization request started observation=1979
+2026-09-30 01:02:36,891 INFO Relation normalization request started observation=1980
+2026-09-30 01:02:49,587 INFO Relation normalization request ended observation=1978 seconds=12.698
+2026-09-30 01:02:51,934 INFO Relation normalization request ended observation=1979 seconds=15.044
+2026-09-30 01:02:56,890 INFO Relation normalization request ended observation=1980 seconds=19.999
+2026-09-30 01:07:09,139 INFO Relation normalization batch size=12 workers=6
+2026-09-30 01:07:09,139 INFO Relation normalization request started observation=1981
+2026-09-30 01:07:09,139 INFO Relation normalization request started observation=1982
+2026-09-30 01:07:09,142 INFO Relation normalization request started observation=1983
+2026-09-30 01:07:09,143 INFO Relation normalization request started observation=1984
+2026-09-30 01:07:09,144 INFO Relation normalization request started observation=1985
+2026-09-30 01:07:09,145 INFO Relation normalization request started observation=1986
+2026-09-30 01:07:17,132 INFO Relation normalization request ended observation=1986 seconds=7.987
+2026-09-30 01:07:17,132 INFO Relation normalization request started observation=1987
+2026-09-30 01:07:22,387 INFO Relation normalization request ended observation=1983 seconds=13.245
+2026-09-30 01:07:22,387 INFO Relation normalization request started observation=1988
+2026-09-30 01:07:26,505 INFO Relation normalization request ended observation=1987 seconds=9.373
+2026-09-30 01:07:26,505 INFO Relation normalization request started observation=1989
+2026-09-30 01:07:44,158 INFO Relation normalization request ended observation=1988 seconds=21.771
+2026-09-30 01:07:44,158 INFO Relation normalization request started observation=1990
+2026-09-30 01:07:51,261 INFO Relation normalization request ended observation=1984 seconds=42.119
+2026-09-30 01:07:51,261 INFO Relation normalization request started observation=1991
+2026-09-30 01:07:52,920 INFO Relation normalization request ended observation=1985 seconds=43.776
+2026-09-30 01:07:52,920 INFO Relation normalization request started observation=1992
+2026-09-30 01:07:53,965 INFO Relation normalization request ended observation=1982 seconds=44.825
+2026-09-30 01:07:59,570 INFO Relation normalization request ended observation=1981 seconds=50.431
+2026-09-30 01:08:11,257 INFO Relation normalization request ended observation=1989 seconds=44.753
+2026-09-30 01:08:36,490 INFO Relation normalization request ended observation=1992 seconds=43.569
+2026-09-30 01:08:40,116 INFO Relation normalization request ended observation=1991 seconds=48.855
+2026-09-30 01:08:44,445 INFO Relation normalization request ended observation=1990 seconds=60.287
+2026-09-30 01:11:44,447 INFO Relation normalization batch size=8 workers=6
+2026-09-30 01:11:44,447 INFO Relation normalization request started observation=1993
+2026-09-30 01:11:44,449 INFO Relation normalization request started observation=1994
+2026-09-30 01:11:44,450 INFO Relation normalization request started observation=1995
+2026-09-30 01:11:44,451 INFO Relation normalization request started observation=1996
+2026-09-30 01:11:44,451 INFO Relation normalization request started observation=1997
+2026-09-30 01:11:44,452 INFO Relation normalization request started observation=1998
+2026-09-30 01:11:54,053 INFO Relation normalization request ended observation=1993 seconds=9.606
+2026-09-30 01:11:54,053 INFO Relation normalization request started observation=1999
+2026-09-30 01:11:55,644 INFO Relation normalization request ended observation=1996 seconds=11.194
+2026-09-30 01:11:55,644 INFO Relation normalization request started observation=2000
+2026-09-30 01:11:56,201 INFO Relation normalization request ended observation=1994 seconds=11.752
+2026-09-30 01:11:57,284 INFO Relation normalization request ended observation=1997 seconds=12.833
+2026-09-30 01:11:58,134 INFO Relation normalization request ended observation=1998 seconds=13.682
+2026-09-30 01:12:07,672 INFO Relation normalization request ended observation=1995 seconds=23.223
+2026-09-30 01:12:10,610 INFO Relation normalization request ended observation=2000 seconds=14.965
+2026-09-30 01:12:25,298 INFO Relation normalization request ended observation=1999 seconds=31.245
+2026-09-30 01:17:33,929 INFO Relation normalization batch size=8 workers=6
+2026-09-30 01:17:33,929 INFO Relation normalization request started observation=2001
+2026-09-30 01:17:33,930 INFO Relation normalization request started observation=2002
+2026-09-30 01:17:33,931 INFO Relation normalization request started observation=2003
+2026-09-30 01:17:33,933 INFO Relation normalization request started observation=2004
+2026-09-30 01:17:33,933 INFO Relation normalization request started observation=2005
+2026-09-30 01:17:33,935 INFO Relation normalization request started observation=2006
+2026-09-30 01:17:40,337 INFO Relation normalization request ended observation=2005 seconds=6.404
+2026-09-30 01:17:40,337 INFO Relation normalization request started observation=2007
+2026-09-30 01:17:44,480 INFO Relation normalization request ended observation=2003 seconds=10.548
+2026-09-30 01:17:44,480 INFO Relation normalization request started observation=2008
+2026-09-30 01:17:46,620 INFO Relation normalization request ended observation=2007 seconds=6.283
+2026-09-30 01:17:49,650 INFO Relation normalization request ended observation=2002 seconds=15.720
+2026-09-30 01:17:51,944 INFO Relation normalization request ended observation=2004 seconds=18.011
+2026-09-30 01:17:53,512 INFO Relation normalization request ended observation=2008 seconds=9.032
+2026-09-30 01:18:19,842 INFO Relation normalization request ended observation=2001 seconds=45.913
+2026-09-30 01:19:12,678 INFO Relation normalization request ended observation=2006 seconds=98.743
+2026-09-30 01:24:18,263 INFO Relation normalization batch size=17 workers=6
+2026-09-30 01:24:18,263 INFO Relation normalization request started observation=2009
+2026-09-30 01:24:18,264 INFO Relation normalization request started observation=2010
+2026-09-30 01:24:18,265 INFO Relation normalization request started observation=2011
+2026-09-30 01:24:18,266 INFO Relation normalization request started observation=2012
+2026-09-30 01:24:18,268 INFO Relation normalization request started observation=2013
+2026-09-30 01:24:18,269 INFO Relation normalization request started observation=2014
+2026-09-30 01:24:30,470 INFO Relation normalization request ended observation=2011 seconds=12.204
+2026-09-30 01:24:30,470 INFO Relation normalization request started observation=2015
+2026-09-30 01:24:42,637 INFO Relation normalization request ended observation=2015 seconds=12.167
+2026-09-30 01:24:42,637 INFO Relation normalization request started observation=2016
+2026-09-30 01:24:50,116 INFO Relation normalization request ended observation=2013 seconds=31.848
+2026-09-30 01:24:50,116 INFO Relation normalization request started observation=2017
+2026-09-30 01:24:50,607 INFO Relation normalization request ended observation=2012 seconds=32.342
+2026-09-30 01:24:50,608 INFO Relation normalization request started observation=2018
+2026-09-30 01:24:52,068 INFO Relation normalization request ended observation=2009 seconds=33.805
+2026-09-30 01:24:52,068 INFO Relation normalization request started observation=2019
+2026-09-30 01:25:08,378 INFO Relation normalization request ended observation=2016 seconds=25.741
+2026-09-30 01:25:08,379 INFO Relation normalization request started observation=2020
+2026-09-30 01:25:08,896 INFO Relation normalization request ended observation=2010 seconds=50.632
+2026-09-30 01:25:08,896 INFO Relation normalization request started observation=2021
+2026-09-30 01:25:19,990 INFO Relation normalization request ended observation=2020 seconds=11.611
+2026-09-30 01:25:19,990 INFO Relation normalization request started observation=2022
+2026-09-30 01:25:24,821 INFO Relation normalization request ended observation=2014 seconds=66.552
+2026-09-30 01:25:24,821 INFO Relation normalization request started observation=2023
+2026-09-30 01:25:25,380 INFO Relation normalization request ended observation=2017 seconds=35.263
+2026-09-30 01:25:25,380 INFO Relation normalization request started observation=2024
+2026-09-30 01:25:35,283 INFO Relation normalization request ended observation=2024 seconds=9.903
+2026-09-30 01:25:35,283 INFO Relation normalization request started observation=2025
+2026-09-30 01:25:44,902 INFO Relation normalization request ended observation=2022 seconds=24.912
+2026-09-30 01:25:54,360 INFO Relation normalization request ended observation=2021 seconds=45.464
+2026-09-30 01:25:56,784 INFO Relation normalization request ended observation=2023 seconds=31.963
+2026-09-30 01:26:05,168 INFO Relation normalization request ended observation=2025 seconds=29.885
+2026-09-30 01:26:13,096 INFO Relation normalization request ended observation=2019 seconds=81.027
+2026-09-30 01:27:21,518 INFO Relation normalization request ended observation=2018 seconds=150.910
+2026-09-30 01:32:11,308 INFO Relation normalization batch size=15 workers=6
+2026-09-30 01:32:11,309 INFO Relation normalization request started observation=2026
+2026-09-30 01:32:11,310 INFO Relation normalization request started observation=2027
+2026-09-30 01:32:11,311 INFO Relation normalization request started observation=2028
+2026-09-30 01:32:11,312 INFO Relation normalization request started observation=2029
+2026-09-30 01:32:11,314 INFO Relation normalization request started observation=2030
+2026-09-30 01:32:11,315 INFO Relation normalization request started observation=2031
+2026-09-30 01:32:19,212 INFO Relation normalization request ended observation=2031 seconds=7.897
+2026-09-30 01:32:19,212 INFO Relation normalization request started observation=2032
+2026-09-30 01:32:22,150 INFO Relation normalization request ended observation=2029 seconds=10.838
+2026-09-30 01:32:22,151 INFO Relation normalization request started observation=2033
+2026-09-30 01:32:26,957 INFO Relation normalization request ended observation=2026 seconds=15.648
+2026-09-30 01:32:26,957 INFO Relation normalization request started observation=2034
+2026-09-30 01:32:28,670 INFO Relation normalization request ended observation=2032 seconds=9.457
+2026-09-30 01:32:28,670 INFO Relation normalization request started observation=2035
+2026-09-30 01:32:30,218 INFO Relation normalization request ended observation=2033 seconds=8.068
+2026-09-30 01:32:30,219 INFO Relation normalization request started observation=2036
+2026-09-30 01:32:33,290 INFO Relation normalization request ended observation=2030 seconds=21.977
+2026-09-30 01:32:33,291 INFO Relation normalization request started observation=2037
+2026-09-30 01:32:33,441 INFO Relation normalization request ended observation=2034 seconds=6.484
+2026-09-30 01:32:33,441 INFO Relation normalization request started observation=2038
+2026-09-30 01:32:37,957 INFO Relation normalization request ended observation=2027 seconds=26.647
+2026-09-30 01:32:37,957 INFO Relation normalization request started observation=2039
+2026-09-30 01:32:39,713 INFO Relation normalization request ended observation=2037 seconds=6.422
+2026-09-30 01:32:39,713 INFO Relation normalization request started observation=2040
+2026-09-30 01:32:42,306 INFO Relation normalization request ended observation=2035 seconds=13.636
+2026-09-30 01:32:42,930 INFO Relation normalization request ended observation=2038 seconds=9.489
+2026-09-30 01:32:56,031 INFO Relation normalization request ended observation=2039 seconds=18.074
+2026-09-30 01:33:02,354 INFO Relation normalization request ended observation=2036 seconds=32.136
+2026-09-30 01:33:22,682 INFO Relation normalization request ended observation=2028 seconds=71.371
+2026-09-30 01:33:33,082 INFO Relation normalization request ended observation=2040 seconds=53.369
+2026-09-30 01:38:44,052 INFO Relation normalization batch size=13 workers=6
+2026-09-30 01:38:44,052 INFO Relation normalization request started observation=2041
+2026-09-30 01:38:44,054 INFO Relation normalization request started observation=2042
+2026-09-30 01:38:44,055 INFO Relation normalization request started observation=2043
+2026-09-30 01:38:44,055 INFO Relation normalization request started observation=2044
+2026-09-30 01:38:44,056 INFO Relation normalization request started observation=2045
+2026-09-30 01:38:44,057 INFO Relation normalization request started observation=2046
+2026-09-30 01:38:54,907 INFO Relation normalization request ended observation=2041 seconds=10.855
+2026-09-30 01:38:54,908 INFO Relation normalization request started observation=2047
+2026-09-30 01:39:15,566 INFO Relation normalization request ended observation=2044 seconds=31.511
+2026-09-30 01:39:15,566 INFO Relation normalization request started observation=2048
+2026-09-30 01:39:20,280 INFO Relation normalization request ended observation=2042 seconds=36.226
+2026-09-30 01:39:20,280 INFO Relation normalization request started observation=2049
+2026-09-30 01:39:26,841 INFO Relation normalization request ended observation=2045 seconds=42.785
+2026-09-30 01:39:26,841 INFO Relation normalization request started observation=2050
+2026-09-30 01:39:37,382 INFO Relation normalization request ended observation=2048 seconds=21.816
+2026-09-30 01:39:37,382 INFO Relation normalization request started observation=2051
+2026-09-30 01:39:47,307 INFO Relation normalization request ended observation=2051 seconds=9.925
+2026-09-30 01:39:47,308 INFO Relation normalization request started observation=2052
+2026-09-30 01:39:54,593 INFO Relation normalization request ended observation=2052 seconds=7.285
+2026-09-30 01:39:54,593 INFO Relation normalization request started observation=2053
+2026-09-30 01:39:54,863 INFO Relation normalization request ended observation=2049 seconds=34.583
+2026-09-30 01:39:58,189 INFO Relation normalization request ended observation=2046 seconds=74.132
+2026-09-30 01:40:11,829 INFO Relation normalization request ended observation=2053 seconds=17.236
+2026-09-30 01:40:12,901 INFO Relation normalization request ended observation=2043 seconds=88.846
+2026-09-30 01:40:21,969 INFO Relation normalization request ended observation=2047 seconds=87.061
+2026-09-30 01:41:22,557 INFO Relation normalization request ended observation=2050 seconds=115.716
+2026-09-30 01:45:46,717 INFO Relation normalization batch size=11 workers=6
+2026-09-30 01:45:46,717 INFO Relation normalization request started observation=2054
+2026-09-30 01:45:46,717 INFO Relation normalization request started observation=2055
+2026-09-30 01:45:46,719 INFO Relation normalization request started observation=2056
+2026-09-30 01:45:46,720 INFO Relation normalization request started observation=2057
+2026-09-30 01:45:46,722 INFO Relation normalization request started observation=2058
+2026-09-30 01:45:46,723 INFO Relation normalization request started observation=2059
+2026-09-30 01:45:57,522 INFO Relation normalization request ended observation=2059 seconds=10.799
+2026-09-30 01:45:57,522 INFO Relation normalization request started observation=2060
+2026-09-30 01:46:06,947 INFO Relation normalization request ended observation=2056 seconds=20.228
+2026-09-30 01:46:06,947 INFO Relation normalization request started observation=2061
+2026-09-30 01:46:12,481 INFO Relation normalization request ended observation=2060 seconds=14.959
+2026-09-30 01:46:12,481 INFO Relation normalization request started observation=2062
+2026-09-30 01:46:29,884 INFO Relation normalization request ended observation=2061 seconds=22.936
+2026-09-30 01:46:29,884 INFO Relation normalization request started observation=2063
+2026-09-30 01:46:32,640 INFO Relation normalization request ended observation=2054 seconds=45.923
+2026-09-30 01:46:32,640 INFO Relation normalization request started observation=2064
+2026-09-30 01:46:42,327 INFO Relation normalization request ended observation=2062 seconds=29.846
+2026-09-30 01:46:48,040 INFO Relation normalization request ended observation=2058 seconds=61.318
+2026-09-30 01:46:58,876 INFO Relation normalization request ended observation=2057 seconds=72.156
+2026-09-30 01:47:13,094 INFO Relation normalization request ended observation=2064 seconds=40.454
+2026-09-30 01:47:13,620 INFO Relation normalization request ended observation=2055 seconds=86.902
+2026-09-30 01:47:15,211 INFO Relation normalization request ended observation=2063 seconds=45.327
+2026-09-30 01:54:12,585 INFO Relation normalization batch size=18 workers=6
+2026-09-30 01:54:12,585 INFO Relation normalization request started observation=2065
+2026-09-30 01:54:12,586 INFO Relation normalization request started observation=2066
+2026-09-30 01:54:12,587 INFO Relation normalization request started observation=2067
+2026-09-30 01:54:12,587 INFO Relation normalization request started observation=2068
+2026-09-30 01:54:12,589 INFO Relation normalization request started observation=2069
+2026-09-30 01:54:12,590 INFO Relation normalization request started observation=2070
+2026-09-30 01:54:26,324 INFO Relation normalization request ended observation=2065 seconds=13.739
+2026-09-30 01:54:26,324 INFO Relation normalization request started observation=2071
+2026-09-30 01:54:34,944 INFO Relation normalization request ended observation=2070 seconds=22.354
+2026-09-30 01:54:34,944 INFO Relation normalization request started observation=2072
+2026-09-30 01:54:45,982 INFO Relation normalization request ended observation=2072 seconds=11.038
+2026-09-30 01:54:45,982 INFO Relation normalization request started observation=2073
+2026-09-30 01:54:46,232 INFO Relation normalization request ended observation=2067 seconds=33.645
+2026-09-30 01:54:46,232 INFO Relation normalization request started observation=2074
+2026-09-30 01:54:47,936 INFO Relation normalization request ended observation=2068 seconds=35.348
+2026-09-30 01:54:47,936 INFO Relation normalization request started observation=2075
+2026-09-30 01:54:49,342 INFO Relation normalization request ended observation=2066 seconds=36.756
+2026-09-30 01:54:49,342 INFO Relation normalization request started observation=2076
+2026-09-30 01:54:51,154 INFO Relation normalization request ended observation=2071 seconds=24.830
+2026-09-30 01:54:51,154 INFO Relation normalization request started observation=2077
+2026-09-30 01:54:59,441 INFO Relation normalization request ended observation=2073 seconds=13.459
+2026-09-30 01:54:59,441 INFO Relation normalization request started observation=2078
+2026-09-30 01:55:00,935 INFO Relation normalization request ended observation=2069 seconds=48.346
+2026-09-30 01:55:00,935 INFO Relation normalization request started observation=2079
+2026-09-30 01:55:01,705 INFO Relation normalization request ended observation=2076 seconds=12.362
+2026-09-30 01:55:01,705 INFO Relation normalization request started observation=2080
+2026-09-30 01:55:14,287 INFO Relation normalization request ended observation=2078 seconds=14.845
+2026-09-30 01:55:14,287 INFO Relation normalization request started observation=2081
+2026-09-30 01:55:24,951 INFO Relation normalization request ended observation=2075 seconds=37.015
+2026-09-30 01:55:24,952 INFO Relation normalization request started observation=2082
+2026-09-30 01:55:24,958 INFO Relation normalization request ended observation=2081 seconds=10.671
+2026-09-30 01:55:29,479 INFO Relation normalization request ended observation=2079 seconds=28.544
+2026-09-30 01:55:38,293 INFO Relation normalization request ended observation=2080 seconds=36.588
+2026-09-30 01:55:40,772 INFO Relation normalization request ended observation=2082 seconds=15.820
+2026-09-30 01:55:55,639 INFO Relation normalization request ended observation=2077 seconds=64.485
+2026-09-30 01:55:58,147 INFO Relation normalization request ended observation=2074 seconds=71.915
+2026-09-30 02:00:18,383 INFO Relation normalization batch size=7 workers=6
+2026-09-30 02:00:18,383 INFO Relation normalization request started observation=2083
+2026-09-30 02:00:18,385 INFO Relation normalization request started observation=2084
+2026-09-30 02:00:18,385 INFO Relation normalization request started observation=2085
+2026-09-30 02:00:18,385 INFO Relation normalization request started observation=2086
+2026-09-30 02:00:18,387 INFO Relation normalization request started observation=2087
+2026-09-30 02:00:18,388 INFO Relation normalization request started observation=2088
+2026-09-30 02:00:33,172 INFO Relation normalization request ended observation=2086 seconds=14.786
+2026-09-30 02:00:33,172 INFO Relation normalization request started observation=2089
+2026-09-30 02:00:42,942 INFO Relation normalization request ended observation=2088 seconds=24.554
+2026-09-30 02:00:48,799 INFO Relation normalization request ended observation=2083 seconds=30.416
+2026-09-30 02:00:55,891 INFO Relation normalization request ended observation=2085 seconds=37.506
+2026-09-30 02:01:01,894 INFO Relation normalization request ended observation=2089 seconds=28.722
+2026-09-30 02:01:59,010 INFO Relation normalization request ended observation=2087 seconds=100.624
+2026-09-30 02:02:18,363 INFO Relation normalization request ended observation=2084 seconds=119.978
+2026-09-30 02:07:21,433 INFO Relation normalization batch size=6 workers=6
+2026-09-30 02:07:21,433 INFO Relation normalization request started observation=2090
+2026-09-30 02:07:21,434 INFO Relation normalization request started observation=2091
+2026-09-30 02:07:21,435 INFO Relation normalization request started observation=2092
+2026-09-30 02:07:21,437 INFO Relation normalization request started observation=2093
+2026-09-30 02:07:21,438 INFO Relation normalization request started observation=2094
+2026-09-30 02:07:21,439 INFO Relation normalization request started observation=2095
+2026-09-30 02:07:29,254 INFO Relation normalization request ended observation=2091 seconds=7.819
+2026-09-30 02:07:39,735 INFO Relation normalization request ended observation=2094 seconds=18.297
+2026-09-30 02:07:57,993 INFO Relation normalization request ended observation=2093 seconds=36.556
+2026-09-30 02:08:08,299 INFO Relation normalization request ended observation=2090 seconds=46.867
+2026-09-30 02:08:09,323 INFO Relation normalization request ended observation=2092 seconds=47.888
+2026-09-30 02:08:42,847 INFO Relation normalization request ended observation=2095 seconds=81.408
+2026-09-30 02:15:22,866 INFO Relation normalization batch size=15 workers=6
+2026-09-30 02:15:22,866 INFO Relation normalization request started observation=2096
+2026-09-30 02:15:22,868 INFO Relation normalization request started observation=2097
+2026-09-30 02:15:22,870 INFO Relation normalization request started observation=2098
+2026-09-30 02:15:22,871 INFO Relation normalization request started observation=2099
+2026-09-30 02:15:22,872 INFO Relation normalization request started observation=2100
+2026-09-30 02:15:22,873 INFO Relation normalization request started observation=2101
+2026-09-30 02:15:28,634 INFO Relation normalization request ended observation=2099 seconds=5.763
+2026-09-30 02:15:28,634 INFO Relation normalization request started observation=2102
+2026-09-30 02:15:30,747 INFO Relation normalization request ended observation=2096 seconds=7.881
+2026-09-30 02:15:30,748 INFO Relation normalization request started observation=2103
+2026-09-30 02:15:38,601 INFO Relation normalization request ended observation=2100 seconds=15.729
+2026-09-30 02:15:38,601 INFO Relation normalization request started observation=2104
+2026-09-30 02:15:41,794 INFO Relation normalization request ended observation=2098 seconds=18.924
+2026-09-30 02:15:41,794 INFO Relation normalization request started observation=2105
+2026-09-30 02:15:41,833 INFO Relation normalization request ended observation=2102 seconds=13.198
+2026-09-30 02:15:41,833 INFO Relation normalization request started observation=2106
+2026-09-30 02:15:43,377 INFO Relation normalization request ended observation=2103 seconds=12.629
+2026-09-30 02:15:43,377 INFO Relation normalization request started observation=2107
+2026-09-30 02:15:51,739 INFO Relation normalization request ended observation=2105 seconds=9.945
+2026-09-30 02:15:51,739 INFO Relation normalization request started observation=2108
+2026-09-30 02:15:55,233 INFO Relation normalization request ended observation=2097 seconds=32.365
+2026-09-30 02:15:55,233 INFO Relation normalization request started observation=2109
+2026-09-30 02:16:06,178 INFO Relation normalization request ended observation=2109 seconds=10.945
+2026-09-30 02:16:06,179 INFO Relation normalization request started observation=2110
+2026-09-30 02:16:14,822 INFO Relation normalization request ended observation=2110 seconds=8.643
+2026-09-30 02:16:16,760 INFO Relation normalization request ended observation=2107 seconds=33.383
+2026-09-30 02:16:21,829 INFO Relation normalization request ended observation=2104 seconds=43.228
+2026-09-30 02:17:04,195 INFO Relation normalization request ended observation=2106 seconds=82.362
+2026-09-30 02:17:16,321 INFO Relation normalization request ended observation=2108 seconds=84.582
+2026-09-30 02:17:18,446 INFO Relation normalization request ended observation=2101 seconds=115.573
+2026-09-30 02:21:27,386 INFO Relation normalization batch size=9 workers=6
+2026-09-30 02:21:27,387 INFO Relation normalization request started observation=2111
+2026-09-30 02:21:27,388 INFO Relation normalization request started observation=2112
+2026-09-30 02:21:27,389 INFO Relation normalization request started observation=2113
+2026-09-30 02:21:27,390 INFO Relation normalization request started observation=2114
+2026-09-30 02:21:27,392 INFO Relation normalization request started observation=2115
+2026-09-30 02:21:27,392 INFO Relation normalization request started observation=2116
+2026-09-30 02:21:44,323 INFO Relation normalization request ended observation=2113 seconds=16.934
+2026-09-30 02:21:44,324 INFO Relation normalization request started observation=2117
+2026-09-30 02:21:45,213 INFO Relation normalization request ended observation=2112 seconds=17.825
+2026-09-30 02:21:45,213 INFO Relation normalization request started observation=2118
+2026-09-30 02:21:51,559 INFO Relation normalization request ended observation=2111 seconds=24.173
+2026-09-30 02:21:51,560 INFO Relation normalization request started observation=2119
+2026-09-30 02:21:58,167 INFO Relation normalization request ended observation=2119 seconds=6.607
+2026-09-30 02:22:07,581 INFO Relation normalization request ended observation=2118 seconds=22.368
+2026-09-30 02:22:17,565 INFO Relation normalization request ended observation=2115 seconds=50.173
+2026-09-30 02:22:29,126 INFO Relation normalization request ended observation=2116 seconds=61.734
+2026-09-30 02:22:34,003 INFO Relation normalization request ended observation=2114 seconds=66.612
+2026-09-30 02:23:15,950 INFO Relation normalization request ended observation=2117 seconds=91.626
+2026-09-30 02:26:17,123 INFO Relation normalization batch size=10 workers=6
+2026-09-30 02:26:17,124 INFO Relation normalization request started observation=2120
+2026-09-30 02:26:17,125 INFO Relation normalization request started observation=2121
+2026-09-30 02:26:17,125 INFO Relation normalization request started observation=2122
+2026-09-30 02:26:17,126 INFO Relation normalization request started observation=2123
+2026-09-30 02:26:17,128 INFO Relation normalization request started observation=2124
+2026-09-30 02:26:17,129 INFO Relation normalization request started observation=2125
+2026-09-30 02:26:26,890 INFO Relation normalization request ended observation=2121 seconds=9.765
+2026-09-30 02:26:26,890 INFO Relation normalization request started observation=2126
+2026-09-30 02:26:27,326 INFO Relation normalization request ended observation=2123 seconds=10.200
+2026-09-30 02:26:27,327 INFO Relation normalization request started observation=2127
+2026-09-30 02:26:29,655 INFO Relation normalization request ended observation=2122 seconds=12.530
+2026-09-30 02:26:29,655 INFO Relation normalization request started observation=2128
+2026-09-30 02:26:35,150 INFO Relation normalization request ended observation=2126 seconds=8.260
+2026-09-30 02:26:35,150 INFO Relation normalization request started observation=2129
+2026-09-30 02:26:39,434 INFO Relation normalization request ended observation=2128 seconds=9.779
+2026-09-30 02:26:39,999 INFO Relation normalization request ended observation=2120 seconds=22.875
+2026-09-30 02:26:45,109 INFO Relation normalization request ended observation=2124 seconds=27.981
+2026-09-30 02:26:58,198 INFO Relation normalization request ended observation=2127 seconds=30.871
+2026-09-30 02:27:01,746 INFO Relation normalization request ended observation=2129 seconds=26.596
+2026-09-30 02:27:14,829 INFO Relation normalization request ended observation=2125 seconds=57.700
+2026-09-30 02:30:15,343 INFO Relation normalization batch size=19 workers=6
+2026-09-30 02:30:15,343 INFO Relation normalization request started observation=2130
+2026-09-30 02:30:15,345 INFO Relation normalization request started observation=2131
+2026-09-30 02:30:15,346 INFO Relation normalization request started observation=2132
+2026-09-30 02:30:15,346 INFO Relation normalization request started observation=2133
+2026-09-30 02:30:15,347 INFO Relation normalization request started observation=2134
+2026-09-30 02:30:15,349 INFO Relation normalization request started observation=2135
+2026-09-30 02:30:22,745 INFO Relation normalization request ended observation=2132 seconds=7.399
+2026-09-30 02:30:22,745 INFO Relation normalization request started observation=2136
+2026-09-30 02:30:22,928 INFO Relation normalization request ended observation=2131 seconds=7.583
+2026-09-30 02:30:22,928 INFO Relation normalization request started observation=2137
+2026-09-30 02:30:26,826 INFO Relation normalization request ended observation=2134 seconds=11.478
+2026-09-30 02:30:26,826 INFO Relation normalization request started observation=2138
+2026-09-30 02:30:35,425 INFO Relation normalization request ended observation=2136 seconds=12.680
+2026-09-30 02:30:35,426 INFO Relation normalization request started observation=2139
+2026-09-30 02:30:37,070 INFO Relation normalization request ended observation=2133 seconds=21.724
+2026-09-30 02:30:37,070 INFO Relation normalization request started observation=2140
+2026-09-30 02:30:37,612 INFO Relation normalization request ended observation=2137 seconds=14.684
+2026-09-30 02:30:37,613 INFO Relation normalization request started observation=2141
+2026-09-30 02:30:38,384 INFO Relation normalization request ended observation=2135 seconds=23.035
+2026-09-30 02:30:38,384 INFO Relation normalization request started observation=2142
+2026-09-30 02:30:41,907 INFO Relation normalization request ended observation=2130 seconds=26.563
+2026-09-30 02:30:41,907 INFO Relation normalization request started observation=2143
+2026-09-30 02:30:46,431 INFO Relation normalization request ended observation=2139 seconds=11.005
+2026-09-30 02:30:46,431 INFO Relation normalization request started observation=2144
+2026-09-30 02:30:48,563 INFO Relation normalization request ended observation=2140 seconds=11.493
+2026-09-30 02:30:48,564 INFO Relation normalization request started observation=2145
+2026-09-30 02:30:48,894 INFO Relation normalization request ended observation=2138 seconds=22.068
+2026-09-30 02:30:48,895 INFO Relation normalization request started observation=2146
+2026-09-30 02:30:56,923 INFO Relation normalization request ended observation=2141 seconds=19.311
+2026-09-30 02:30:56,924 INFO Relation normalization request started observation=2147
+2026-09-30 02:31:02,974 INFO Relation normalization request ended observation=2142 seconds=24.589
+2026-09-30 02:31:02,974 INFO Relation normalization request started observation=2148
+2026-09-30 02:31:04,164 INFO Relation normalization request ended observation=2145 seconds=15.600
+2026-09-30 02:31:06,578 INFO Relation normalization request ended observation=2144 seconds=20.146
+2026-09-30 02:31:23,442 INFO Relation normalization request ended observation=2143 seconds=41.535
+2026-09-30 02:32:03,900 INFO Relation normalization request ended observation=2148 seconds=60.925
+2026-09-30 02:32:07,206 INFO Relation normalization request ended observation=2146 seconds=78.311
+2026-09-30 02:32:51,020 INFO Relation normalization request ended observation=2147 seconds=114.096
+2026-09-30 02:37:35,421 INFO Relation normalization batch size=12 workers=6
+2026-09-30 02:37:35,421 INFO Relation normalization request started observation=2149
+2026-09-30 02:37:35,422 INFO Relation normalization request started observation=2150
+2026-09-30 02:37:35,423 INFO Relation normalization request started observation=2151
+2026-09-30 02:37:35,425 INFO Relation normalization request started observation=2152
+2026-09-30 02:37:35,426 INFO Relation normalization request started observation=2153
+2026-09-30 02:37:35,427 INFO Relation normalization request started observation=2154
+2026-09-30 02:37:44,327 INFO Relation normalization request ended observation=2153 seconds=8.902
+2026-09-30 02:37:44,328 INFO Relation normalization request started observation=2155
+2026-09-30 02:37:45,308 INFO Relation normalization request ended observation=2151 seconds=9.885
+2026-09-30 02:37:45,309 INFO Relation normalization request started observation=2156
+2026-09-30 02:37:47,520 INFO Relation normalization request ended observation=2150 seconds=12.098
+2026-09-30 02:37:47,520 INFO Relation normalization request started observation=2157
+2026-09-30 02:37:55,535 INFO Relation normalization request ended observation=2156 seconds=10.227
+2026-09-30 02:37:55,535 INFO Relation normalization request started observation=2158
+2026-09-30 02:38:01,828 INFO Relation normalization request ended observation=2155 seconds=17.500
+2026-09-30 02:38:01,828 INFO Relation normalization request started observation=2159
+2026-09-30 02:38:05,174 INFO Relation normalization request ended observation=2158 seconds=9.639
+2026-09-30 02:38:05,175 INFO Relation normalization request started observation=2160
+2026-09-30 02:38:06,060 INFO Relation normalization request ended observation=2154 seconds=30.634
+2026-09-30 02:38:16,080 INFO Relation normalization request ended observation=2149 seconds=40.659
+2026-09-30 02:38:27,562 INFO Relation normalization request ended observation=2152 seconds=52.137
+2026-09-30 02:38:37,844 INFO Relation normalization request ended observation=2160 seconds=32.669
+2026-09-30 02:38:38,873 INFO Relation normalization request ended observation=2157 seconds=51.353
+2026-09-30 02:39:22,792 INFO Relation normalization request ended observation=2159 seconds=80.964
+2026-09-30 02:40:54,845 INFO Relation normalization batch size=3 workers=6
+2026-09-30 02:40:54,846 INFO Relation normalization request started observation=2161
+2026-09-30 02:40:54,847 INFO Relation normalization request started observation=2162
+2026-09-30 02:40:54,849 INFO Relation normalization request started observation=2163
+2026-09-30 02:41:06,469 INFO Relation normalization request ended observation=2162 seconds=11.622
+2026-09-30 02:41:13,849 INFO Relation normalization request ended observation=2161 seconds=19.004
+2026-09-30 02:41:18,175 INFO Relation normalization request ended observation=2163 seconds=23.326
+2026-09-30 02:43:27,726 INFO Relation normalization batch size=2 workers=6
+2026-09-30 02:43:27,726 INFO Relation normalization request started observation=2164
+2026-09-30 02:43:27,727 INFO Relation normalization request started observation=2165
+2026-09-30 02:43:59,591 INFO Relation normalization request ended observation=2165 seconds=31.864
+2026-09-30 02:44:07,343 INFO Relation normalization request ended observation=2164 seconds=39.617
+2026-09-30 02:45:30,117 INFO Relation normalization batch size=2 workers=6
+2026-09-30 02:45:30,117 INFO Relation normalization request started observation=2166
+2026-09-30 02:45:30,117 INFO Relation normalization request started observation=2167
+2026-09-30 02:45:48,716 INFO Relation normalization request ended observation=2167 seconds=18.599
+2026-09-30 02:45:58,788 INFO Relation normalization request ended observation=2166 seconds=28.671
+2026-09-30 02:53:24,475 INFO Relation normalization batch size=9 workers=6
+2026-09-30 02:53:24,475 INFO Relation normalization request started observation=2169
+2026-09-30 02:53:24,475 INFO Relation normalization request started observation=2170
+2026-09-30 02:53:24,477 INFO Relation normalization request started observation=2171
+2026-09-30 02:53:24,478 INFO Relation normalization request started observation=2172
+2026-09-30 02:53:24,480 INFO Relation normalization request started observation=2173
+2026-09-30 02:53:24,481 INFO Relation normalization request started observation=2174
+2026-09-30 02:53:32,622 INFO Relation normalization request ended observation=2169 seconds=8.146
+2026-09-30 02:53:32,622 INFO Relation normalization request started observation=2175
+2026-09-30 02:53:35,522 INFO Relation normalization request ended observation=2171 seconds=11.045
+2026-09-30 02:53:35,522 INFO Relation normalization request started observation=2176
+2026-09-30 02:53:39,427 INFO Relation normalization request ended observation=2170 seconds=14.952
+2026-09-30 02:53:39,428 INFO Relation normalization request started observation=2177
+2026-09-30 02:53:49,683 INFO Relation normalization request ended observation=2172 seconds=25.205
+2026-09-30 02:53:50,412 INFO Relation normalization request ended observation=2173 seconds=25.932
+2026-09-30 02:53:55,736 INFO Relation normalization request ended observation=2177 seconds=16.309
+2026-09-30 02:53:56,666 INFO Relation normalization request ended observation=2176 seconds=21.144
+2026-09-30 02:53:58,851 INFO Relation normalization request ended observation=2175 seconds=26.229
+2026-09-30 02:54:10,585 INFO Relation normalization request ended observation=2174 seconds=46.105
+2026-09-30 02:58:11,819 INFO Relation normalization batch size=2 workers=6
+2026-09-30 02:58:11,819 INFO Relation normalization request started observation=2180
+2026-09-30 02:58:11,820 INFO Relation normalization request started observation=2181
+2026-09-30 02:58:51,056 INFO Relation normalization request ended observation=2180 seconds=39.236
+2026-09-30 02:59:08,652 INFO Relation normalization request ended observation=2181 seconds=56.832
+2026-09-30 03:03:41,652 INFO Relation normalization batch size=3 workers=6
+2026-09-30 03:03:41,652 INFO Relation normalization request started observation=2184
+2026-09-30 03:03:41,652 INFO Relation normalization request started observation=2185
+2026-09-30 03:03:41,655 INFO Relation normalization request started observation=2186
+2026-09-30 03:03:50,257 INFO Relation normalization request ended observation=2184 seconds=8.605
+2026-09-30 03:03:51,472 INFO Relation normalization request ended observation=2185 seconds=9.819
+2026-09-30 03:03:52,365 INFO Relation normalization request ended observation=2186 seconds=10.710
+2026-09-30 03:10:48,078 INFO Relation normalization batch size=16 workers=6
+2026-09-30 03:10:48,079 INFO Relation normalization request started observation=2188
+2026-09-30 03:10:48,080 INFO Relation normalization request started observation=2189
+2026-09-30 03:10:48,082 INFO Relation normalization request started observation=2190
+2026-09-30 03:10:48,082 INFO Relation normalization request started observation=2191
+2026-09-30 03:10:48,083 INFO Relation normalization request started observation=2192
+2026-09-30 03:10:48,085 INFO Relation normalization request started observation=2193
+2026-09-30 03:10:55,464 INFO Relation normalization request ended observation=2188 seconds=7.385
+2026-09-30 03:10:55,464 INFO Relation normalization request started observation=2194
+2026-09-30 03:10:58,373 INFO Relation normalization request ended observation=2192 seconds=10.289
+2026-09-30 03:10:58,373 INFO Relation normalization request started observation=2195
+2026-09-30 03:11:00,975 INFO Relation normalization request ended observation=2189 seconds=12.895
+2026-09-30 03:11:00,975 INFO Relation normalization request started observation=2196
+2026-09-30 03:11:06,581 INFO Relation normalization request ended observation=2190 seconds=18.499
+2026-09-30 03:11:06,581 INFO Relation normalization request started observation=2197
+2026-09-30 03:11:10,035 INFO Relation normalization request ended observation=2193 seconds=21.950
+2026-09-30 03:11:10,035 INFO Relation normalization request started observation=2198
+2026-09-30 03:11:17,849 INFO Relation normalization request ended observation=2195 seconds=19.476
+2026-09-30 03:11:17,849 INFO Relation normalization request started observation=2199
+2026-09-30 03:11:18,639 INFO Relation normalization request ended observation=2191 seconds=30.556
+2026-09-30 03:11:18,639 INFO Relation normalization request started observation=2200
+2026-09-30 03:11:22,527 INFO Relation normalization request ended observation=2194 seconds=27.062
+2026-09-30 03:11:22,527 INFO Relation normalization request started observation=2201
+2026-09-30 03:11:36,974 INFO Relation normalization request ended observation=2197 seconds=30.392
+2026-09-30 03:11:36,974 INFO Relation normalization request started observation=2202
+2026-09-30 03:11:40,385 INFO Relation normalization request ended observation=2198 seconds=30.350
+2026-09-30 03:11:40,385 INFO Relation normalization request started observation=2203
+2026-09-30 03:11:48,698 INFO Relation normalization request ended observation=2202 seconds=11.724
+2026-09-30 03:11:53,656 INFO Relation normalization request ended observation=2196 seconds=52.681
+2026-09-30 03:11:53,927 INFO Relation normalization request ended observation=2203 seconds=13.542
+2026-09-30 03:12:17,453 INFO Relation normalization request ended observation=2200 seconds=58.814
+2026-09-30 03:12:41,845 INFO Relation normalization request ended observation=2199 seconds=83.995
+2026-09-30 03:14:04,455 INFO Relation normalization request ended observation=2201 seconds=161.928
+2026-09-30 03:19:48,187 INFO Relation normalization batch size=22 workers=6
+2026-09-30 03:19:48,187 INFO Relation normalization request started observation=2204
+2026-09-30 03:19:48,189 INFO Relation normalization request started observation=2205
+2026-09-30 03:19:48,190 INFO Relation normalization request started observation=2206
+2026-09-30 03:19:48,191 INFO Relation normalization request started observation=2207
+2026-09-30 03:19:48,193 INFO Relation normalization request started observation=2208
+2026-09-30 03:19:48,194 INFO Relation normalization request started observation=2209
+2026-09-30 03:19:54,569 INFO Relation normalization request ended observation=2209 seconds=6.375
+2026-09-30 03:19:54,569 INFO Relation normalization request started observation=2210
+2026-09-30 03:19:57,849 INFO Relation normalization request ended observation=2206 seconds=9.659
+2026-09-30 03:19:57,849 INFO Relation normalization request started observation=2211
+2026-09-30 03:19:58,410 INFO Relation normalization request ended observation=2205 seconds=10.222
+2026-09-30 03:19:58,411 INFO Relation normalization request started observation=2212
+2026-09-30 03:20:03,263 INFO Relation normalization request ended observation=2210 seconds=8.694
+2026-09-30 03:20:03,263 INFO Relation normalization request started observation=2213
+2026-09-30 03:20:04,085 INFO Relation normalization request ended observation=2204 seconds=15.898
+2026-09-30 03:20:04,085 INFO Relation normalization request started observation=2214
+2026-09-30 03:20:17,622 INFO Relation normalization request ended observation=2207 seconds=29.431
+2026-09-30 03:20:17,623 INFO Relation normalization request started observation=2215
+2026-09-30 03:20:18,649 INFO Relation normalization request ended observation=2211 seconds=20.800
+2026-09-30 03:20:18,649 INFO Relation normalization request started observation=2216
+2026-09-30 03:20:21,421 INFO Relation normalization request ended observation=2213 seconds=18.158
+2026-09-30 03:20:21,421 INFO Relation normalization request started observation=2217
+2026-09-30 03:20:28,997 INFO Relation normalization request ended observation=2208 seconds=40.804
+2026-09-30 03:20:28,997 INFO Relation normalization request started observation=2218
+2026-09-30 03:20:38,321 INFO Relation normalization request ended observation=2218 seconds=9.324
+2026-09-30 03:20:38,321 INFO Relation normalization request started observation=2219
+2026-09-30 03:20:38,768 INFO Relation normalization request ended observation=2217 seconds=17.347
+2026-09-30 03:20:38,769 INFO Relation normalization request started observation=2220
+2026-09-30 03:20:45,021 INFO Relation normalization request ended observation=2219 seconds=6.700
+2026-09-30 03:20:45,021 INFO Relation normalization request started observation=2221
+2026-09-30 03:20:46,503 INFO Relation normalization request ended observation=2216 seconds=27.854
+2026-09-30 03:20:46,504 INFO Relation normalization request started observation=2222
+2026-09-30 03:20:48,333 INFO Relation normalization request ended observation=2214 seconds=44.248
+2026-09-30 03:20:48,334 INFO Relation normalization request started observation=2223
+2026-09-30 03:20:55,411 INFO Relation normalization request ended observation=2222 seconds=8.908
+2026-09-30 03:20:55,412 INFO Relation normalization request started observation=2224
+2026-09-30 03:20:55,440 INFO Relation normalization request ended observation=2220 seconds=16.671
+2026-09-30 03:20:55,440 INFO Relation normalization request started observation=2225
+2026-09-30 03:20:57,330 INFO Relation normalization request ended observation=2212 seconds=58.920
+2026-09-30 03:20:58,543 INFO Relation normalization request ended observation=2221 seconds=13.522
+2026-09-30 03:21:11,488 INFO Relation normalization request ended observation=2225 seconds=16.048
+2026-09-30 03:21:18,535 INFO Relation normalization request ended observation=2224 seconds=23.123
+2026-09-30 03:21:23,355 INFO Relation normalization request ended observation=2215 seconds=65.732
+2026-09-30 03:21:28,572 INFO Relation normalization request ended observation=2223 seconds=40.239
+2026-09-30 03:25:08,389 INFO Relation normalization batch size=10 workers=6
+2026-09-30 03:25:08,389 INFO Relation normalization request started observation=2226
+2026-09-30 03:25:08,390 INFO Relation normalization request started observation=2227
+2026-09-30 03:25:08,392 INFO Relation normalization request started observation=2228
+2026-09-30 03:25:08,393 INFO Relation normalization request started observation=2229
+2026-09-30 03:25:08,394 INFO Relation normalization request started observation=2230
+2026-09-30 03:25:08,395 INFO Relation normalization request started observation=2231
+2026-09-30 03:25:22,817 INFO Relation normalization request ended observation=2228 seconds=14.425
+2026-09-30 03:25:22,817 INFO Relation normalization request started observation=2232
+2026-09-30 03:25:43,051 INFO Relation normalization request ended observation=2226 seconds=34.662
+2026-09-30 03:25:43,051 INFO Relation normalization request started observation=2233
+2026-09-30 03:25:53,443 INFO Relation normalization request ended observation=2229 seconds=45.050
+2026-09-30 03:25:53,443 INFO Relation normalization request started observation=2234
+2026-09-30 03:26:05,395 INFO Relation normalization request ended observation=2231 seconds=57.000
+2026-09-30 03:26:05,396 INFO Relation normalization request started observation=2235
+2026-09-30 03:26:08,796 INFO Relation normalization request ended observation=2230 seconds=60.402
+2026-09-30 03:26:09,629 INFO Relation normalization request ended observation=2232 seconds=46.811
+2026-09-30 03:26:12,761 INFO Relation normalization request ended observation=2234 seconds=19.318
+2026-09-30 03:26:25,012 INFO Relation normalization request ended observation=2227 seconds=76.622
+2026-09-30 03:26:39,029 INFO Relation normalization request ended observation=2233 seconds=55.977
+2026-09-30 03:26:56,632 INFO Relation normalization request ended observation=2235 seconds=51.236
+2026-09-30 03:32:02,253 INFO Relation normalization batch size=14 workers=6
+2026-09-30 03:32:02,253 INFO Relation normalization request started observation=2236
+2026-09-30 03:32:02,254 INFO Relation normalization request started observation=2237
+2026-09-30 03:32:02,256 INFO Relation normalization request started observation=2238
+2026-09-30 03:32:02,256 INFO Relation normalization request started observation=2239
+2026-09-30 03:32:02,257 INFO Relation normalization request started observation=2240
+2026-09-30 03:32:02,260 INFO Relation normalization request started observation=2241
+2026-09-30 03:32:11,882 INFO Relation normalization request ended observation=2236 seconds=9.629
+2026-09-30 03:32:11,882 INFO Relation normalization request started observation=2242
+2026-09-30 03:32:13,033 INFO Relation normalization request ended observation=2239 seconds=10.777
+2026-09-30 03:32:13,033 INFO Relation normalization request started observation=2243
+2026-09-30 03:32:14,336 INFO Relation normalization request ended observation=2240 seconds=12.079
+2026-09-30 03:32:14,337 INFO Relation normalization request started observation=2244
+2026-09-30 03:32:19,191 INFO Relation normalization request ended observation=2241 seconds=16.931
+2026-09-30 03:32:19,191 INFO Relation normalization request started observation=2245
+2026-09-30 03:32:25,073 INFO Relation normalization request ended observation=2244 seconds=10.736
+2026-09-30 03:32:25,073 INFO Relation normalization request started observation=2246
+2026-09-30 03:32:26,168 INFO Relation normalization request ended observation=2238 seconds=23.913
+2026-09-30 03:32:26,168 INFO Relation normalization request started observation=2247
+2026-09-30 03:32:31,061 INFO Relation normalization request ended observation=2243 seconds=18.029
+2026-09-30 03:32:31,061 INFO Relation normalization request started observation=2248
+2026-09-30 03:32:33,498 INFO Relation normalization request ended observation=2242 seconds=21.616
+2026-09-30 03:32:33,498 INFO Relation normalization request started observation=2249
+2026-09-30 03:32:42,085 INFO Relation normalization request ended observation=2249 seconds=8.586
+2026-09-30 03:32:56,658 INFO Relation normalization request ended observation=2248 seconds=25.597
+2026-09-30 03:33:00,344 INFO Relation normalization request ended observation=2237 seconds=58.090
+2026-09-30 03:33:17,598 INFO Relation normalization request ended observation=2246 seconds=52.525
+2026-09-30 03:33:22,300 INFO Relation normalization request ended observation=2247 seconds=56.132
+2026-09-30 03:34:01,754 INFO Relation normalization request ended observation=2245 seconds=102.562
+2026-09-30 03:41:49,415 INFO Relation normalization batch size=18 workers=6
+2026-09-30 03:41:49,415 INFO Relation normalization request started observation=2250
+2026-09-30 03:41:49,415 INFO Relation normalization request started observation=2251
+2026-09-30 03:41:49,418 INFO Relation normalization request started observation=2252
+2026-09-30 03:41:49,419 INFO Relation normalization request started observation=2253
+2026-09-30 03:41:49,421 INFO Relation normalization request started observation=2254
+2026-09-30 03:41:49,421 INFO Relation normalization request started observation=2255
+2026-09-30 03:41:58,036 INFO Relation normalization request ended observation=2252 seconds=8.618
+2026-09-30 03:41:58,037 INFO Relation normalization request started observation=2256
+2026-09-30 03:42:02,889 INFO Relation normalization request ended observation=2251 seconds=13.473
+2026-09-30 03:42:02,889 INFO Relation normalization request started observation=2257
+2026-09-30 03:42:06,236 INFO Relation normalization request ended observation=2253 seconds=16.816
+2026-09-30 03:42:06,236 INFO Relation normalization request started observation=2258
+2026-09-30 03:42:07,096 INFO Relation normalization request ended observation=2255 seconds=17.676
+2026-09-30 03:42:07,096 INFO Relation normalization request started observation=2259
+2026-09-30 03:42:17,734 INFO Relation normalization request ended observation=2259 seconds=10.638
+2026-09-30 03:42:17,734 INFO Relation normalization request started observation=2260
+2026-09-30 03:42:18,378 INFO Relation normalization request ended observation=2256 seconds=20.341
+2026-09-30 03:42:18,378 INFO Relation normalization request started observation=2261
+2026-09-30 03:42:20,864 INFO Relation normalization request ended observation=2258 seconds=14.628
+2026-09-30 03:42:20,864 INFO Relation normalization request started observation=2262
+2026-09-30 03:42:21,404 INFO Relation normalization request ended observation=2262 seconds=0.540
+2026-09-30 03:42:21,405 INFO Relation normalization request started observation=2263
+2026-09-30 03:42:21,899 INFO Relation normalization request ended observation=2263 seconds=0.494
+2026-09-30 03:42:21,899 INFO Relation normalization request started observation=2264
+2026-09-30 03:42:22,353 INFO Relation normalization request ended observation=2264 seconds=0.455
+2026-09-30 03:42:22,354 INFO Relation normalization request started observation=2265
+2026-09-30 03:42:22,488 INFO Relation normalization request ended observation=2257 seconds=19.599
+2026-09-30 03:42:22,488 INFO Relation normalization request started observation=2266
+2026-09-30 03:42:22,811 INFO Relation normalization request ended observation=2265 seconds=0.458
+2026-09-30 03:42:22,811 INFO Relation normalization request started observation=2267
+2026-09-30 03:42:22,918 INFO Relation normalization request ended observation=2266 seconds=0.430
+2026-09-30 03:42:23,266 INFO Relation normalization request ended observation=2267 seconds=0.455
+2026-09-30 03:42:26,858 INFO Relation normalization request ended observation=2254 seconds=37.437
+2026-09-30 03:42:34,979 INFO Relation normalization request ended observation=2261 seconds=16.601
+2026-09-30 03:42:42,742 INFO Relation normalization request ended observation=2250 seconds=53.326
+2026-09-30 03:42:44,893 INFO Relation normalization request ended observation=2260 seconds=27.159
+2026-09-30 03:42:44,903 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-30 03:52:45,751 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-30 04:02:46,604 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-30 04:12:47,449 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-30 04:22:48,322 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-30 04:32:49,182 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-30 04:42:49,978 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-30 04:52:49,996 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-30 05:02:50,006 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-30 05:12:50,021 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-30 05:22:50,037 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-30 05:32:50,051 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-30 05:42:50,065 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-30 05:52:50,081 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-30 06:10:47,218 INFO Relation normalization batch size=9 workers=6
+2026-09-30 06:10:47,218 INFO Relation normalization request started observation=2347
+2026-09-30 06:10:47,219 INFO Relation normalization request started observation=2348
+2026-09-30 06:10:47,221 INFO Relation normalization request started observation=2349
+2026-09-30 06:10:47,222 INFO Relation normalization request started observation=2350
+2026-09-30 06:10:47,222 INFO Relation normalization request started observation=2351
+2026-09-30 06:10:47,223 INFO Relation normalization request started observation=2352
+2026-09-30 06:11:03,021 INFO Relation normalization request ended observation=2349 seconds=15.800
+2026-09-30 06:11:03,021 INFO Relation normalization request started observation=2353
+2026-09-30 06:11:03,196 INFO Relation normalization request ended observation=2350 seconds=15.974
+2026-09-30 06:11:03,197 INFO Relation normalization request started observation=2354
+2026-09-30 06:11:04,013 INFO Relation normalization request ended observation=2347 seconds=16.795
+2026-09-30 06:11:04,013 INFO Relation normalization request started observation=2355
+2026-09-30 06:11:05,629 INFO Relation normalization request ended observation=2351 seconds=18.407
+2026-09-30 06:11:13,133 INFO Relation normalization request ended observation=2354 seconds=9.936
+2026-09-30 06:11:13,597 INFO Relation normalization request ended observation=2353 seconds=10.576
+2026-09-30 06:11:34,682 INFO Relation normalization request ended observation=2348 seconds=47.463
+2026-09-30 06:11:51,277 INFO Relation normalization request ended observation=2355 seconds=47.264
+2026-09-30 06:11:54,941 INFO Relation normalization request ended observation=2352 seconds=67.718
+2026-09-30 06:15:02,918 INFO Relation normalization batch size=12 workers=6
+2026-09-30 06:15:02,918 INFO Relation normalization request started observation=2356
+2026-09-30 06:15:02,920 INFO Relation normalization request started observation=2357
+2026-09-30 06:15:02,921 INFO Relation normalization request started observation=2358
+2026-09-30 06:15:02,922 INFO Relation normalization request started observation=2359
+2026-09-30 06:15:02,922 INFO Relation normalization request started observation=2360
+2026-09-30 06:15:02,924 INFO Relation normalization request started observation=2361
+2026-09-30 06:15:09,877 INFO Relation normalization request ended observation=2361 seconds=6.953
+2026-09-30 06:15:09,877 INFO Relation normalization request started observation=2362
+2026-09-30 06:15:16,213 INFO Relation normalization request ended observation=2359 seconds=13.291
+2026-09-30 06:15:16,213 INFO Relation normalization request started observation=2363
+2026-09-30 06:15:16,957 INFO Relation normalization request ended observation=2356 seconds=14.039
+2026-09-30 06:15:16,957 INFO Relation normalization request started observation=2364
+2026-09-30 06:15:18,983 INFO Relation normalization request ended observation=2362 seconds=9.106
+2026-09-30 06:15:18,983 INFO Relation normalization request started observation=2365
+2026-09-30 06:15:19,652 INFO Relation normalization request ended observation=2358 seconds=16.731
+2026-09-30 06:15:19,652 INFO Relation normalization request started observation=2366
+2026-09-30 06:15:28,422 INFO Relation normalization request ended observation=2366 seconds=8.770
+2026-09-30 06:15:28,422 INFO Relation normalization request started observation=2367
+2026-09-30 06:15:31,785 INFO Relation normalization request ended observation=2360 seconds=28.862
+2026-09-30 06:15:33,400 INFO Relation normalization request ended observation=2357 seconds=30.480
+2026-09-30 06:15:33,957 INFO Relation normalization request ended observation=2364 seconds=16.999
+2026-09-30 06:15:35,158 INFO Relation normalization request ended observation=2363 seconds=18.944
+2026-09-30 06:15:52,326 INFO Relation normalization request ended observation=2365 seconds=33.343
+2026-09-30 06:16:18,852 INFO Relation normalization request ended observation=2367 seconds=50.429
+2026-09-30 06:21:29,297 INFO Relation normalization batch size=14 workers=6
+2026-09-30 06:21:29,297 INFO Relation normalization request started observation=2368
+2026-09-30 06:21:29,298 INFO Relation normalization request started observation=2369
+2026-09-30 06:21:29,300 INFO Relation normalization request started observation=2370
+2026-09-30 06:21:29,300 INFO Relation normalization request started observation=2371
+2026-09-30 06:21:29,301 INFO Relation normalization request started observation=2372
+2026-09-30 06:21:29,304 INFO Relation normalization request started observation=2373
+2026-09-30 06:21:35,488 INFO Relation normalization request ended observation=2368 seconds=6.191
+2026-09-30 06:21:35,488 INFO Relation normalization request started observation=2374
+2026-09-30 06:21:37,774 INFO Relation normalization request ended observation=2373 seconds=8.471
+2026-09-30 06:21:37,775 INFO Relation normalization request started observation=2375
+2026-09-30 06:21:46,147 INFO Relation normalization request ended observation=2374 seconds=10.659
+2026-09-30 06:21:46,147 INFO Relation normalization request started observation=2376
+2026-09-30 06:21:48,530 INFO Relation normalization request ended observation=2371 seconds=19.230
+2026-09-30 06:21:48,530 INFO Relation normalization request started observation=2377
+2026-09-30 06:21:49,996 INFO Relation normalization request ended observation=2370 seconds=20.697
+2026-09-30 06:21:49,997 INFO Relation normalization request started observation=2378
+2026-09-30 06:22:03,578 INFO Relation normalization request ended observation=2376 seconds=17.431
+2026-09-30 06:22:03,578 INFO Relation normalization request started observation=2379
+2026-09-30 06:22:04,423 INFO Relation normalization request ended observation=2378 seconds=14.427
+2026-09-30 06:22:04,423 INFO Relation normalization request started observation=2380
+2026-09-30 06:22:11,433 INFO Relation normalization request ended observation=2380 seconds=7.009
+2026-09-30 06:22:11,433 INFO Relation normalization request started observation=2381
+2026-09-30 06:22:17,428 INFO Relation normalization request ended observation=2377 seconds=28.898
+2026-09-30 06:22:17,896 INFO Relation normalization request ended observation=2379 seconds=14.317
+2026-09-30 06:22:18,249 INFO Relation normalization request ended observation=2372 seconds=48.948
+2026-09-30 06:22:26,827 INFO Relation normalization request ended observation=2369 seconds=57.529
+2026-09-30 06:22:28,342 INFO Relation normalization request ended observation=2375 seconds=50.567
+2026-09-30 06:23:21,114 INFO Relation normalization request ended observation=2381 seconds=69.681
+2026-09-30 06:30:59,940 INFO Relation normalization batch size=28 workers=6
+2026-09-30 06:30:59,941 INFO Relation normalization request started observation=2382
+2026-09-30 06:30:59,942 INFO Relation normalization request started observation=2383
+2026-09-30 06:30:59,943 INFO Relation normalization request started observation=2384
+2026-09-30 06:30:59,945 INFO Relation normalization request started observation=2385
+2026-09-30 06:30:59,946 INFO Relation normalization request started observation=2386
+2026-09-30 06:30:59,948 INFO Relation normalization request started observation=2387
+2026-09-30 06:31:05,686 INFO Relation normalization request ended observation=2383 seconds=5.744
+2026-09-30 06:31:05,687 INFO Relation normalization request started observation=2388
+2026-09-30 06:31:08,367 INFO Relation normalization request ended observation=2387 seconds=8.420
+2026-09-30 06:31:08,367 INFO Relation normalization request started observation=2389
+2026-09-30 06:31:11,504 INFO Relation normalization request ended observation=2386 seconds=11.558
+2026-09-30 06:31:11,504 INFO Relation normalization request started observation=2390
+2026-09-30 06:31:13,985 INFO Relation normalization request ended observation=2382 seconds=14.044
+2026-09-30 06:31:13,985 INFO Relation normalization request started observation=2391
+2026-09-30 06:31:15,668 INFO Relation normalization request ended observation=2388 seconds=9.981
+2026-09-30 06:31:15,668 INFO Relation normalization request started observation=2392
+2026-09-30 06:31:15,892 INFO Relation normalization request ended observation=2389 seconds=7.525
+2026-09-30 06:31:15,892 INFO Relation normalization request started observation=2393
+2026-09-30 06:31:24,814 INFO Relation normalization request ended observation=2385 seconds=24.869
+2026-09-30 06:31:24,814 INFO Relation normalization request started observation=2394
+2026-09-30 06:31:29,790 INFO Relation normalization request ended observation=2393 seconds=13.898
+2026-09-30 06:31:29,791 INFO Relation normalization request started observation=2395
+2026-09-30 06:31:33,803 INFO Relation normalization request ended observation=2384 seconds=33.859
+2026-09-30 06:31:33,803 INFO Relation normalization request started observation=2396
+2026-09-30 06:31:37,129 INFO Relation normalization request ended observation=2394 seconds=12.316
+2026-09-30 06:31:37,130 INFO Relation normalization request started observation=2397
+2026-09-30 06:31:41,858 INFO Relation normalization request ended observation=2396 seconds=8.055
+2026-09-30 06:31:41,858 INFO Relation normalization request started observation=2398
+2026-09-30 06:31:43,934 INFO Relation normalization request ended observation=2390 seconds=32.430
+2026-09-30 06:31:43,935 INFO Relation normalization request started observation=2399
+2026-09-30 06:31:44,161 INFO Relation normalization request ended observation=2391 seconds=30.176
+2026-09-30 06:31:44,162 INFO Relation normalization request started observation=2400
+2026-09-30 06:31:50,345 INFO Relation normalization request ended observation=2397 seconds=13.215
+2026-09-30 06:31:50,345 INFO Relation normalization request started observation=2401
+2026-09-30 06:31:54,359 INFO Relation normalization request ended observation=2400 seconds=10.197
+2026-09-30 06:31:54,359 INFO Relation normalization request started observation=2402
+2026-09-30 06:31:57,638 INFO Relation normalization request ended observation=2395 seconds=27.847
+2026-09-30 06:31:57,638 INFO Relation normalization request started observation=2403
+2026-09-30 06:31:58,430 INFO Relation normalization request ended observation=2401 seconds=8.085
+2026-09-30 06:31:58,430 INFO Relation normalization request started observation=2404
+2026-09-30 06:32:04,697 INFO Relation normalization request ended observation=2399 seconds=20.763
+2026-09-30 06:32:04,698 INFO Relation normalization request started observation=2405
+2026-09-30 06:32:08,400 INFO Relation normalization request ended observation=2392 seconds=52.733
+2026-09-30 06:32:08,401 INFO Relation normalization request started observation=2406
+2026-09-30 06:32:09,298 INFO Relation normalization request ended observation=2398 seconds=27.440
+2026-09-30 06:32:09,298 INFO Relation normalization request started observation=2407
+2026-09-30 06:32:15,213 INFO Relation normalization request ended observation=2403 seconds=17.575
+2026-09-30 06:32:15,213 INFO Relation normalization request started observation=2408
+2026-09-30 06:32:15,552 INFO Relation normalization request ended observation=2404 seconds=17.123
+2026-09-30 06:32:15,553 INFO Relation normalization request started observation=2409
+2026-09-30 06:32:19,330 INFO Relation normalization request ended observation=2402 seconds=24.971
+2026-09-30 06:32:20,637 INFO Relation normalization request ended observation=2407 seconds=11.338
+2026-09-30 06:32:20,910 INFO Relation normalization request ended observation=2406 seconds=12.510
+2026-09-30 06:32:24,942 INFO Relation normalization request ended observation=2409 seconds=9.390
+2026-09-30 06:32:26,338 INFO Relation normalization request ended observation=2408 seconds=11.125
+2026-09-30 06:32:29,807 INFO Relation normalization request ended observation=2405 seconds=25.110
+2026-09-30 06:36:24,849 INFO Relation normalization batch size=7 workers=6
+2026-09-30 06:36:24,850 INFO Relation normalization request started observation=2410
+2026-09-30 06:36:24,851 INFO Relation normalization request started observation=2411
+2026-09-30 06:36:24,852 INFO Relation normalization request started observation=2412
+2026-09-30 06:36:24,854 INFO Relation normalization request started observation=2413
+2026-09-30 06:36:24,855 INFO Relation normalization request started observation=2414
+2026-09-30 06:36:24,855 INFO Relation normalization request started observation=2415
+2026-09-30 06:36:53,846 INFO Relation normalization request ended observation=2411 seconds=28.995
+2026-09-30 06:36:53,846 INFO Relation normalization request started observation=2416
+2026-09-30 06:37:05,168 INFO Relation normalization request ended observation=2416 seconds=11.322
+2026-09-30 06:37:06,649 INFO Relation normalization request ended observation=2414 seconds=41.794
+2026-09-30 06:37:17,356 INFO Relation normalization request ended observation=2412 seconds=52.504
+2026-09-30 06:37:18,852 INFO Relation normalization request ended observation=2415 seconds=53.997
+2026-09-30 06:37:20,364 INFO Relation normalization request ended observation=2410 seconds=55.515
+2026-09-30 06:37:25,591 INFO Relation normalization request ended observation=2413 seconds=60.738
+2026-09-30 06:42:55,010 INFO Relation normalization batch size=14 workers=6
+2026-09-30 06:42:55,010 INFO Relation normalization request started observation=2417
+2026-09-30 06:42:55,012 INFO Relation normalization request started observation=2418
+2026-09-30 06:42:55,013 INFO Relation normalization request started observation=2419
+2026-09-30 06:42:55,014 INFO Relation normalization request started observation=2420
+2026-09-30 06:42:55,015 INFO Relation normalization request started observation=2421
+2026-09-30 06:42:55,017 INFO Relation normalization request started observation=2422
+2026-09-30 06:43:03,891 INFO Relation normalization request ended observation=2421 seconds=8.876
+2026-09-30 06:43:03,891 INFO Relation normalization request started observation=2423
+2026-09-30 06:43:06,021 INFO Relation normalization request ended observation=2418 seconds=11.010
+2026-09-30 06:43:06,022 INFO Relation normalization request started observation=2424
+2026-09-30 06:43:11,953 INFO Relation normalization request ended observation=2417 seconds=16.943
+2026-09-30 06:43:11,953 INFO Relation normalization request started observation=2425
+2026-09-30 06:43:23,137 INFO Relation normalization request ended observation=2423 seconds=19.245
+2026-09-30 06:43:23,137 INFO Relation normalization request started observation=2426
+2026-09-30 06:43:26,324 INFO Relation normalization request ended observation=2420 seconds=31.310
+2026-09-30 06:43:26,324 INFO Relation normalization request started observation=2427
+2026-09-30 06:43:29,249 INFO Relation normalization request ended observation=2424 seconds=23.227
+2026-09-30 06:43:29,249 INFO Relation normalization request started observation=2428
+2026-09-30 06:43:29,346 INFO Relation normalization request ended observation=2425 seconds=17.393
+2026-09-30 06:43:29,346 INFO Relation normalization request started observation=2429
+2026-09-30 06:43:36,197 INFO Relation normalization request ended observation=2419 seconds=41.184
+2026-09-30 06:43:36,197 INFO Relation normalization request started observation=2430
+2026-09-30 06:43:51,272 INFO Relation normalization request ended observation=2429 seconds=21.926
+2026-09-30 06:43:56,385 INFO Relation normalization request ended observation=2430 seconds=20.188
+2026-09-30 06:44:11,919 INFO Relation normalization request ended observation=2426 seconds=48.782
+2026-09-30 06:44:12,572 INFO Relation normalization request ended observation=2428 seconds=43.323
+2026-09-30 06:44:23,006 INFO Relation normalization request ended observation=2422 seconds=87.989
+2026-09-30 06:44:30,404 INFO Relation normalization request ended observation=2427 seconds=64.079
+2026-09-30 06:50:24,080 INFO Relation normalization batch size=5 workers=6
+2026-09-30 06:50:24,080 INFO Relation normalization request started observation=2431
+2026-09-30 06:50:24,080 INFO Relation normalization request started observation=2432
+2026-09-30 06:50:24,083 INFO Relation normalization request started observation=2433
+2026-09-30 06:50:24,083 INFO Relation normalization request started observation=2434
+2026-09-30 06:50:24,085 INFO Relation normalization request started observation=2435
+2026-09-30 06:50:30,624 INFO Relation normalization request ended observation=2435 seconds=6.539
+2026-09-30 06:50:37,002 INFO Relation normalization request ended observation=2433 seconds=12.920
+2026-09-30 06:50:47,898 INFO Relation normalization request ended observation=2431 seconds=23.818
+2026-09-30 06:50:56,090 INFO Relation normalization request ended observation=2432 seconds=32.009
+2026-09-30 06:51:05,347 INFO Relation normalization request ended observation=2434 seconds=41.264
+2026-09-30 06:53:36,192 INFO Relation normalization batch size=10 workers=6
+2026-09-30 06:53:36,192 INFO Relation normalization request started observation=2436
+2026-09-30 06:53:36,193 INFO Relation normalization request started observation=2437
+2026-09-30 06:53:36,195 INFO Relation normalization request started observation=2438
+2026-09-30 06:53:36,196 INFO Relation normalization request started observation=2439
+2026-09-30 06:53:36,197 INFO Relation normalization request started observation=2440
+2026-09-30 06:53:36,198 INFO Relation normalization request started observation=2441
+2026-09-30 06:53:43,356 INFO Relation normalization request ended observation=2440 seconds=7.159
+2026-09-30 06:53:43,357 INFO Relation normalization request started observation=2442
+2026-09-30 06:53:45,139 INFO Relation normalization request ended observation=2437 seconds=8.946
+2026-09-30 06:53:45,140 INFO Relation normalization request started observation=2443
+2026-09-30 06:53:46,327 INFO Relation normalization request ended observation=2438 seconds=10.133
+2026-09-30 06:53:46,328 INFO Relation normalization request started observation=2444
+2026-09-30 06:53:49,708 INFO Relation normalization request ended observation=2436 seconds=13.516
+2026-09-30 06:53:49,709 INFO Relation normalization request started observation=2445
+2026-09-30 06:54:05,135 INFO Relation normalization request ended observation=2439 seconds=28.939
+2026-09-30 06:54:07,342 INFO Relation normalization request ended observation=2441 seconds=31.144
+2026-09-30 06:54:14,830 INFO Relation normalization request ended observation=2443 seconds=29.690
+2026-09-30 06:54:16,214 INFO Relation normalization request ended observation=2444 seconds=29.886
+2026-09-30 06:54:16,301 INFO Relation normalization request ended observation=2445 seconds=26.592
+2026-09-30 06:54:28,680 INFO Relation normalization request ended observation=2442 seconds=45.324
+2026-09-30 06:58:07,961 INFO Relation normalization batch size=7 workers=6
+2026-09-30 06:58:07,962 INFO Relation normalization request started observation=2446
+2026-09-30 06:58:07,963 INFO Relation normalization request started observation=2447
+2026-09-30 06:58:07,964 INFO Relation normalization request started observation=2448
+2026-09-30 06:58:07,965 INFO Relation normalization request started observation=2449
+2026-09-30 06:58:07,966 INFO Relation normalization request started observation=2450
+2026-09-30 06:58:07,967 INFO Relation normalization request started observation=2451
+2026-09-30 06:58:18,689 INFO Relation normalization request ended observation=2446 seconds=10.728
+2026-09-30 06:58:18,690 INFO Relation normalization request started observation=2452
+2026-09-30 06:58:35,081 INFO Relation normalization request ended observation=2450 seconds=27.115
+2026-09-30 06:58:36,801 INFO Relation normalization request ended observation=2451 seconds=28.834
+2026-09-30 06:58:37,112 INFO Relation normalization request ended observation=2452 seconds=18.422
+2026-09-30 06:58:39,841 INFO Relation normalization request ended observation=2449 seconds=31.876
+2026-09-30 06:58:45,439 INFO Relation normalization request ended observation=2447 seconds=37.476
+2026-09-30 06:58:46,927 INFO Relation normalization request ended observation=2448 seconds=38.963
+2026-09-30 07:02:05,172 INFO Relation normalization batch size=11 workers=6
+2026-09-30 07:02:05,173 INFO Relation normalization request started observation=2453
+2026-09-30 07:02:05,174 INFO Relation normalization request started observation=2454
+2026-09-30 07:02:05,176 INFO Relation normalization request started observation=2455
+2026-09-30 07:02:05,176 INFO Relation normalization request started observation=2456
+2026-09-30 07:02:05,176 INFO Relation normalization request started observation=2457
+2026-09-30 07:02:05,177 INFO Relation normalization request started observation=2458
+2026-09-30 07:02:12,080 INFO Relation normalization request ended observation=2453 seconds=6.907
+2026-09-30 07:02:12,080 INFO Relation normalization request started observation=2459
+2026-09-30 07:02:17,305 INFO Relation normalization request ended observation=2458 seconds=12.127
+2026-09-30 07:02:17,305 INFO Relation normalization request started observation=2460
+2026-09-30 07:02:25,547 INFO Relation normalization request ended observation=2455 seconds=20.371
+2026-09-30 07:02:25,547 INFO Relation normalization request started observation=2461
+2026-09-30 07:02:27,685 INFO Relation normalization request ended observation=2454 seconds=22.511
+2026-09-30 07:02:27,685 INFO Relation normalization request started observation=2462
+2026-09-30 07:02:31,308 INFO Relation normalization request ended observation=2459 seconds=19.227
+2026-09-30 07:02:31,308 INFO Relation normalization request started observation=2463
+2026-09-30 07:02:32,441 INFO Relation normalization request ended observation=2456 seconds=27.265
+2026-09-30 07:02:58,884 INFO Relation normalization request ended observation=2462 seconds=31.200
+2026-09-30 07:03:10,053 INFO Relation normalization request ended observation=2460 seconds=52.748
+2026-09-30 07:03:12,682 INFO Relation normalization request ended observation=2461 seconds=47.135
+2026-09-30 07:03:23,186 INFO Relation normalization request ended observation=2463 seconds=51.878
+2026-09-30 07:03:42,486 INFO Relation normalization request ended observation=2457 seconds=97.310
+2026-09-30 07:06:39,569 INFO Relation normalization batch size=9 workers=6
+2026-09-30 07:06:39,569 INFO Relation normalization request started observation=2464
+2026-09-30 07:06:39,570 INFO Relation normalization request started observation=2465
+2026-09-30 07:06:39,573 INFO Relation normalization request started observation=2466
+2026-09-30 07:06:39,574 INFO Relation normalization request started observation=2467
+2026-09-30 07:06:39,575 INFO Relation normalization request started observation=2468
+2026-09-30 07:06:39,576 INFO Relation normalization request started observation=2469
+2026-09-30 07:06:44,915 INFO Relation normalization request ended observation=2467 seconds=5.341
+2026-09-30 07:06:44,915 INFO Relation normalization request started observation=2470
+2026-09-30 07:06:46,587 INFO Relation normalization request ended observation=2466 seconds=7.014
+2026-09-30 07:06:46,588 INFO Relation normalization request started observation=2471
+2026-09-30 07:06:47,120 INFO Relation normalization request ended observation=2468 seconds=7.545
+2026-09-30 07:06:47,120 INFO Relation normalization request started observation=2472
+2026-09-30 07:06:52,812 INFO Relation normalization request ended observation=2464 seconds=13.243
+2026-09-30 07:06:53,102 INFO Relation normalization request ended observation=2469 seconds=13.525
+2026-09-30 07:06:56,553 INFO Relation normalization request ended observation=2471 seconds=9.966
+2026-09-30 07:07:03,755 INFO Relation normalization request ended observation=2465 seconds=24.185
+2026-09-30 07:07:14,768 INFO Relation normalization request ended observation=2470 seconds=29.854
+2026-09-30 07:08:11,535 INFO Relation normalization request ended observation=2472 seconds=84.415
+2026-09-30 07:09:34,781 INFO Relation normalization batch size=2 workers=6
+2026-09-30 07:09:34,782 INFO Relation normalization request started observation=2473
+2026-09-30 07:09:34,782 INFO Relation normalization request started observation=2474
+2026-09-30 07:09:43,395 INFO Relation normalization request ended observation=2474 seconds=8.613
+2026-09-30 07:09:50,126 INFO Relation normalization request ended observation=2473 seconds=15.344
+2026-09-30 07:11:40,186 INFO Relation normalization batch size=9 workers=6
+2026-09-30 07:11:40,186 INFO Relation normalization request started observation=2475
+2026-09-30 07:11:40,187 INFO Relation normalization request started observation=2476
+2026-09-30 07:11:40,189 INFO Relation normalization request started observation=2477
+2026-09-30 07:11:40,190 INFO Relation normalization request started observation=2478
+2026-09-30 07:11:40,191 INFO Relation normalization request started observation=2479
+2026-09-30 07:11:40,192 INFO Relation normalization request started observation=2480
+2026-09-30 07:11:53,882 INFO Relation normalization request ended observation=2476 seconds=13.694
+2026-09-30 07:11:53,882 INFO Relation normalization request started observation=2481
+2026-09-30 07:11:53,993 INFO Relation normalization request ended observation=2478 seconds=13.803
+2026-09-30 07:11:53,993 INFO Relation normalization request started observation=2482
+2026-09-30 07:11:55,329 INFO Relation normalization request ended observation=2477 seconds=15.140
+2026-09-30 07:11:55,329 INFO Relation normalization request started observation=2483
+2026-09-30 07:11:56,247 INFO Relation normalization request ended observation=2480 seconds=16.055
+2026-09-30 07:12:00,394 INFO Relation normalization request ended observation=2475 seconds=20.208
+2026-09-30 07:12:03,627 INFO Relation normalization request ended observation=2481 seconds=9.745
+2026-09-30 07:12:10,136 INFO Relation normalization request ended observation=2483 seconds=14.807
+2026-09-30 07:12:45,750 INFO Relation normalization request ended observation=2482 seconds=51.757
+2026-09-30 07:13:15,825 INFO Relation normalization request ended observation=2479 seconds=95.634
+2026-09-30 07:21:16,262 INFO Relation normalization batch size=15 workers=6
+2026-09-30 07:21:16,263 INFO Relation normalization request started observation=2484
+2026-09-30 07:21:16,264 INFO Relation normalization request started observation=2485
+2026-09-30 07:21:16,265 INFO Relation normalization request started observation=2486
+2026-09-30 07:21:16,267 INFO Relation normalization request started observation=2487
+2026-09-30 07:21:16,268 INFO Relation normalization request started observation=2488
+2026-09-30 07:21:16,269 INFO Relation normalization request started observation=2489
+2026-09-30 07:21:25,265 INFO Relation normalization request ended observation=2489 seconds=8.996
+2026-09-30 07:21:25,265 INFO Relation normalization request started observation=2490
+2026-09-30 07:21:28,470 INFO Relation normalization request ended observation=2486 seconds=12.205
+2026-09-30 07:21:28,471 INFO Relation normalization request started observation=2491
+2026-09-30 07:21:31,983 INFO Relation normalization request ended observation=2484 seconds=15.721
+2026-09-30 07:21:31,984 INFO Relation normalization request started observation=2492
+2026-09-30 07:21:36,488 INFO Relation normalization request ended observation=2485 seconds=20.224
+2026-09-30 07:21:36,489 INFO Relation normalization request started observation=2493
+2026-09-30 07:21:37,338 INFO Relation normalization request ended observation=2488 seconds=21.070
+2026-09-30 07:21:37,338 INFO Relation normalization request started observation=2494
+2026-09-30 07:21:42,356 INFO Relation normalization request ended observation=2490 seconds=17.091
+2026-09-30 07:21:42,356 INFO Relation normalization request started observation=2495
+2026-09-30 07:21:45,306 INFO Relation normalization request ended observation=2491 seconds=16.836
+2026-09-30 07:21:45,306 INFO Relation normalization request started observation=2496
+2026-09-30 07:21:48,333 INFO Relation normalization request ended observation=2492 seconds=16.349
+2026-09-30 07:21:48,333 INFO Relation normalization request started observation=2497
+2026-09-30 07:21:55,166 INFO Relation normalization request ended observation=2497 seconds=6.833
+2026-09-30 07:21:55,166 INFO Relation normalization request started observation=2498
+2026-09-30 07:21:57,061 INFO Relation normalization request ended observation=2487 seconds=40.794
+2026-09-30 07:22:11,128 INFO Relation normalization request ended observation=2496 seconds=25.822
+2026-09-30 07:22:17,781 INFO Relation normalization request ended observation=2498 seconds=22.615
+2026-09-30 07:22:22,224 INFO Relation normalization request ended observation=2493 seconds=45.735
+2026-09-30 07:22:48,072 INFO Relation normalization request ended observation=2494 seconds=70.733
+2026-09-30 07:22:59,673 INFO Relation normalization request ended observation=2495 seconds=77.318
+2026-09-30 07:25:58,725 INFO Relation normalization batch size=7 workers=6
+2026-09-30 07:25:58,725 INFO Relation normalization request started observation=2499
+2026-09-30 07:25:58,727 INFO Relation normalization request started observation=2500
+2026-09-30 07:25:58,728 INFO Relation normalization request started observation=2501
+2026-09-30 07:25:58,728 INFO Relation normalization request started observation=2502
+2026-09-30 07:25:58,731 INFO Relation normalization request started observation=2503
+2026-09-30 07:25:58,732 INFO Relation normalization request started observation=2504
+2026-09-30 07:26:12,086 INFO Relation normalization request ended observation=2501 seconds=13.358
+2026-09-30 07:26:12,086 INFO Relation normalization request started observation=2505
+2026-09-30 07:26:13,523 INFO Relation normalization request ended observation=2503 seconds=14.793
+2026-09-30 07:26:16,655 INFO Relation normalization request ended observation=2500 seconds=17.929
+2026-09-30 07:26:17,248 INFO Relation normalization request ended observation=2502 seconds=18.520
+2026-09-30 07:26:19,802 INFO Relation normalization request ended observation=2504 seconds=21.071
+2026-09-30 07:26:28,732 INFO Relation normalization request ended observation=2505 seconds=16.645
+2026-09-30 07:26:53,165 INFO Relation normalization request ended observation=2499 seconds=54.440
+2026-09-30 07:29:04,652 INFO Relation normalization batch size=4 workers=6
+2026-09-30 07:29:04,653 INFO Relation normalization request started observation=2506
+2026-09-30 07:29:04,653 INFO Relation normalization request started observation=2507
+2026-09-30 07:29:04,655 INFO Relation normalization request started observation=2508
+2026-09-30 07:29:04,656 INFO Relation normalization request started observation=2509
+2026-09-30 07:29:14,609 INFO Relation normalization request ended observation=2508 seconds=9.954
+2026-09-30 07:29:15,394 INFO Relation normalization request ended observation=2509 seconds=10.737
+2026-09-30 07:29:45,643 INFO Relation normalization request ended observation=2507 seconds=40.990
+2026-09-30 07:30:44,521 INFO Relation normalization request ended observation=2506 seconds=99.868
+2026-09-30 07:35:35,234 INFO Relation normalization batch size=15 workers=6
+2026-09-30 07:35:35,234 INFO Relation normalization request started observation=2510
+2026-09-30 07:35:35,236 INFO Relation normalization request started observation=2511
+2026-09-30 07:35:35,236 INFO Relation normalization request started observation=2512
+2026-09-30 07:35:35,239 INFO Relation normalization request started observation=2513
+2026-09-30 07:35:35,240 INFO Relation normalization request started observation=2514
+2026-09-30 07:35:35,241 INFO Relation normalization request started observation=2515
+2026-09-30 07:35:44,704 INFO Relation normalization request ended observation=2510 seconds=9.469
+2026-09-30 07:35:44,704 INFO Relation normalization request started observation=2516
+2026-09-30 07:35:46,793 INFO Relation normalization request ended observation=2515 seconds=11.551
+2026-09-30 07:35:46,793 INFO Relation normalization request started observation=2517
+2026-09-30 07:35:49,652 INFO Relation normalization request ended observation=2512 seconds=14.416
+2026-09-30 07:35:49,652 INFO Relation normalization request started observation=2518
+2026-09-30 07:35:54,117 INFO Relation normalization request ended observation=2516 seconds=9.414
+2026-09-30 07:35:54,118 INFO Relation normalization request started observation=2519
+2026-09-30 07:35:57,306 INFO Relation normalization request ended observation=2513 seconds=22.067
+2026-09-30 07:35:57,306 INFO Relation normalization request started observation=2520
+2026-09-30 07:35:57,970 INFO Relation normalization request ended observation=2517 seconds=11.177
+2026-09-30 07:35:57,970 INFO Relation normalization request started observation=2521
+2026-09-30 07:36:03,011 INFO Relation normalization request ended observation=2519 seconds=8.893
+2026-09-30 07:36:03,011 INFO Relation normalization request started observation=2522
+2026-09-30 07:36:03,201 INFO Relation normalization request ended observation=2514 seconds=27.962
+2026-09-30 07:36:03,202 INFO Relation normalization request started observation=2523
+2026-09-30 07:36:05,024 INFO Relation normalization request ended observation=2518 seconds=15.372
+2026-09-30 07:36:05,025 INFO Relation normalization request started observation=2524
+2026-09-30 07:36:08,383 INFO Relation normalization request ended observation=2521 seconds=10.413
+2026-09-30 07:36:09,533 INFO Relation normalization request ended observation=2520 seconds=12.227
+2026-09-30 07:36:15,090 INFO Relation normalization request ended observation=2524 seconds=10.066
+2026-09-30 07:36:19,090 INFO Relation normalization request ended observation=2523 seconds=15.888
+2026-09-30 07:36:24,133 INFO Relation normalization request ended observation=2522 seconds=21.122
+2026-09-30 07:36:44,017 INFO Relation normalization request ended observation=2511 seconds=68.781
+2026-09-30 07:38:45,139 INFO Relation normalization batch size=5 workers=6
+2026-09-30 07:38:45,139 INFO Relation normalization request started observation=2525
+2026-09-30 07:38:45,140 INFO Relation normalization request started observation=2526
+2026-09-30 07:38:45,142 INFO Relation normalization request started observation=2527
+2026-09-30 07:38:45,143 INFO Relation normalization request started observation=2528
+2026-09-30 07:38:45,144 INFO Relation normalization request started observation=2529
+2026-09-30 07:39:02,154 INFO Relation normalization request ended observation=2526 seconds=17.014
+2026-09-30 07:39:04,093 INFO Relation normalization request ended observation=2525 seconds=18.954
+2026-09-30 07:39:20,421 INFO Relation normalization request ended observation=2529 seconds=35.277
+2026-09-30 07:39:21,591 INFO Relation normalization request ended observation=2528 seconds=36.448
+2026-09-30 07:39:27,869 INFO Relation normalization request ended observation=2527 seconds=42.727
+2026-09-30 07:41:43,496 INFO Relation normalization batch size=10 workers=6
+2026-09-30 07:41:43,497 INFO Relation normalization request started observation=2530
+2026-09-30 07:41:43,498 INFO Relation normalization request started observation=2531
+2026-09-30 07:41:43,499 INFO Relation normalization request started observation=2532
+2026-09-30 07:41:43,501 INFO Relation normalization request started observation=2533
+2026-09-30 07:41:43,502 INFO Relation normalization request started observation=2534
+2026-09-30 07:41:43,503 INFO Relation normalization request started observation=2535
+2026-09-30 07:41:54,994 INFO Relation normalization request ended observation=2530 seconds=11.498
+2026-09-30 07:41:54,995 INFO Relation normalization request started observation=2536
+2026-09-30 07:41:55,151 INFO Relation normalization request ended observation=2531 seconds=11.653
+2026-09-30 07:41:55,152 INFO Relation normalization request started observation=2537
+2026-09-30 07:41:56,861 INFO Relation normalization request ended observation=2532 seconds=13.362
+2026-09-30 07:41:56,862 INFO Relation normalization request started observation=2538
+2026-09-30 07:42:02,281 INFO Relation normalization request ended observation=2536 seconds=7.286
+2026-09-30 07:42:02,282 INFO Relation normalization request started observation=2539
+2026-09-30 07:42:06,840 INFO Relation normalization request ended observation=2535 seconds=23.336
+2026-09-30 07:42:11,035 INFO Relation normalization request ended observation=2534 seconds=27.533
+2026-09-30 07:42:12,222 INFO Relation normalization request ended observation=2537 seconds=17.070
+2026-09-30 07:42:13,465 INFO Relation normalization request ended observation=2533 seconds=29.964
+2026-09-30 07:42:28,270 INFO Relation normalization request ended observation=2539 seconds=25.989
+2026-09-30 07:42:49,297 INFO Relation normalization request ended observation=2538 seconds=52.435
+2026-09-30 07:46:35,075 INFO Relation normalization batch size=12 workers=6
+2026-09-30 07:46:35,075 INFO Relation normalization request started observation=2540
+2026-09-30 07:46:35,075 INFO Relation normalization request started observation=2541
+2026-09-30 07:46:35,078 INFO Relation normalization request started observation=2542
+2026-09-30 07:46:35,079 INFO Relation normalization request started observation=2543
+2026-09-30 07:46:35,081 INFO Relation normalization request started observation=2544
+2026-09-30 07:46:35,082 INFO Relation normalization request started observation=2545
+2026-09-30 07:46:41,697 INFO Relation normalization request ended observation=2542 seconds=6.620
+2026-09-30 07:46:41,698 INFO Relation normalization request started observation=2546
+2026-09-30 07:46:49,822 INFO Relation normalization request ended observation=2540 seconds=14.747
+2026-09-30 07:46:49,822 INFO Relation normalization request started observation=2547
+2026-09-30 07:46:51,837 INFO Relation normalization request ended observation=2541 seconds=16.762
+2026-09-30 07:46:51,838 INFO Relation normalization request started observation=2548
+2026-09-30 07:46:53,952 INFO Relation normalization request ended observation=2544 seconds=18.871
+2026-09-30 07:46:53,952 INFO Relation normalization request started observation=2549
+2026-09-30 07:46:55,892 INFO Relation normalization request ended observation=2543 seconds=20.813
+2026-09-30 07:46:55,892 INFO Relation normalization request started observation=2550
+2026-09-30 07:46:57,995 INFO Relation normalization request ended observation=2546 seconds=16.297
+2026-09-30 07:46:57,995 INFO Relation normalization request started observation=2551
+2026-09-30 07:47:02,652 INFO Relation normalization request ended observation=2547 seconds=12.830
+2026-09-30 07:47:11,665 INFO Relation normalization request ended observation=2548 seconds=19.828
+2026-09-30 07:47:15,079 INFO Relation normalization request ended observation=2549 seconds=21.128
+2026-09-30 07:47:17,892 INFO Relation normalization request ended observation=2551 seconds=19.896
+2026-09-30 07:47:43,295 INFO Relation normalization request ended observation=2550 seconds=47.403
+2026-09-30 07:48:00,524 INFO Relation normalization request ended observation=2545 seconds=85.442
+2026-09-30 07:51:29,579 INFO Relation normalization batch size=16 workers=6
+2026-09-30 07:51:29,579 INFO Relation normalization request started observation=2552
+2026-09-30 07:51:29,581 INFO Relation normalization request started observation=2553
+2026-09-30 07:51:29,582 INFO Relation normalization request started observation=2554
+2026-09-30 07:51:29,583 INFO Relation normalization request started observation=2555
+2026-09-30 07:51:29,585 INFO Relation normalization request started observation=2556
+2026-09-30 07:51:29,585 INFO Relation normalization request started observation=2557
+2026-09-30 07:51:37,558 INFO Relation normalization request ended observation=2554 seconds=7.976
+2026-09-30 07:51:37,558 INFO Relation normalization request started observation=2558
+2026-09-30 07:51:38,639 INFO Relation normalization request ended observation=2553 seconds=9.058
+2026-09-30 07:51:38,639 INFO Relation normalization request started observation=2559
+2026-09-30 07:51:38,648 INFO Relation normalization request ended observation=2557 seconds=9.064
+2026-09-30 07:51:38,649 INFO Relation normalization request started observation=2560
+2026-09-30 07:51:38,650 INFO Relation normalization request ended observation=2552 seconds=9.071
+2026-09-30 07:51:38,650 INFO Relation normalization request started observation=2561
+2026-09-30 07:51:38,652 INFO Relation normalization request ended observation=2556 seconds=9.067
+2026-09-30 07:51:38,652 INFO Relation normalization request started observation=2562
+2026-09-30 07:51:40,693 INFO Relation normalization request ended observation=2555 seconds=11.109
+2026-09-30 07:51:40,693 INFO Relation normalization request started observation=2563
+2026-09-30 07:51:52,407 INFO Relation normalization request ended observation=2558 seconds=14.850
+2026-09-30 07:51:52,408 INFO Relation normalization request started observation=2564
+2026-09-30 07:51:52,416 INFO Relation normalization request ended observation=2563 seconds=11.723
+2026-09-30 07:51:52,417 INFO Relation normalization request started observation=2565
+2026-09-30 07:51:56,448 INFO Relation normalization request ended observation=2561 seconds=17.798
+2026-09-30 07:51:56,449 INFO Relation normalization request started observation=2566
+2026-09-30 07:52:03,089 INFO Relation normalization request ended observation=2562 seconds=24.437
+2026-09-30 07:52:03,089 INFO Relation normalization request started observation=2567
+2026-09-30 07:52:10,432 INFO Relation normalization request ended observation=2566 seconds=13.983
+2026-09-30 07:52:10,463 INFO Relation normalization request ended observation=2564 seconds=18.055
+2026-09-30 07:52:13,811 INFO Relation normalization request ended observation=2559 seconds=35.172
+2026-09-30 07:52:14,256 INFO Relation normalization request ended observation=2567 seconds=11.167
+2026-09-30 07:52:19,066 INFO Relation normalization request ended observation=2560 seconds=40.418
+2026-09-30 07:52:24,121 INFO Relation normalization request ended observation=2565 seconds=31.704
+2026-09-30 07:57:36,696 INFO Relation normalization batch size=13 workers=6
+2026-09-30 07:57:36,697 INFO Relation normalization request started observation=2568
+2026-09-30 07:57:36,698 INFO Relation normalization request started observation=2569
+2026-09-30 07:57:36,700 INFO Relation normalization request started observation=2570
+2026-09-30 07:57:36,701 INFO Relation normalization request started observation=2571
+2026-09-30 07:57:36,702 INFO Relation normalization request started observation=2572
+2026-09-30 07:57:36,704 INFO Relation normalization request started observation=2573
+2026-09-30 07:57:45,629 INFO Relation normalization request ended observation=2572 seconds=8.926
+2026-09-30 07:57:45,629 INFO Relation normalization request started observation=2574
+2026-09-30 07:57:47,324 INFO Relation normalization request ended observation=2569 seconds=10.626
+2026-09-30 07:57:47,324 INFO Relation normalization request started observation=2575
+2026-09-30 07:57:48,461 INFO Relation normalization request ended observation=2570 seconds=11.761
+2026-09-30 07:57:48,461 INFO Relation normalization request started observation=2576
+2026-09-30 07:57:48,815 INFO Relation normalization request ended observation=2571 seconds=12.114
+2026-09-30 07:57:48,815 INFO Relation normalization request started observation=2577
+2026-09-30 07:57:52,013 INFO Relation normalization request ended observation=2573 seconds=15.309
+2026-09-30 07:57:52,013 INFO Relation normalization request started observation=2578
+2026-09-30 07:57:58,149 INFO Relation normalization request ended observation=2577 seconds=9.334
+2026-09-30 07:57:58,149 INFO Relation normalization request started observation=2579
+2026-09-30 07:58:00,836 INFO Relation normalization request ended observation=2574 seconds=15.207
+2026-09-30 07:58:00,836 INFO Relation normalization request started observation=2580
+2026-09-30 07:58:03,636 INFO Relation normalization request ended observation=2568 seconds=26.939
+2026-09-30 07:58:05,085 INFO Relation normalization request ended observation=2576 seconds=16.624
+2026-09-30 07:58:07,500 INFO Relation normalization request ended observation=2579 seconds=9.350
+2026-09-30 07:58:09,899 INFO Relation normalization request ended observation=2578 seconds=17.886
+2026-09-30 07:58:10,612 INFO Relation normalization request ended observation=2580 seconds=9.776
+2026-09-30 07:58:36,843 INFO Relation normalization request ended observation=2575 seconds=49.519
+2026-09-30 08:10:41,546 INFO Relation normalization batch size=18 workers=6
+2026-09-30 08:10:41,547 INFO Relation normalization request started observation=2581
+2026-09-30 08:10:41,548 INFO Relation normalization request started observation=2582
+2026-09-30 08:10:41,550 INFO Relation normalization request started observation=2583
+2026-09-30 08:10:41,551 INFO Relation normalization request started observation=2584
+2026-09-30 08:10:41,551 INFO Relation normalization request started observation=2585
+2026-09-30 08:10:41,552 INFO Relation normalization request started observation=2586
+2026-09-30 08:10:50,894 INFO Relation normalization request ended observation=2586 seconds=9.341
+2026-09-30 08:10:50,894 INFO Relation normalization request started observation=2587
+2026-09-30 08:10:56,971 INFO Relation normalization request ended observation=2587 seconds=6.077
+2026-09-30 08:10:56,971 INFO Relation normalization request started observation=2588
+2026-09-30 08:10:58,126 INFO Relation normalization request ended observation=2582 seconds=16.578
+2026-09-30 08:10:58,126 INFO Relation normalization request started observation=2589
+2026-09-30 08:11:00,290 INFO Relation normalization request ended observation=2583 seconds=18.740
+2026-09-30 08:11:00,290 INFO Relation normalization request started observation=2590
+2026-09-30 08:11:04,496 INFO Relation normalization request ended observation=2588 seconds=7.525
+2026-09-30 08:11:04,497 INFO Relation normalization request started observation=2591
+2026-09-30 08:11:07,525 INFO Relation normalization request ended observation=2585 seconds=25.974
+2026-09-30 08:11:07,525 INFO Relation normalization request started observation=2592
+2026-09-30 08:11:08,505 INFO Relation normalization request ended observation=2589 seconds=10.379
+2026-09-30 08:11:08,505 INFO Relation normalization request started observation=2593
+2026-09-30 08:11:11,478 INFO Relation normalization request ended observation=2591 seconds=6.982
+2026-09-30 08:11:11,479 INFO Relation normalization request started observation=2594
+2026-09-30 08:11:12,172 INFO Relation normalization request ended observation=2581 seconds=30.625
+2026-09-30 08:11:12,172 INFO Relation normalization request started observation=2595
+2026-09-30 08:11:20,172 INFO Relation normalization request ended observation=2593 seconds=11.666
+2026-09-30 08:11:20,172 INFO Relation normalization request started observation=2596
+2026-09-30 08:11:21,039 INFO Relation normalization request ended observation=2595 seconds=8.867
+2026-09-30 08:11:21,039 INFO Relation normalization request started observation=2597
+2026-09-30 08:11:21,461 INFO Relation normalization request ended observation=2594 seconds=9.983
+2026-09-30 08:11:21,461 INFO Relation normalization request started observation=2598
+2026-09-30 08:11:37,478 INFO Relation normalization request ended observation=2596 seconds=17.307
+2026-09-30 08:11:40,785 INFO Relation normalization request ended observation=2592 seconds=33.259
+2026-09-30 08:12:15,684 INFO Relation normalization request ended observation=2590 seconds=75.394
+2026-09-30 08:12:18,464 INFO Relation normalization request ended observation=2584 seconds=96.913
+2026-09-30 08:12:27,131 INFO Relation normalization request ended observation=2598 seconds=65.670
+2026-09-30 08:12:27,446 INFO Relation normalization request ended observation=2597 seconds=66.407
+2026-09-30 08:14:25,490 INFO Relation normalization batch size=7 workers=6
+2026-09-30 08:14:25,491 INFO Relation normalization request started observation=2599
+2026-09-30 08:14:25,491 INFO Relation normalization request started observation=2600
+2026-09-30 08:14:25,494 INFO Relation normalization request started observation=2601
+2026-09-30 08:14:25,494 INFO Relation normalization request started observation=2602
+2026-09-30 08:14:25,495 INFO Relation normalization request started observation=2603
+2026-09-30 08:14:25,497 INFO Relation normalization request started observation=2604
+2026-09-30 08:14:36,557 INFO Relation normalization request ended observation=2601 seconds=11.063
+2026-09-30 08:14:36,557 INFO Relation normalization request started observation=2605
+2026-09-30 08:14:38,829 INFO Relation normalization request ended observation=2603 seconds=13.334
+2026-09-30 08:14:38,877 INFO Relation normalization request ended observation=2602 seconds=13.383
+2026-09-30 08:14:46,300 INFO Relation normalization request ended observation=2605 seconds=9.743
+2026-09-30 08:14:48,118 INFO Relation normalization request ended observation=2599 seconds=22.627
+2026-09-30 08:14:58,598 INFO Relation normalization request ended observation=2604 seconds=33.101
+2026-09-30 08:15:16,296 INFO Relation normalization request ended observation=2600 seconds=50.806
+2026-09-30 08:21:45,328 INFO Relation normalization batch size=19 workers=6
+2026-09-30 08:21:45,328 INFO Relation normalization request started observation=2606
+2026-09-30 08:21:45,330 INFO Relation normalization request started observation=2607
+2026-09-30 08:21:45,331 INFO Relation normalization request started observation=2608
+2026-09-30 08:21:45,332 INFO Relation normalization request started observation=2609
+2026-09-30 08:21:45,334 INFO Relation normalization request started observation=2610
+2026-09-30 08:21:45,335 INFO Relation normalization request started observation=2611
+2026-09-30 08:21:51,676 INFO Relation normalization request ended observation=2606 seconds=6.347
+2026-09-30 08:21:51,676 INFO Relation normalization request started observation=2612
+2026-09-30 08:22:00,364 INFO Relation normalization request ended observation=2607 seconds=15.034
+2026-09-30 08:22:00,364 INFO Relation normalization request started observation=2613
+2026-09-30 08:22:29,070 INFO Relation normalization request ended observation=2611 seconds=43.735
+2026-09-30 08:22:29,070 INFO Relation normalization request started observation=2614
+2026-09-30 08:22:37,194 INFO Relation normalization request ended observation=2614 seconds=8.124
+2026-09-30 08:22:37,195 INFO Relation normalization request started observation=2615
+2026-09-30 08:22:42,441 INFO Relation normalization request ended observation=2609 seconds=57.110
+2026-09-30 08:22:42,441 INFO Relation normalization request started observation=2616
+2026-09-30 08:22:46,242 INFO Relation normalization request ended observation=2608 seconds=60.911
+2026-09-30 08:22:46,243 INFO Relation normalization request started observation=2617
+2026-09-30 08:22:47,593 INFO Relation normalization request ended observation=2613 seconds=47.229
+2026-09-30 08:22:47,593 INFO Relation normalization request started observation=2618
+2026-09-30 08:22:50,258 INFO Relation normalization request ended observation=2615 seconds=13.064
+2026-09-30 08:22:50,259 INFO Relation normalization request started observation=2619
+2026-09-30 08:22:52,806 INFO Relation normalization request ended observation=2616 seconds=10.364
+2026-09-30 08:22:52,806 INFO Relation normalization request started observation=2620
+2026-09-30 08:22:56,691 INFO Relation normalization request ended observation=2617 seconds=10.448
+2026-09-30 08:22:56,691 INFO Relation normalization request started observation=2621
+2026-09-30 08:22:58,255 INFO Relation normalization request ended observation=2610 seconds=72.921
+2026-09-30 08:22:58,256 INFO Relation normalization request started observation=2622
+2026-09-30 08:23:03,268 INFO Relation normalization request ended observation=2621 seconds=6.577
+2026-09-30 08:23:03,269 INFO Relation normalization request started observation=2623
+2026-09-30 08:23:04,950 INFO Relation normalization request ended observation=2618 seconds=17.356
+2026-09-30 08:23:04,950 INFO Relation normalization request started observation=2624
+2026-09-30 08:23:20,419 INFO Relation normalization request ended observation=2619 seconds=30.160
+2026-09-30 08:23:21,397 INFO Relation normalization request ended observation=2622 seconds=23.142
+2026-09-30 08:23:27,625 INFO Relation normalization request ended observation=2612 seconds=95.949
+2026-09-30 08:23:32,444 INFO Relation normalization request ended observation=2623 seconds=29.175
+2026-09-30 08:23:34,266 INFO Relation normalization request ended observation=2620 seconds=41.460
+2026-09-30 08:25:07,723 INFO Relation normalization request ended observation=2624 seconds=122.773
+2026-09-30 08:31:02,502 INFO Relation normalization batch size=6 workers=6
+2026-09-30 08:31:02,502 INFO Relation normalization request started observation=2625
+2026-09-30 08:31:02,504 INFO Relation normalization request started observation=2626
+2026-09-30 08:31:02,505 INFO Relation normalization request started observation=2627
+2026-09-30 08:31:02,505 INFO Relation normalization request started observation=2628
+2026-09-30 08:31:02,508 INFO Relation normalization request started observation=2629
+2026-09-30 08:31:02,508 INFO Relation normalization request started observation=2630
+2026-09-30 08:31:08,166 INFO Relation normalization request ended observation=2626 seconds=5.662
+2026-09-30 08:31:18,442 INFO Relation normalization request ended observation=2627 seconds=15.937
+2026-09-30 08:31:26,801 INFO Relation normalization request ended observation=2630 seconds=24.293
+2026-09-30 08:31:49,423 INFO Relation normalization request ended observation=2628 seconds=46.918
+2026-09-30 08:31:50,415 INFO Relation normalization request ended observation=2629 seconds=47.907
+2026-09-30 08:32:38,094 INFO Relation normalization request ended observation=2625 seconds=95.592
+2026-09-30 08:39:45,483 INFO Relation normalization batch size=20 workers=6
+2026-09-30 08:39:45,483 INFO Relation normalization request started observation=2631
+2026-09-30 08:39:45,483 INFO Relation normalization request started observation=2632
+2026-09-30 08:39:45,486 INFO Relation normalization request started observation=2633
+2026-09-30 08:39:45,487 INFO Relation normalization request started observation=2634
+2026-09-30 08:39:45,488 INFO Relation normalization request started observation=2635
+2026-09-30 08:39:45,490 INFO Relation normalization request started observation=2636
+2026-09-30 08:39:58,463 INFO Relation normalization request ended observation=2635 seconds=12.974
+2026-09-30 08:39:58,463 INFO Relation normalization request started observation=2637
+2026-09-30 08:40:03,299 INFO Relation normalization request ended observation=2633 seconds=17.813
+2026-09-30 08:40:03,299 INFO Relation normalization request started observation=2638
+2026-09-30 08:40:05,987 INFO Relation normalization request ended observation=2634 seconds=20.500
+2026-09-30 08:40:05,987 INFO Relation normalization request started observation=2639
+2026-09-30 08:40:05,994 INFO Relation normalization request ended observation=2632 seconds=20.511
+2026-09-30 08:40:05,994 INFO Relation normalization request started observation=2640
+2026-09-30 08:40:07,527 INFO Relation normalization request ended observation=2631 seconds=22.044
+2026-09-30 08:40:07,527 INFO Relation normalization request started observation=2641
+2026-09-30 08:40:12,120 INFO Relation normalization request ended observation=2639 seconds=6.133
+2026-09-30 08:40:12,121 INFO Relation normalization request started observation=2642
+2026-09-30 08:40:13,145 INFO Relation normalization request ended observation=2640 seconds=7.152
+2026-09-30 08:40:13,145 INFO Relation normalization request started observation=2643
+2026-09-30 08:40:20,890 INFO Relation normalization request ended observation=2636 seconds=35.400
+2026-09-30 08:40:20,890 INFO Relation normalization request started observation=2644
+2026-09-30 08:40:23,443 INFO Relation normalization request ended observation=2643 seconds=10.298
+2026-09-30 08:40:23,443 INFO Relation normalization request started observation=2645
+2026-09-30 08:40:30,395 INFO Relation normalization request ended observation=2642 seconds=18.274
+2026-09-30 08:40:30,395 INFO Relation normalization request started observation=2646
+2026-09-30 08:40:35,821 INFO Relation normalization request ended observation=2645 seconds=12.377
+2026-09-30 08:40:35,821 INFO Relation normalization request started observation=2647
+2026-09-30 08:40:44,421 INFO Relation normalization request ended observation=2644 seconds=23.532
+2026-09-30 08:40:44,422 INFO Relation normalization request started observation=2648
+2026-09-30 08:40:45,481 INFO Relation normalization request ended observation=2637 seconds=47.017
+2026-09-30 08:40:45,481 INFO Relation normalization request started observation=2649
+2026-09-30 08:40:47,586 INFO Relation normalization request ended observation=2647 seconds=11.765
+2026-09-30 08:40:47,586 INFO Relation normalization request started observation=2650
+2026-09-30 08:40:54,016 INFO Relation normalization request ended observation=2648 seconds=9.594
+2026-09-30 08:40:54,337 INFO Relation normalization request ended observation=2650 seconds=6.751
+2026-09-30 08:40:54,783 INFO Relation normalization request ended observation=2649 seconds=9.302
+2026-09-30 08:40:58,572 INFO Relation normalization request ended observation=2641 seconds=51.044
+2026-09-30 08:41:06,379 INFO Relation normalization request ended observation=2646 seconds=35.984
+2026-09-30 08:41:48,023 INFO Relation normalization request ended observation=2638 seconds=104.725
+2026-09-30 08:50:41,053 INFO Relation normalization batch size=19 workers=6
+2026-09-30 08:50:41,058 INFO Relation normalization request started observation=2651
+2026-09-30 08:50:41,058 INFO Relation normalization request started observation=2652
+2026-09-30 08:50:41,061 INFO Relation normalization request started observation=2653
+2026-09-30 08:50:41,062 INFO Relation normalization request started observation=2654
+2026-09-30 08:50:41,063 INFO Relation normalization request started observation=2655
+2026-09-30 08:50:41,065 INFO Relation normalization request started observation=2656
+2026-09-30 08:50:50,361 INFO Relation normalization request ended observation=2651 seconds=9.303
+2026-09-30 08:50:50,362 INFO Relation normalization request started observation=2657
+2026-09-30 08:51:02,638 INFO Relation normalization request ended observation=2652 seconds=21.580
+2026-09-30 08:51:02,638 INFO Relation normalization request started observation=2658
+2026-09-30 08:51:07,301 INFO Relation normalization request ended observation=2657 seconds=16.939
+2026-09-30 08:51:07,301 INFO Relation normalization request started observation=2659
+2026-09-30 08:51:07,391 INFO Relation normalization request ended observation=2654 seconds=26.329
+2026-09-30 08:51:07,391 INFO Relation normalization request started observation=2660
+2026-09-30 08:51:11,101 INFO Relation normalization request ended observation=2658 seconds=8.462
+2026-09-30 08:51:11,101 INFO Relation normalization request started observation=2661
+2026-09-30 08:51:14,131 INFO Relation normalization request ended observation=2656 seconds=33.066
+2026-09-30 08:51:14,131 INFO Relation normalization request started observation=2662
+2026-09-30 08:51:23,798 INFO Relation normalization request ended observation=2655 seconds=42.735
+2026-09-30 08:51:23,799 INFO Relation normalization request started observation=2663
+2026-09-30 08:51:30,947 INFO Relation normalization request ended observation=2663 seconds=7.149
+2026-09-30 08:51:30,948 INFO Relation normalization request started observation=2664
+2026-09-30 08:51:31,743 INFO Relation normalization request ended observation=2653 seconds=50.682
+2026-09-30 08:51:31,743 INFO Relation normalization request started observation=2665
+2026-09-30 08:51:32,796 INFO Relation normalization request ended observation=2662 seconds=18.665
+2026-09-30 08:51:32,797 INFO Relation normalization request started observation=2666
+2026-09-30 08:51:36,998 INFO Relation normalization request ended observation=2661 seconds=25.897
+2026-09-30 08:51:36,998 INFO Relation normalization request started observation=2667
+2026-09-30 08:51:42,780 INFO Relation normalization request ended observation=2664 seconds=11.832
+2026-09-30 08:51:42,780 INFO Relation normalization request started observation=2668
+2026-09-30 08:51:53,105 INFO Relation normalization request ended observation=2668 seconds=10.325
+2026-09-30 08:51:53,105 INFO Relation normalization request started observation=2669
+2026-09-30 08:51:56,970 INFO Relation normalization request ended observation=2666 seconds=24.173
+2026-09-30 08:52:00,429 INFO Relation normalization request ended observation=2660 seconds=53.038
+2026-09-30 08:52:12,016 INFO Relation normalization request ended observation=2665 seconds=40.274
+2026-09-30 08:52:15,986 INFO Relation normalization request ended observation=2659 seconds=68.685
+2026-09-30 08:52:26,287 INFO Relation normalization request ended observation=2667 seconds=49.289
+2026-09-30 08:52:39,501 INFO Relation normalization request ended observation=2669 seconds=46.396
+2026-09-30 08:58:22,192 INFO Relation normalization batch size=27 workers=6
+2026-09-30 08:58:22,192 INFO Relation normalization request started observation=2670
+2026-09-30 08:58:22,194 INFO Relation normalization request started observation=2671
+2026-09-30 08:58:22,196 INFO Relation normalization request started observation=2672
+2026-09-30 08:58:22,197 INFO Relation normalization request started observation=2673
+2026-09-30 08:58:22,198 INFO Relation normalization request started observation=2674
+2026-09-30 08:58:22,199 INFO Relation normalization request started observation=2675
+2026-09-30 08:58:33,026 INFO Relation normalization request ended observation=2670 seconds=10.833
+2026-09-30 08:58:33,026 INFO Relation normalization request started observation=2676
+2026-09-30 08:58:34,110 INFO Relation normalization request ended observation=2671 seconds=11.916
+2026-09-30 08:58:34,110 INFO Relation normalization request started observation=2677
+2026-09-30 08:58:37,295 INFO Relation normalization request ended observation=2674 seconds=15.096
+2026-09-30 08:58:37,295 INFO Relation normalization request started observation=2678
+2026-09-30 08:58:38,277 INFO Relation normalization request ended observation=2675 seconds=16.079
+2026-09-30 08:58:38,277 INFO Relation normalization request started observation=2679
+2026-09-30 08:58:40,365 INFO Relation normalization request ended observation=2673 seconds=18.168
+2026-09-30 08:58:40,365 INFO Relation normalization request started observation=2680
+2026-09-30 08:58:41,833 INFO Relation normalization request ended observation=2676 seconds=8.807
+2026-09-30 08:58:41,833 INFO Relation normalization request started observation=2681
+2026-09-30 08:58:44,873 INFO Relation normalization request ended observation=2672 seconds=22.677
+2026-09-30 08:58:44,873 INFO Relation normalization request started observation=2682
+2026-09-30 08:58:45,217 INFO Relation normalization request ended observation=2678 seconds=7.922
+2026-09-30 08:58:45,218 INFO Relation normalization request started observation=2683
+2026-09-30 08:58:52,499 INFO Relation normalization request ended observation=2679 seconds=14.222
+2026-09-30 08:58:52,499 INFO Relation normalization request started observation=2684
+2026-09-30 08:58:56,383 INFO Relation normalization request ended observation=2681 seconds=14.550
+2026-09-30 08:58:56,383 INFO Relation normalization request started observation=2685
+2026-09-30 08:59:02,860 INFO Relation normalization request ended observation=2677 seconds=28.749
+2026-09-30 08:59:02,860 INFO Relation normalization request started observation=2686
+2026-09-30 08:59:03,153 INFO Relation normalization request ended observation=2684 seconds=10.654
+2026-09-30 08:59:03,153 INFO Relation normalization request started observation=2687
+2026-09-30 08:59:04,309 INFO Relation normalization request ended observation=2683 seconds=19.091
+2026-09-30 08:59:04,309 INFO Relation normalization request started observation=2688
+2026-09-30 08:59:09,809 INFO Relation normalization request ended observation=2680 seconds=29.444
+2026-09-30 08:59:09,810 INFO Relation normalization request started observation=2689
+2026-09-30 08:59:15,271 INFO Relation normalization request ended observation=2686 seconds=12.411
+2026-09-30 08:59:15,271 INFO Relation normalization request started observation=2690
+2026-09-30 08:59:18,951 INFO Relation normalization request ended observation=2687 seconds=15.797
+2026-09-30 08:59:18,951 INFO Relation normalization request started observation=2691
+2026-09-30 08:59:19,791 INFO Relation normalization request ended observation=2689 seconds=9.982
+2026-09-30 08:59:19,791 INFO Relation normalization request started observation=2692
+2026-09-30 08:59:19,856 INFO Relation normalization request ended observation=2688 seconds=15.547
+2026-09-30 08:59:19,856 INFO Relation normalization request started observation=2693
+2026-09-30 08:59:28,033 INFO Relation normalization request ended observation=2691 seconds=9.082
+2026-09-30 08:59:28,033 INFO Relation normalization request started observation=2694
+2026-09-30 08:59:31,448 INFO Relation normalization request ended observation=2682 seconds=46.575
+2026-09-30 08:59:31,449 INFO Relation normalization request started observation=2695
+2026-09-30 08:59:35,308 INFO Relation normalization request ended observation=2693 seconds=15.452
+2026-09-30 08:59:35,309 INFO Relation normalization request started observation=2696
+2026-09-30 08:59:36,223 INFO Relation normalization request ended observation=2692 seconds=16.432
+2026-09-30 08:59:58,755 INFO Relation normalization request ended observation=2685 seconds=62.372
+2026-09-30 09:00:00,796 INFO Relation normalization request ended observation=2696 seconds=25.488
+2026-09-30 09:00:01,473 INFO Relation normalization request ended observation=2690 seconds=46.202
+2026-09-30 09:00:03,033 INFO Relation normalization request ended observation=2694 seconds=35.000
+2026-09-30 09:00:10,245 INFO Relation normalization request ended observation=2695 seconds=38.796
+2026-09-30 09:00:11,090 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-30 09:10:11,575 WARNING 额度耗尽，暂停 600 秒后继续
+2026-09-30 09:20:12,369 WARNING 额度耗尽，暂停 600 秒后继续
