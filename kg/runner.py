@@ -17,6 +17,8 @@ from .llm import (
     LLMConfig,
     LLMConcurrencyLimiter,
     MiniMaxM3LLM,
+    UsageLog,
+    usage_totals,
 )
 
 
@@ -83,6 +85,13 @@ def run(args):
         if args.fresh and database.exists():
             raise ValueError('--fresh 要求数据库路径不存在；不会删除或覆盖已有库')
         run_dir.mkdir(parents=True)
+        usage_log = UsageLog(run_dir / 'usage.jsonl')
+
+        def usage():
+            # Resumed invocations write separate run directories; the graph total spans all of them.
+            return dict(this_run=usage_log.totals(),
+                        all_runs=usage_totals(sorted(run_root.glob('*/usage.jsonl'))))
+
         handler = logging.FileHandler(run_dir / 'run.log', encoding='utf-8')
         logger = logging.getLogger('kg')
         previous_level = logger.level
@@ -105,7 +114,7 @@ def run(args):
             _save(run_dir / 'status.json', dict(stage='running', updated_at=_now()))
             conn = db.connect(database)
             limiter = LLMConcurrencyLimiter(args.llm_max_concurrency)
-            llm, simple_llm = [MiniMaxM3LLM(c, limiter=limiter) for c in configs]
+            llm, simple_llm = [MiniMaxM3LLM(c, limiter=limiter, usage_log=usage_log) for c in configs]
             options = {name: getattr(args, name) for name in (
                 'source_limit', 'start_chunk', 'max_chunks', 'chunk_chars', 'overlap_chars',
                 'max_entities', 'max_claims', 'chunk_workers', 'judge_workers',
@@ -154,7 +163,8 @@ def run(args):
             )
             stage, code = ('failed', 1) if failed else ('partial', 3) if partial else ('complete', 0)
             report = dict(result, stage=stage, exit_code=code, run_dir=str(run_dir),
-                          database=str(database), finished_at=_now(), integrity_ok=integrity['ok'])
+                          database=str(database), finished_at=_now(), integrity_ok=integrity['ok'],
+                          usage=usage())
             _save(run_dir / 'summary.json', report)
             _save(run_dir / 'status.json', dict(stage=stage, updated_at=_now(), exit_code=code))
             (run_dir / '.exit').write_text(str(code) + '\n')
@@ -167,7 +177,7 @@ def run(args):
             for config in configs:
                 message = message.replace(config.api_key, '[REDACTED]')
             _save(run_dir / 'status.json', dict(stage='interrupted' if isinstance(exc, KeyboardInterrupt) else 'failed',
-                                              updated_at=_now(), error=message))
+                                              updated_at=_now(), error=message, usage=usage()))
             (run_dir / '.exit').write_text('130\n' if isinstance(exc, KeyboardInterrupt) else '2\n')
             raise
         finally:

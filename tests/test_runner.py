@@ -57,6 +57,26 @@ class RunnerTest(unittest.TestCase):
         with db.connect(self.database) as conn:
             self.assertEqual(conn.execute('SELECT COUNT(*) FROM sources').fetchone()[0], 1)
 
+    def test_usage_is_summed_per_run_and_across_resumed_runs(self):
+        class Metered(FakeLLM):
+            def __init__(self, config, *, limiter, usage_log):
+                super().__init__({'entities': [], 'claims': []})
+                self.usage_log = usage_log
+
+            def complete_json(self, *args, **kwargs):
+                self.usage_log.record('fake', {'usage': {'total_tokens': 7}}, 0)
+                return super().complete_json(*args, **kwargs)
+
+        with mock.patch('kg.runner.MiniMaxM3LLM', side_effect=Metered):
+            first, _ = runner.run(self.args('--fresh', '--skip-section-summaries'))
+        self.assertEqual(first['usage']['this_run']['total_tokens'], 7)
+        self.assertTrue((Path(first['run_dir']) / 'usage.jsonl').exists())
+        self.write_catalog(2)
+        with mock.patch('kg.runner.MiniMaxM3LLM', side_effect=Metered):
+            second, _ = runner.run(self.args('--skip-section-summaries'))
+        self.assertEqual(second['usage']['this_run']['total_tokens'], 7)
+        self.assertEqual(second['usage']['all_runs']['total_tokens'], 14)
+
     def test_retry_preserves_success_and_does_not_expand_chunk_budget(self):
         self.write_catalog(3)
 

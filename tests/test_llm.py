@@ -3,6 +3,8 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 import os
 import json
+from pathlib import Path
+import tempfile
 import threading
 import time
 import urllib.error
@@ -19,6 +21,7 @@ from kg.llm import (
     LLMConfig,
     LLMResponseError,
     MiniMaxM3LLM,
+    UsageLog,
     is_retryable_api_error,
     is_unresolved_api_error,
     parse_json_object,
@@ -55,11 +58,12 @@ class LLMTest(unittest.TestCase):
     def test_retryable_api_error_does_not_guess_unknown_provider_status(self):
         self.assertFalse(is_retryable_api_error(LLMResponseError({"status_code": 2999})))
     @staticmethod
-    def _response(content: str):
+    def _response(content: str, usage: dict | None = None):
         item = mock.MagicMock()
-        item.read.return_value = json.dumps(
-            {"choices": [{"message": {"content": content}}]}
-        ).encode("utf-8")
+        body = {"choices": [{"message": {"content": content}}]}
+        if usage is not None:
+            body["usage"] = usage
+        item.read.return_value = json.dumps(body).encode("utf-8")
         item.__enter__.return_value = item
         return item
 
@@ -379,6 +383,45 @@ class LLMTest(unittest.TestCase):
         with self.assertRaises(json.JSONDecodeError):
             client.complete_json("system", "user")
         self.assertEqual(urlopen.call_count, 2)
+
+    USAGE = {
+        "prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15,
+        "completion_tokens_details": {"reasoning_tokens": 3},
+        "prompt_tokens_details": {"cached_tokens": 4},
+    }
+
+    @mock.patch("kg.llm.time.sleep")
+    @mock.patch("kg.llm.urllib.request.urlopen")
+    def test_usage_log_counts_regenerations_but_not_rejected_bodies(self, urlopen, sleep):
+        urlopen.side_effect = [
+            self._body_error(2062),
+            self._response('{"ok" true}', self.USAGE),
+            self._response('{"ok": true}', self.USAGE),
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            log = UsageLog(Path(tmp) / "usage.jsonl")
+            client = MiniMaxM3LLM(self._client().config, usage_log=log)
+            self.assertEqual(client.complete_json("system", "user"), {"ok": True})
+            self.assertEqual(log.totals(), dict(
+                responses=2, responses_without_usage=0, unreadable_lines=0,
+                prompt_tokens=20, completion_tokens=10, total_tokens=30,
+                reasoning_tokens=6, cached_tokens=8,
+            ))
+            self.assertNotIn("secret", log.path.read_text())
+
+    @mock.patch("kg.llm.urllib.request.urlopen")
+    def test_usage_log_keeps_concurrent_lines_intact(self, urlopen):
+        urlopen.side_effect = lambda *a, **k: self._response('{"ok": true}', self.USAGE)
+        with tempfile.TemporaryDirectory() as tmp:
+            log = UsageLog(Path(tmp) / "usage.jsonl")
+            client = MiniMaxM3LLM(self._client().config, usage_log=log)
+            with ThreadPoolExecutor(max_workers=8) as executor:
+                list(executor.map(lambda _: client.complete_json("s", "u"), range(40)))
+            with log.path.open("a") as handle:
+                handle.write('{"usage": {"prompt_tok')  # interrupted write
+            totals = log.totals()
+            self.assertEqual((totals["responses"], totals["total_tokens"]), (40, 600))
+            self.assertEqual(totals["unreadable_lines"], 1)
 
 
 if __name__ == "__main__":

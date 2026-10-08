@@ -10,7 +10,9 @@ import urllib.error
 import urllib.request
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Callable, Iterator, Protocol
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Callable, Iterable, Iterator, Protocol
 
 import json_repair
 
@@ -86,6 +88,70 @@ class LLMConcurrencyLimiter:
             self._semaphore.release()
 
 
+class UsageLog:
+    """Append the provider-reported token usage of every received response.
+
+    A request that times out may still be billed without returning usage, so
+    totals are a lower bound. Request headers and credentials are never written.
+    """
+
+    def __init__(self, path: str | os.PathLike[str]):
+        self.path = Path(path)
+        self._lock = threading.Lock()
+
+    def record(self, model: str, data: dict[str, Any], seconds: float) -> None:
+        entry = {
+            "at": datetime.now(timezone.utc).isoformat(),
+            "seconds": round(seconds, 3),
+            "requested_model": model,
+            "response_model": data.get("model"),
+            "response_id": data.get("id"),
+            "usage": data.get("usage"),
+        }
+        line = json.dumps(entry, ensure_ascii=False) + "\n"
+        with self._lock, self.path.open("a", encoding="utf-8") as handle:
+            handle.write(line)
+
+    def totals(self) -> dict[str, int]:
+        return usage_totals([self.path])
+
+
+def usage_totals(paths: Iterable[Path]) -> dict[str, int]:
+    """Sum usage logs; a line cut off by an interruption is counted, not trusted."""
+    totals = dict.fromkeys((
+        "responses", "responses_without_usage", "unreadable_lines", "prompt_tokens",
+        "completion_tokens", "total_tokens", "reasoning_tokens", "cached_tokens",
+    ), 0)
+    for path in paths:
+        if not path.exists():
+            continue
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            try:
+                usage = json.loads(line).get("usage")
+            except (json.JSONDecodeError, AttributeError):
+                totals["unreadable_lines"] += 1
+                continue
+            totals["responses"] += 1
+            if not isinstance(usage, dict):
+                totals["responses_without_usage"] += 1
+                continue
+            for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
+                totals[key] += _token_count(usage.get(key))
+            totals["reasoning_tokens"] += _token_count(
+                (usage.get("completion_tokens_details") or {}).get("reasoning_tokens")
+            )
+            totals["cached_tokens"] += _token_count(
+                (usage.get("prompt_tokens_details") or {}).get("cached_tokens")
+            )
+    return totals
+
+
+def _token_count(value: Any) -> int:
+    return value if isinstance(value, int) and not isinstance(value, bool) else 0
+
+
 @dataclass(frozen=True)
 class LLMConfig:
     base_url: str
@@ -145,9 +211,11 @@ class ChatCompletionsJSONLLM:
         config: LLMConfig,
         *,
         limiter: LLMConcurrencyLimiter | None = None,
+        usage_log: UsageLog | None = None,
     ):
         self.config = config
         self.limiter = limiter or LLMConcurrencyLimiter()
+        self.usage_log = usage_log
 
     def complete_json(
         self,
@@ -193,11 +261,17 @@ class ChatCompletionsJSONLLM:
             for attempt in range(self.config.retries + 1):
                 try:
                     with self.limiter.slot():
+                        started = time.monotonic()
                         with urllib.request.urlopen(
                             request, timeout=self.config.timeout
                         ) as response:
                             data = json.loads(response.read().decode("utf-8"))
                     _validate_response(data)
+                    # Logged here, not in complete_json: each regeneration is billed.
+                    if self.usage_log is not None:
+                        self.usage_log.record(
+                            self.config.model, data, time.monotonic() - started
+                        )
                     return data
                 except LLMResponseError as exc:
                     if not is_retryable_api_error(exc):
